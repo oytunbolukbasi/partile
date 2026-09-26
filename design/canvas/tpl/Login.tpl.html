@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Giriş — telefon ve SMS kodu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&amp;family=Hanken+Grotesk:wght@400..800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Hanken Grotesk',sans-serif;background:#0C0C0D;color:#F5F2EC}
+a{color:#FFB547}a:hover{color:#FFD08A}
+input::placeholder{color:#A8A39B}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; background: #0C0C0D; color: #F5F2EC; font-family: 'Hanken Grotesk', sans-serif">
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; background: radial-gradient(40% 50% at 20% 10%, rgba(255,106,61,0.5) 0%, rgba(255,106,61,0) 70%), radial-gradient(36% 46% at 60% 0%, rgba(255,176,32,0.4) 0%, rgba(255,176,32,0) 70%), radial-gradient(40% 55% at 95% 20%, rgba(30,201,176,0.4) 0%, rgba(30,201,176,0) 70%)"></div>
+__RAIL:home:900__
+<div style="position: absolute; right: 40px; top: 18px"><a href="#" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: #F5F2EC; font-weight: 600; font-size: 15px; display: flex; align-items: center; text-decoration: none">Uygulamayı indir</a></div>
+
+<div style="position: absolute; left: 490px; top: 150px; width: 460px; display: flex; flex-direction: column; align-items: center; gap: 28px">
+<span style="width: 84px; height: 84px; border-radius: 24px; background: radial-gradient(70% 70% at 25% 20%, #FF6A3D 0%, rgba(255,106,61,0) 70%), radial-gradient(60% 60% at 85% 30%, #FFB020 0%, rgba(255,176,32,0) 70%), radial-gradient(70% 60% at 50% 110%, #1EC9B0 0%, rgba(30,201,176,0) 70%), #0C0C0D; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5)">__MARK:64__</span>
+
+<sc-if value="{{stepPhone}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<h1 style="margin: 0; font: 800 36px 'Schibsted Grotesk', sans-serif; letter-spacing: -1px">Giriş yap ya da kaydol</h1>
+<p style="margin: 0; font-size: 16px; color: #CFC9C0">Şifre yok. Numarana tek seferlik SMS kodu göndeririz.</p>
+</div>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 56px; padding: 0 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #F5F2EC; font: 700 16px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 16px; border-radius: 3px; background: #E30A17; position: relative; display: block"><span style="position: absolute; left: 6px; top: 3px; width: 10px; height: 10px; border-radius: 999px; background: #FFFFFF"></span><span style="position: absolute; left: 9px; top: 4px; width: 8px; height: 8px; border-radius: 999px; background: #E30A17"></span></span>+90<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<label for="tel" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Telefon numarası</label>
+<input id="tel" type="tel" placeholder="5XX XXX XX XX" style="flex-grow: 1; min-width: 0; height: 56px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #F5F2EC; padding: 0 16px; font: 600 18px 'Hanken Grotesk', sans-serif; letter-spacing: 1px">
+</div>
+<button type="button" onClick="{{next}}" style="height: 56px; border: 0; border-radius: 999px; background: #FFFFFF; color: #0C0C0D; font: 800 16px 'Hanken Grotesk', sans-serif">Kodu gönder</button>
+<p style="margin: 0; font-size: 13px; color: #A8A39B; text-align: center; line-height: 1.5">Devam ederek <a href="#">Kullanım Koşulları</a>’nı ve <a href="#">KVKK Aydınlatma Metni</a>’ni kabul etmiş olursun. Numaran düzenleyenlere gösterilmez.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{stepCode}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<h1 style="margin: 0; font: 800 36px 'Schibsted Grotesk', sans-serif; letter-spacing: -1px">Kodu gir</h1>
+<p style="margin: 0; font-size: 16px; color: #CFC9C0"><strong style="color: #F5F2EC">+90 5•• ••• •• 75</strong> numarasına gönderdik · <button type="button" onClick="{{back}}" style="border: 0; background: transparent; color: #FFB547; font: 700 16px 'Hanken Grotesk', sans-serif; padding: 0">Değiştir</button></p>
+</div>
+<div role="group" aria-label="6 haneli kod" style="display: flex; gap: 10px">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="1. hane" value="4" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="2. hane" value="8" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="3. hane" value="1" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="4. hane" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 2px solid #FFB547; background: rgba(255,255,255,0.08); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="5. hane" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+<input type="text" inputmode="numeric" maxlength="1" aria-label="6. hane" style="width: 60px; height: 72px; box-sizing: border-box; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #F5F2EC; text-align: center; font: 800 32px 'Schibsted Grotesk', sans-serif">
+</div>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 12px">
+<a href="Home.dc.html" style="height: 56px; border-radius: 999px; background: #FFFFFF; color: #0C0C0D; font: 800 16px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; text-decoration: none">Giriş yap</a>
+<p style="margin: 0; font-size: 14px; color: #A8A39B; text-align: center">Kod gelmedi mi? <span style="color: #CFC9C0">Yeniden gönder (0:42)</span> · <a href="#">WhatsApp’tan gönder</a></p>
+</div>
+</sc-if>
+
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #A8A39B; padding-top: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"></rect><path d="M11 18h2"></path></svg>Sürekli çıkış mı yapıyor? <a href="#" style="font-weight: 700">Uygulamayı indir ↗</a></div>
+</div>
+
+<div style="position: absolute; left: 72px; right: 0; bottom: 0; height: 120px; display: flex; align-items: center; justify-content: center; gap: 28px; font-size: 15px; color: #CFC9C0; border-top: 1px solid rgba(255,255,255,0.06)"><span>Türkçe ▾</span><a href="#" style="color: #CFC9C0">Yardım</a><a href="#" style="color: #CFC9C0">Blog</a><a href="#" style="color: #CFC9C0">Hakkında</a><a href="#" style="color: #CFC9C0">Gizlilik</a></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 0 }; }
+  renderVals() {
+    return { stepPhone: this.state.step === 0, stepCode: this.state.step === 1,
+      next: () => this.setState({ step: 1 }), back: () => this.setState({ step: 0 }) };
+  }
+}
+</script>
+</body>
+</html>

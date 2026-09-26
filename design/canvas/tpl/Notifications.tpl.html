@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Bildirim paneli</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&amp;family=Hanken+Grotesk:wght@400..800&amp;family=Unbounded:wght@800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Hanken Grotesk',sans-serif;background:#0C0C0D;color:#F5F2EC}
+a{color:#F5F2EC}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; position: relative; overflow: hidden; background: #0C0C0D; color: #F5F2EC; font-family: 'Hanken Grotesk', sans-serif">
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 520px; background: radial-gradient(42% 60% at 18% 0%, rgba(255,106,61,0.55) 0%, rgba(255,106,61,0) 70%), radial-gradient(38% 55% at 55% 0%, rgba(255,176,32,0.45) 0%, rgba(255,176,32,0) 70%), radial-gradient(40% 60% at 92% 0%, rgba(30,201,176,0.4) 0%, rgba(30,201,176,0) 70%), linear-gradient(180deg, rgba(12,12,13,0) 0%, #0C0C0D 100%)"></div>
+<div style="position: absolute; left: 128px; top: 112px; opacity: 0.35; display: flex; flex-direction: column; gap: 32px"><span style="font: 800 64px 'Schibsted Grotesk', sans-serif; letter-spacing: -2px; line-height: 1">Hoş geldin Oytun!</span><span style="display: flex; gap: 40px"><span style="width: 300px; height: 300px; border-radius: 16px; background: radial-gradient(70% 60% at 25% 20%, #C2410C, rgba(194,65,12,0) 70%), #160804"></span><span style="width: 300px; height: 300px; border-radius: 16px; background: radial-gradient(70% 60% at 20% 15%, #0E7C86, rgba(14,124,134,0) 70%), #04151C"></span><span style="width: 300px; height: 300px; border-radius: 16px; border: 1.5px dashed rgba(255,255,255,0.35); box-sizing: border-box"></span></span></div>
+<div style="position: absolute; inset: 0; background: rgba(6,6,7,0.45)"></div>
+__RAIL:bell:960__
+__TOPRIGHT__
+
+<div style="position: absolute; left: 72px; top: 0; width: 460px; height: 960px; box-sizing: border-box; background: #121213; border-right: 1px solid rgba(255,255,255,0.1); box-shadow: 30px 0 80px rgba(0,0,0,0.5); display: flex; flex-direction: column">
+<div style="height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.08)"><h1 style="margin: 0; font: 700 22px 'Schibsted Grotesk', sans-serif; letter-spacing: -0.3px">Bildirimler</h1><div style="display: flex; gap: 6px"><button type="button" style="height: 36px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.08); color: #CFC9C0; font: 700 12px 'Hanken Grotesk', sans-serif; letter-spacing: 0.5px">TÜMÜNÜ OKUNDU YAP</button><a href="Settings.dc.html" aria-label="Bildirim ayarları" style="width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #CFC9C0; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg></a></div></div>
+
+<div style="display: flex; gap: 6px; padding: 12px 24px; border-bottom: 1px solid rgba(255,255,255,0.08)"><button type="button" aria-pressed="true" style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.14); color: #FFFFFF; font: 700 13px 'Hanken Grotesk', sans-serif">Tümü</button><button type="button" aria-pressed="false" style="height: 34px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.06); color: #F5F2EC; font: 600 13px 'Hanken Grotesk', sans-serif">Düzenlediklerim</button><button type="button" aria-pressed="false" style="height: 34px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.06); color: #F5F2EC; font: 600 13px 'Hanken Grotesk', sans-serif">Katıldıklarım</button></div>
+
+<div style="display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 12px 24px 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.6px; color: #A8A39B">BUGÜN</div>
+<sc-for list="{{today}}" as="n" hint-placeholder-count="4">
+<a href="Event.dc.html" style="display: flex; gap: 12px; padding: 12px 24px; text-decoration: none; color: #F5F2EC; background: {{n.bg}}; align-items: flex-start">
+<span style="position: relative; flex-shrink: 0"><span style="width: 44px; height: 44px; border-radius: 999px; background: {{n.av}}; color: #0C0C0D; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center">{{n.i}}</span><span style="position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; border-radius: 999px; background: {{n.badgeBg}}; border: 2px solid #121213; display: flex; align-items: center; justify-content: center; color: #0C0C0D"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.badge}}"></path></svg></span></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1"><span style="font-size: 15px; line-height: 1.4">{{n.text}}</span><span style="font-size: 12px; color: #A8A39B">{{n.meta}}</span></span>
+<sc-if value="{{n.unread}}" hint-placeholder-val="{{true}}"><span style="width: 8px; height: 8px; border-radius: 999px; background: #FF6A3D; margin-top: 8px; flex-shrink: 0"></span></sc-if>
+</a>
+</sc-for>
+<div style="padding: 14px 24px 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.6px; color: #A8A39B">DÜN</div>
+<sc-for list="{{yday}}" as="n" hint-placeholder-count="3">
+<a href="Event.dc.html" style="display: flex; gap: 12px; padding: 12px 24px; text-decoration: none; color: #F5F2EC; align-items: flex-start">
+<span style="position: relative; flex-shrink: 0"><span style="width: 44px; height: 44px; border-radius: 999px; background: {{n.av}}; color: #0C0C0D; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center">{{n.i}}</span><span style="position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; border-radius: 999px; background: {{n.badgeBg}}; border: 2px solid #121213; display: flex; align-items: center; justify-content: center; color: #0C0C0D"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.badge}}"></path></svg></span></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1"><span style="font-size: 15px; line-height: 1.4; color: #CFC9C0">{{n.text}}</span><span style="font-size: 12px; color: #A8A39B">{{n.meta}}</span></span>
+</a>
+</sc-for>
+</div>
+<div style="margin-top: auto; padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #A8A39B; display: flex; align-items: center; gap: 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"></path></svg>Bir planı sessize almak için plan sayfasındaki zil simgesini kullan.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const CHECK = 'M5 12.5l4.5 4.5L19 7.5', CHAT = 'M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-4.6A8 8 0 1 1 21 12z', CAM = 'M4 8h3l2-3h6l2 3h3v12H4z', BELL = 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9', CROWN = 'M3 18l2-10 5 5 2-7 2 7 5-5 2 10z', Q = 'M9.2 9a3 3 0 0 1 5.6 1.2c0 2-2.8 2.4-2.8 4M12 18h.01';
+    const T = 'linear-gradient(135deg, #1EC9B0, #0E7C86)', A = 'linear-gradient(135deg, #F59E0B, #C2410C)', B = 'linear-gradient(135deg, #38BDF8, #1D4ED8)', Y = 'linear-gradient(135deg, #FFD166, #FF6A3D)', O = 'linear-gradient(135deg, #FF6A3D, #FFD166)';
+    return {
+      today: [
+        { i: 'MK', av: T, badge: CHECK, badgeBg: '#1EC9B0', text: 'Mert Ece 30 Oluyor için “Geliyorum” dedi. 14 kişi oldunuz.', meta: '3 dk · Ece 30 Oluyor', unread: true, bg: 'rgba(255,255,255,0.05)' },
+        { i: 'BY', av: A, badge: CHAT, badgeBg: '#FFB020', text: 'Buse yorum yazdı: “Gluten yok ama pasta serbest 🙃”', meta: '12 dk · Ece 30 Oluyor', unread: true, bg: 'rgba(255,255,255,0.05)' },
+        { i: 'CD', av: O, badge: Q, badgeBg: '#FFB547', text: 'Cem listeye alınmak istiyor. Onayla ya da reddet.', meta: '4 sa · Onay bekliyor', unread: true, bg: 'rgba(255,255,255,0.05)' },
+        { i: 'KK', av: Y, badge: BELL, badgeBg: '#F5F2EC', text: 'Yarın 06:30 — Caddebostan Sahil Koşusu. Buluşma: Kalamış iskelesi.', meta: '6 sa · Hatırlatma', unread: false, bg: 'transparent' }
+      ],
+      yday: [
+        { i: 'DA', av: O, badge: CROWN, badgeBg: '#FFB020', text: 'Deniz ortak düzenleyen davetini kabul etti.', meta: 'dün 21:10 · Ece 30 Oluyor' },
+        { i: 'EÇ', av: B, badge: CAM, badgeBg: '#F5F2EC', text: 'Ege albüme 3 fotoğraf ekledi.', meta: 'dün 19:02 · Polonezköy Mangal' },
+        { i: 'SA', av: Y, badge: CHECK, badgeBg: '#1EC9B0', text: 'Selin +1 ile geliyor: Ayşe.', meta: 'dün 12:40 · Ece 30 Oluyor' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

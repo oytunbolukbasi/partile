@@ -1,7 +1,7 @@
 # partile — MVP Ekran Envanteri
 
 > Tasarım tuvali: Claude Design "partile — Tasarım" (31 artboard). Bu doküman, kodlamaya başlamadan önce hangi ekranın çizili, hangisinin yalnızca spesifikasyonla geçileceğini ve hangi fazda olduğunu listeler.
-> Tarih: 26 Eylül 2026 · Referans: `PARTILE_RESEARCH.md` (Partiful incelemesi ve TR yerelleştirme kararları)
+> Tarih: 26 Eylül 2026 · Ürün kararları ve terminoloji: `CLAUDE.md` · Ham Partiful referansları: `research/screens/`, `research/text/`
 
 ## Tasarım dili (özet)
 
