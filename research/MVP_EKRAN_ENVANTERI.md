@@ -1,6 +1,6 @@
 # partile — MVP Ekran Envanteri
 
-> Tasarım tuvali: Claude Design "partile — Tasarım" (31 artboard). Bu doküman, kodlamaya başlamadan önce hangi ekranın çizili, hangisinin yalnızca spesifikasyonla geçileceğini ve hangi fazda olduğunu listeler.
+> Tasarım tuvali: Claude Design "partile — Tasarım" (35 artboard). Bu doküman, kodlamaya başlamadan önce hangi ekranın çizili, hangisinin yalnızca spesifikasyonla geçileceğini ve hangi fazda olduğunu listeler.
 > Tarih: 26 Eylül 2026 · Ürün kararları ve terminoloji: `CLAUDE.md` · Ham Partiful referansları: `research/screens/`, `research/text/`
 
 ## Tasarım dili (özet)
@@ -43,6 +43,17 @@
 | 22 | Profil (kendi) | `Profile` | 1440 | — | Yalnızca herkese açık planlar profilde |
 | 23 | Boş durumlar | `Empty` | 1440 | — | Ortak arkadaşlar / Mesajlar / Bildirimler → "ilk planını oluştur" |
 | 24 | Tasarım dili · Logo | `Main`, `LogoFinal` | 1440 | — | Referans panoları |
+
+## Faz 1 — giriş yapmamış (public) yüzeyler (çizili)
+
+| # | Ekran | Artboard | Cihaz | Not |
+|---|---|---|---|---|
+| 25 | Landing | `Landing`, `LandingMobile` | 1440 · 390 | Hero "Plan yap. Linki at. Kim geliyor gör." + telefon mock + WhatsApp balonu; 4 özelleştirme kartı; şablon şeridi; 3 büyük özellik (WhatsApp, kim geliyor, duyuru); "Nasıl çalışır" 3 adım + 6 küçük özellik; kapanış CTA; footer. **Sahte yorum/istatistik yok** — kullanıcı gelince eklenir. |
+| 26 | Occasion / SEO sayfası | `Occasion` | 1440 | Örnek: `/dogum-gunu-davetiyesi`. Hero, 12 şablonlu grid (kategori çipleri), 3 özellik, SEO metni + SSS, diğer davetiyeler bandı. Aynı kalıp: yemek & brunch, ev partisi, kına & nişan, mangal, yılbaşı (sezonluk). |
+| 27 | Davetiye — giriş yapmamış misafir (masaüstü) | `InviteDesktop` | 1440 | Üstte viral bant + logo/Giriş; rail yok. Üç yuvarlak buton → `RsvpFlow`; "Katılımcılara özel" kartı; takvime ekleme katılım sonrası. Mobil karşılığı `InviteMobile`. |
+| 28 | Public nav / footer | `build.py` → `__PUBNAV__`, `__PUBFOOTER__` | — | Nav: logo · Doğum günü · Yemek & brunch · Ev partisi · Yılbaşı · Kına & nişan · Giriş · Oluştur. Footer: CTA çifti + Türkçe/Yardım/Blog/Hakkında/Gizlilik/KVKK/Koşullar/Uygulama. Keşfet Faz 2'de eklenir. |
+
+**Giriş yapmadan oluşturma (spec):** `/create` girişsiz açılır (`Create` ile aynı; "Düzenleyen" satırı "Giriş yapınca adın görünür"). "Yayınla ve paylaş" → `Login` (telefon + kod) → taslak hesaba bağlanır → `Share`. Taslak, doğrulanana kadar tarayıcıda (localStorage) tutulur.
 
 ## Faz 1 — spesifikasyonla geçilecekler (çizim yok, aynı kalıplar)
 

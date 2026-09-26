@@ -71,6 +71,30 @@ def tabbar(active):
     return ('<nav aria-label="Alt menü" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 6px 12px 22px; background: rgba(12,12,13,0.88); border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center">'
             + "".join(out) + '</nav>')
 
+OCCASIONS = [("dogum-gunu", "Doğum günü", "Occasion.dc.html"), ("yemek", "Yemek & brunch", "#"), ("ev-partisi", "Ev partisi", "#"), ("yilbasi", "Yılbaşı", "#"), ("kina", "Kına & nişan", "#")]
+
+def pubnav(active=None, tone="dark"):
+    fg = "#F5F2EC" if tone == "dark" else "#0C0C0D"
+    dim = "#CFC9C0" if tone == "dark" else "#5F584F"
+    links = "".join(f'<a href="{href}" style="color: {fg if key == active else dim}; font-weight: {700 if key == active else 600}; font-size: 15px; text-decoration: none; padding: 8px 2px">{label}</a>' for key, label, href in OCCASIONS)
+    login = f'<a href="Login.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {"rgba(255,255,255,0.3)" if tone == "dark" else "rgba(0,0,0,0.25)"}; color: {fg}; font-weight: 700; font-size: 15px; display: flex; align-items: center; text-decoration: none">Giriş</a>'
+    create = ('<a href="Create.dc.html" style="height: 44px; padding: 0 20px; border-radius: 999px; background: #FFFFFF; color: #0C0C0D; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 8px; text-decoration: none; border: 1px solid rgba(0,0,0,0.08)">'
+              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Oluştur</a>')
+    return (f'<header style="position: absolute; left: 0; right: 0; top: 0; height: 76px; display: flex; align-items: center; padding: 0 48px; gap: 36px; color: {fg}">'
+            f'<a href="Landing.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: {fg}">{LOGO_RAIL}<span style="font: 800 26px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.8px">partile</span></a>'
+            f'<nav aria-label="Ana menü" style="display: flex; gap: 24px; align-items: center">{links}</nav>'
+            f'<div style="margin-left: auto; display: flex; gap: 10px">{login}{create}</div></header>')
+
+def pubfooter(top, tone="dark"):
+    fg = "#F5F2EC" if tone == "dark" else "#0C0C0D"; dim = "#A8A39B" if tone == "dark" else "#5F584F"
+    line = "rgba(255,255,255,0.08)" if tone == "dark" else "rgba(0,0,0,0.08)"
+    a = lambda t: f'<a href="#" style="color: {dim}; font-weight: 600; font-size: 15px; text-decoration: none">{t}</a>'
+    return (f'<footer style="position: absolute; left: 0; right: 0; top: {top}px; padding: 40px 48px 32px; border-top: 1px solid {line}; display: flex; flex-direction: column; align-items: center; gap: 22px; color: {fg}">'
+            f'<div style="display: flex; align-items: center; gap: 10px">{LOGO_RAIL}<span style="font: 800 24px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.7px">partile</span></div>'
+            f'<div style="display: flex; gap: 10px"><a href="Create.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; background: {fg}; color: {"#0C0C0D" if tone == "dark" else "#F5F2EC"}; font-weight: 800; font-size: 14px; display: flex; align-items: center; text-decoration: none">Ücretsiz plan oluştur</a><a href="Occasion.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {line}; color: {fg}; font-weight: 700; font-size: 14px; display: flex; align-items: center; text-decoration: none">Davetiye şablonları</a></div>'
+            f'<div style="display: flex; gap: 22px; flex-wrap: wrap; justify-content: center">{a("Türkçe ▾")}{a("Yardım")}{a("Blog")}{a("Hakkında")}{a("Gizlilik")}{a("KVKK")}{a("Kullanım koşulları")}{a("Uygulamayı indir ↗")}</div>'
+            f'<div style="font-size: 12px; color: {dim}">© 2026 partile · İstanbul</div></footer>')
+
 def apply_logo():
     for f in P.glob("*.dc.html"):
         s = f.read_text()
@@ -89,11 +113,16 @@ def expand_templates():
                 active, h = arg.split(":"); return rail(active, int(h))
             if kind == "TOPRIGHT": return TOPRIGHT
             if kind == "TABBAR": return tabbar(arg)
+            if kind == "PUBNAV":
+                active, tone = ((arg or "").split(":") + ["dark"])[:2]; return pubnav(active or None, tone)
+            if kind == "PUBFOOTER":
+                top, tone = (arg.split(":") + ["dark"])[:2]; return pubfooter(int(top), tone)
             if kind == "LOGO_BIG": return LOGO_BIG
+            if kind == "LOGO_RAIL": return LOGO_RAIL
             if kind == "LOGO_MOBILE": return LOGO_MOBILE
             if kind == "MARK": return MARK.format(s=arg, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF")
             raise SystemExit("unknown " + kind)
-        out = re.sub(r"__(RAIL|TOPRIGHT|TABBAR|LOGO_BIG|LOGO_MOBILE|MARK)(?::([^_]+))?__", sub, s)
+        out = re.sub(r"__(RAIL|TOPRIGHT|TABBAR|PUBNAV|PUBFOOTER|LOGO_BIG|LOGO_RAIL|LOGO_MOBILE|MARK)(?::([^_]+))?__", sub, s)
         (P / f.name.replace(".tpl.html", ".dc.html")).write_text(out); print("built ->", f.name)
 
 if __name__ == "__main__":

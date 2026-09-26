@@ -6,7 +6,7 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 
 ## Durum (26 Eylül 2026)
 
-- Araştırma bitti, tasarım v1 bitti (31 artboard), MVP ekran envanteri yazıldı.
+- Araştırma bitti, tasarım v1 bitti (35 artboard; giriş yapmamış yüzeyler dahil), MVP ekran envanteri yazıldı.
 - Sıradaki iş: **kod iskeleti** (Turborepo + Next.js + tasarım token'ları). Kullanıcı tasarımı inceliyor; düzeltmeler toplu gelecek.
 - Kod henüz yok. `apps/`, `packages/` klasörleri açılmadı.
 
