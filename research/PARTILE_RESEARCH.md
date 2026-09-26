@@ -152,15 +152,134 @@ Partiful: Halloween, Birthdays, Dinners, Housewarmings. partile:
 
 ---
 
-## 4. Login sonrası inceleme (Adım 3) — bekliyor
+## 4. Login sonrası inceleme (Adım 3)
 
-Giriş yapıldıktan sonra incelenecek core özellikler:
-- Home (Upcoming · Hosting · Drafts sekmeleri, "Party Genie" AI önerisi)
-- Etkinlik oluşturma → kaydetme → paylaşım akışı ve share sheet
-- Host görünümü: guest list yönetimi, onay, Text Blast, co-host, check-in
-- Tarih anketi akışı (host + misafir)
-- Aktivite feed'i: yorum, reaksiyon, fotoğraf albümü
-- Profil, mutuals, follow, bildirim ayarları
-- Split costs / Chip In
+> Oturum açık Partiful hesabıyla web'de (masaüstü, 1280px) 26 Eylül 2026'da incelendi. Ekran görüntüleri: `research/screens/app/`.
+> Kurallar: gerçek etkinlik oluşturulmadı (Save draft / Publish'e basılmadı), kimseye mesaj/davet/Text Blast gönderilmedi, hiçbir ayar kaydedilmedi. Hesapta host edilen etkinlik olmadığı için host araçlarının bir kısmı (guest list yönetimi, Text Blast, check-in) Partiful Help Center'dan (`help.partiful.com` → *Partiful for Hosts*) derlendi, bunlar **[HC]** ile işaretli.
+> Telefon numarası içeren görseller maskelendi.
 
-*(Bu bölüm login sonrası doldurulacak.)*
+### 4.1 Uygulama kabuğu ve navigasyon
+- **Sol dikey sidebar (ikon rail, hover'da etiketli açılır):** Home · Explore · Create · Send a card · Messages · Notifications — altta Settings ve Profile (profil değiştirici oklu).
+- **Sağ üst:** `Get the app` · `+ Create` · hamburger menü → profil kartı ("See your profile"), **New event** (gradient vurgulu), **Send a card**, Messages, Mutuals, Feedback, Help Center, Profile Settings, Log out.
+- Kabuk koyu (#111) + üstte mor/pembe gradient "aura"; etkinlik sayfalarında kabuk etkinliğin temasına bürünür.
+
+![Hamburger menü](screens/app/02_menu.jpg)
+![Sidebar açık + bildirim paneli](screens/app/46_notifications_sidebar.jpg)
+
+### 4.2 Home (`/events`)
+- Başlık: **"Welcome back {isim}!"** + "You have 1 upcoming event."
+- Filtre çipleri: **Search · Upcoming (n) · Hosting (n) · Attended (n)**. *Web'de "Drafts" sekmesi ve "Party Genie" AI önerisi görünmüyor* — ikisi de yalnızca mobil uygulamada (planın varsayımı düzeltildi).
+- Etkinlik kartı: kare kapak, sol üstte tarih rozeti ("Sat 10/17 at 1pm ET"), sağ altta RSVP durumu ("👍 GOING"), altında başlık + "Hosted by". Her zaman yanında kesikli çerçeveli **"+ New event"** kartı (boş durum = CTA).
+- Kart `…` menüsü: **Sync all events to calendar · Mute event · Remove me from event**.
+- Alt bölümler: **Your Cards** ("Create a Digital Card — For birthdays, announcements, and more!") ve **Mutuals** (boş: "No mutuals yet — Check back here when you go to your first event!").
+
+![Home — Upcoming](screens/app/01_home_upcoming.jpg)
+![Home — kart menüsü](screens/app/04_home_card_menu.jpg)
+![Home — Your Cards](screens/app/03_home_cards.jpg)
+
+### 4.3 Etkinlik sayfası — RSVP vermiş misafir görünümü (`/e/{id}`)
+RSVP sonrası "Restricted Access" kilidi kalkıyor, şunlar açılıyor:
+- **Üst aksiyon satırı:** `Add` (takvime ekle) · paylaş (✈︎) · 🔔 (mute) · `…`
+- `…` menüsü: **Copy link · Make flyer · Mute event · Remove me from event · Report event**
+- **Make flyer:** tarih + poster + başlıktan otomatik **dikey sosyal medya flyer'ı** üretir, "Download flyer". → *partile için çok değerli: Instagram Story/WhatsApp durum paylaşımı.*
+- **Mute:** "Yorum, foto yükleme bildirimleri kapanır; host'un Text Blast'leri yine gelir."
+- **RSVP hapı (sağda büyük yuvarlak "👍 Going"):** tıklayınca düzenleme sheet'i — Going / Maybe / Can't Go, **"RSVPING AS {isim}" + attendee sayısı (+1)**, "+Post a comment" (GIF destekli), ☑︎ "Follow event organizer to stay in the loop". Cancel / Continue.
+- **Davet et (✈︎):** "Invite your guests — Share the link to invite friends. When you have Mutuals you can invite them directly!" + Copy link. (Mutual yoksa sadece link; varsa liste halinde uygulama içi davet.)
+- **Guest List:** "493 Going · 607 Interested · 36 Maybe" + avatar stack + View all.
+- **Photo Album:** Camera · Upload · Copy link (albümün ayrı paylaşılabilir linki var).
+- **Activity (feed):** "472 updates", "+ Add a comment" (GIF + görsel ekleme, sürükle-bırak "Drop your photos!"), RSVP olayları otomatik feed'e düşer ("X rsvped Going 👍 · 3m"), her satırda **Reply**, "Load more".
+- Public etkinlikte ek olarak "See all in 🗽 Trending in NYC" ve "Trending This Week" carousel'i.
+
+![Etkinlik üstü](screens/app/10_event_going_top.jpg)
+![Guest list](screens/app/11_event_going_guestlist.jpg)
+![Albüm + aktivite](screens/app/12_event_album_activity.jpg)
+![RSVP düzenleme](screens/app/14_event_rsvp_edit.jpg)
+![… menüsü](screens/app/15_event_more_menu.jpg)
+![Flyer üretici](screens/app/16_event_flyer.jpg)
+![Davet paneli](screens/app/13_event_invite_guests.jpg)
+
+### 4.4 Create — login sonrası farklar
+- "Hosted by" satırında gerçek profil + **"+ Add cohosts"** butonu doğrudan editörde.
+- Alt bar yerine **sağ dikey panel**: Theme · Effect · Settings · Preview; sağ altta sabit **Save draft**.
+- Poster alanı sürükle-bırak ("Drop it here!").
+
+![Create (login)](screens/app/20_create_loggedin.jpg)
+
+### 4.5 Tarih anketi — "Find a Time"
+**Host tarafı (create'te "Can't decide when? Poll your guests →"):**
+- Modal "Find a Time": serbest metin seçenek alanları (Option 1 "Fri Oct 2nd", Option 2 …) + **"+ Add another option"**, Cancel / Continue.
+- Uyarı: **Chip-in ve Guest Approval ile birlikte kullanılamaz.**
+- "How it works": 1) Misafirler her seçeneğe RSVP verir → 2) Host "Pick this" ile seçer, yanıtlar **otomatik Going / Maybe / Can't Go'ya dönüşür** → 3) Sonradan davet edilenler anket sürecini görmez.
+
+**Misafir tarafı [HC]:** her seçeneğe **Yes / No / Maybe** oyu; seçim yapıldığında misafirlere bildirim gider. Seçim için en az bir yanıt gerekli.
+
+![Find a Time](screens/app/21_poll_find_a_time.jpg)
+![Find a Time — nasıl çalışır](screens/app/22_poll_how_it_works.jpg)
+
+### 4.6 Event Settings (host kontrol paneli)
+Modal, sol dikey sekmeler:
+
+| Sekme | İçerik |
+|---|---|
+| **Hosts** | "Manage Hosts — Hosts can edit & manage this event, including adding/removing other cohosts". Creator · You, **+ Add cohost** (mutual listesinden, karşı taraf kabul edene kadar *Pending*), **Add Cohost Via Link** toggle (linke sahip herkes host olur). |
+| **RSVPs** | Accept RSVPs · **Plus ones** (Up to N) + Require names · **Require Guest Approval** ("Get on the list") · **Max Capacity** (dolunca waitlist) · **Allow Guests to Invite Mutuals** · RSVP Button Style (Icons/Emojis) · Guests can RSVP "Maybe" · "Add a questionnaire" |
+| **Chip in** | Off / **Required amount** / **Pay what you can**. Para birimi + kişi başı tutar + Venmo / Cash App / PayPal kullanıcı adları. Kırmızı uyarı: *"Payments are not verified. Guests self-report payment during RSVP."* Guest Approval ve Find a Time ile birlikte çalışmaz. |
+| **Questionnaire** | Toggle → soru tipi (Short Answer …), Required, + Add question, Save. |
+| **Display & Privacy** | "Guest List and Activity Feed are hidden pre-RSVP". Show Activity Timestamps · Show Guest Names · Show Guest Count · **Let Guests Send Crushes** · **Event Password** |
+| **Audience** | Private (Only people with the link → "Invite-only") / Public (Anyone on or off Partiful). |
+| **Photo Album** | "Only RSVP'd guests can view the Photo Album". **Apply a Filter to the Album** · Allow Guests to Upload · Open / Share Photo Album. |
+| **Auto-Reminders** | "Enable automatic SMS reminders". Reminders to RSVP — 1 hafta önce (Invited, Maybe) · Event Reminders — 2 saat önce (Going). [HC] Kanal ülkeye göre SMS / iMessage / **WhatsApp**; uygulaması olana push. Program özelleştirilemiyor. |
+
+![Hosts](screens/app/30_settings_hosts.jpg)
+![RSVPs](screens/app/31_settings_rsvps.jpg)
+![Chip in](screens/app/32_settings_chipin.jpg)
+![Chip in — ödeme yöntemleri](screens/app/33_settings_chipin_methods.jpg)
+![Display & Privacy](screens/app/34_settings_display_privacy.jpg)
+![Audience](screens/app/35_settings_audience.jpg)
+![Photo Album](screens/app/36_settings_photo_album.jpg)
+![Auto-Reminders](screens/app/37_settings_auto_reminders.jpg)
+
+### 4.7 Host araçları — guest list, onay, Text Blast, check-in [HC]
+*(Hesapta host edilen etkinlik yok; ekran görüntüsü alınamadı.)*
+- **Davet:** etkinlik sayfasında "Invite" → Mutuals + geçmiş misafirler listesi, geçmiş etkinliğe göre filtre; uygulamada rehber senkronu; ayrıca Copy link / QR / e-posta daveti. Link ile gelenler "Invited" sayılmaz.
+- **Guest list:** host yalnızca isim + RSVP durumunu görür, **telefon numarasını göremez**. CSV export, manuel misafir ekleme, misafir çıkarma, RSVP'yi host adına değiştirme.
+- **Guest Approval:** guest toolbar'da isim → dropdown → "Approved"; toplu onay var. Waitlist ile birlikte çalışabilir; waitlist'ten otomatik çıkarma kapatılabilir.
+- **Text Blast:** web'de sağ toolbar'da, mobilde altta. "New Blast" → mesaj → **hedef RSVP durumlarını seç** → Send. Etkinlik başına **en fazla 10 blast**, gönderildikten sonra düzenlenemez, yalnızca Partiful üzerinden davet edilmiş/RSVP vermiş kişilere gider. Tek misafire özel mesaj da mümkün.
+- **Check-in (yalnızca web):** guest list → "Bulk actions" / ⚙︎ → "Check in guests" → arama + işaretle. Misafire bildirim gitmez, geri alınabilir. Check-in yapılanlara Text Blast ve CSV'de check-in durumu.
+- **Co-host:** tüm ayarları düzenleyebilir ve Text Blast gönderebilir.
+
+### 4.8 Profil, Mutuals, Messages, Bildirimler
+- **Profil (`/u/{id}`):** avatar (kamera ile değiştir), isim, "🐣 Joined Sep '26", Edit profile. Düzenlemede: bio, **telefon ("Only visible to you")**, + Instagram / Twitter / Snapchat, "Celebrate your birthday" (doğum günü hatırlatması → app), Delete Account.
+- **Switch profile:** kişisel profil + **"Create Org Profile"** (organizasyon profiline geçiş).
+- **Mutuals (`/mutuals`):** "~everyone you've ever partied with~" — tablo: NAME · SHARED EVENTS. Boş durum: ⏳ "No Mutuals yet… but check back after your first event!"
+- **Messages (inbox):** DM yalnızca mutual'larla; boş durum 🪩 "No one to message yet — Check back after your first event!" + Create event.
+- **Notifications:** sidebar'dan açılan panel, "SEE ALL"; boş durum 🪩 "You deserve notifications — Go host an event!"
+- **Profile Settings:** Account (Change Phone Number, Log Out, Delete Account) · **Notifications** (Events: RSVP Updates / Comments / Photo Uploads / Reactions / Event Reminders → All/Off; Social: Crush; Other: Event Picks for You, Perks & Giveaways, Seasonal Reminders; "block için profile git") · **Calendar Sync** (Google Calendar / iCalendar Connect; Waitlist / Pending approval / Invited etkinlikleri de senkronla) · Language · Accessibility (**Reduce Motion**) · About.
+
+![Profil](screens/app/40_profile.jpg)
+![Profil düzenleme](screens/app/41_profile_edit.jpg)
+![Profil değiştirici / Org](screens/app/47_switch_profile_org.jpg)
+![Mutuals](screens/app/48_mutuals_empty.jpg)
+![Messages](screens/app/45_messages_empty.jpg)
+![Account](screens/app/42_settings_account.jpg)
+![Bildirim ayarları](screens/app/43_settings_notifications.jpg)
+![Calendar Sync](screens/app/44_settings_calendar_sync.jpg)
+
+### 4.9 Cards (`/createCard`) — yeni ürün
+- "Welcome to Cards — birthday wishes, announcements… Send digital cards to friends, lovers, and enemies." + "Hosting? Send an invite instead".
+- Editör davetiye editörünün hafif versiyonu: "From {isim}", zarf içinde kart görseli (Change image), başlık + not, sağ panel **Theme · Font · Effect**, sağ üstte **Next**.
+- Etkinlik dışı kullanım → uygulamaya dönüş sıklığını artıran bir "retention" özelliği.
+
+![Cards karşılama](screens/app/50_cards_welcome.jpg)
+![Card editörü](screens/app/51_cards_editor.jpg)
+
+### 4.10 partile için çıkarımlar
+1. **MVP'ye eklenecekler:** Make flyer (Story/WhatsApp durum görseli), Photo Album + filtre, activity feed'de otomatik RSVP satırları + Reply, "Follow organizer" kutusu, Mute event, Calendar sync (Google + .ics).
+2. **Event Settings bilgi mimarisi aynen alınabilir:** Düzenleyenler · Katılım · Masrafı böl · Sorular · Görünürlük & Gizlilik · Kitle · Albüm · Hatırlatmalar.
+3. **Masrafı böl (Chip in karşılığı):** Required / "Gönlünden ne koparsa"; Venmo/Cash App yerine **IBAN, Papara, ininal** alanları; "Ödemeler doğrulanmaz, misafir beyanıdır" uyarısı aynen. Anket ve katılım onayıyla aynı anda kapalı.
+4. **Hatırlatmalar:** Partiful TR benzeri ülkelerde zaten WhatsApp kullanıyor → partile'de varsayılan kanal WhatsApp, fallback SMS.
+5. **Gizlilik:** host misafir telefonunu görmez (KVKK ile birebir uyumlu); "Crush" ve "Event Password" Faz 2.
+6. **Boş durumlar** (Mutuals, Messages, Notifications) hepsi "ilk etkinliğini oluştur" CTA'sına bağlanıyor → partile'de de her boş durum = Plan oluştur.
+7. **Web'de olmayanlar:** Drafts sekmesi, Party Genie, tam guest list — Partiful bunları uygulamaya itiyor. partile web-first olduğu için bunları web'de de sunmak bir fark yaratır.
+
+**Yeni terimler (3.1'e ek):** Chip in → *Masrafı böl* · Make flyer → *Afiş oluştur* · Mutuals → *Ortak arkadaşlar* · Crush → *Gizli beğeni* · Cards → *Kartlar* · Mute event → *Sessize al* · Text Blast → *Duyuru* · Check in → *Giriş kontrolü* · Waitlist → *Bekleme listesi* · Plus ones → *+1 misafir*.
