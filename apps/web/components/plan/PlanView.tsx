@@ -21,7 +21,7 @@ import { EffectLayer } from "@/components/plan/EffectLayer";
 import { RsvpFlow } from "@/components/plan/RsvpFlow";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
 import { BellIcon, BellOffIcon, CalendarIcon, CheckIcon, ChevronDownIcon, CrownIcon, LockIcon, PinIcon } from "@/components/shell/icons";
-import { countByStatus, type Plan } from "@partile/core";
+import { countByStatus, isPlanOver, type Plan } from "@partile/core";
 import type { Viewer } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { titleFontStyle } from "@/lib/fonts";
@@ -72,6 +72,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
   const joined = !!rsvp && rsvp.status !== "no" && rsvp.status !== "pending";
   const pendingApproval = rsvp?.status === "pending";
   const cancelled = plan.status === "cancelled";
+  const ended = !cancelled && isPlanOver(plan);
   const polling = !cancelled && !!plan.poll?.length && !plan.startsAt;
   const cancelNote = plan.feed.find((f) => f.kind === "blast" && f.text?.startsWith("Plan iptal edildi"))?.text?.replace(/^Plan iptal edildi\.\s*/, "");
   const hostNames = plan.hosts.map((h) => h.name).join(" & ");
@@ -79,7 +80,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
 
   return (
     <ThemeSurface themeId={plan.themeId} className="min-h-dvh pb-28 md:pb-16">
-      {!joined && !cancelled && <EffectLayer effect={plan.effect} themeId={plan.themeId} seed={plan.code.length} />}
+      {!joined && !cancelled && !ended && <EffectLayer effect={plan.effect} themeId={plan.themeId} seed={plan.code.length} />}
       {!joined && (
         <Link href={routes.landing} className="flex h-13 items-center justify-between bg-bg px-4 text-[15px] text-text md:justify-center md:gap-4">
           <span>Plan yapmak bu kadar kolay</span>
@@ -137,7 +138,13 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
               {cancelNote && <span className="text-[15px] opacity-90">“{cancelNote}” — {plan.hosts.find((h) => h.owner)?.name.split(" ")[0] ?? "Düzenleyen"}</span>}
             </div>
           )}
-          {!cancelled && !joined && !polling && !pendingApproval && ready && (
+          {ended && (
+            <div role="status" className="flex flex-col gap-1.5 rounded-xl border border-ink/16 bg-ink/8 px-4 py-4">
+              <span className="text-lg font-bold">Bu plan sona erdi</span>
+              <span className="text-[15px] opacity-85">{joined ? (plan.albumGuestsCanUpload ? "Albüm açık: o günden fotoğraflarını ekleyebilirsin." : "Albüm ve akış katılımcılara açık kalır.") : "Katılım kapandı. Albüm ve akış yalnız katılımcılara açık."}</span>
+            </div>
+          )}
+          {!cancelled && !ended && !joined && !polling && !pendingApproval && ready && (
             <div className="flex flex-col items-center gap-4 md:hidden">
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
               <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} variant={plan.rsvpStyle} allowMaybe={plan.allowMaybe} />
@@ -148,7 +155,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             {joined ? (
               <>
                 <span className={chip}>TSİ</span>
-                <CalendarMenu plan={plan} full />
+                {!ended && <CalendarMenu plan={plan} full />}
                 <button type="button" aria-label="Davet et" title="Davet et" onClick={share} className="flex size-10 items-center justify-center rounded-pill border border-ink/28 bg-ink/8"><SendIcon size={16} /></button>
                 {viewer && (
                   <button type="button" aria-pressed={state.muted} disabled={busy} onClick={() => toggle(() => mutePlan(plan.code, !state.muted))} title={state.muted ? "Bildirimleri aç" : "Duyuru ve hatırlatmaları sessize al"} className={state.muted ? chip : "flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"}>
@@ -157,7 +164,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                 )}
               </>
             ) : (
-              !cancelled && !preview && <RemindLaterMenu code={plan.code} startsAt={plan.dateTbd ? undefined : plan.startsAt} remindAt={state.remindAt} signedIn={!!viewer} chipClass={chip} />
+              !cancelled && !ended && !preview && <RemindLaterMenu code={plan.code} startsAt={plan.dateTbd ? undefined : plan.startsAt} remindAt={state.remindAt} signedIn={!!viewer} chipClass={chip} />
             )}
           </div>
 
@@ -232,7 +239,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                 <span className="flex items-center gap-2 text-[17px] font-bold"><LockIcon size={18} /> Katılımcılara özel</span>
                 <p className="text-[15px] leading-relaxed opacity-85">Kimlerin geldiğini, yorumları ve fotoğraf albümünü yalnızca katılımını bildirenler görür.</p>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setFlow("going")} className="h-11 rounded-pill bg-contrast px-4.5 text-[15px] font-bold text-on-contrast">Katılımını bildir</button>
+                  {!cancelled && !ended && <button type="button" onClick={() => setFlow("going")} className="h-11 rounded-pill bg-contrast px-4.5 text-[15px] font-bold text-on-contrast">Katılımını bildir</button>}
                   <Link href={routes.login} className="flex h-11 items-center px-3.5 text-[15px] font-bold">Zaten bildirdin mi? Giriş yap</Link>
                 </div>
               </div>
@@ -278,6 +285,8 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             <div className="glass flex w-full flex-col gap-1.5 rounded-2xl p-4.5"><span className="font-bold">Onay bekliyor</span><span className="text-sm opacity-85">Katılımını bildirdin; düzenleyen listeye alınca haber veririz.</span><button type="button" onClick={() => setFlow("going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button></div>
           ) : cancelled ? (
             <span className="max-w-[300px] text-center text-sm opacity-75">Plan iptal edildiği için katılım kapalı.</span>
+          ) : ended && !joined ? (
+            <span className="max-w-[300px] text-center text-sm opacity-75">Plan sona erdiği için katılım kapalı.</span>
           ) : !joined ? (
             <>
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
@@ -294,13 +303,13 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                   <span className="text-xs font-extrabold tracking-wide opacity-75">KATILIMIN</span>
                   <span className="display text-xl tracking-normal">{rsvpLabel[rsvp!.status as RsvpStatus]}</span>
                   {rsvp!.plusOnes ? <span className="text-sm opacity-85">+1 misafir: {rsvp!.plusOneNames?.[0] || rsvp!.plusOnes}</span> : null}
-                  <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>
+                  {!ended && <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>}
                 </div>
               </div>
-              <button type="button" onClick={share} className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-contrast text-[15px] font-extrabold text-on-contrast"><SendIcon /> Arkadaşlarını davet et</button>
+              {!ended && <button type="button" onClick={share} className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-contrast text-[15px] font-extrabold text-on-contrast"><SendIcon /> Arkadaşlarını davet et</button>}
             </div>
           )}
-          {joined ? (
+          {ended ? null : joined ? (
             <CalendarMenu plan={plan} full variant="card" className="w-full" />
           ) : (
             <div className="glass flex w-full items-center gap-3 rounded-xl p-4">
@@ -312,7 +321,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
         </aside>
       </div>
 
-      {joined && (
+      {joined && !ended && (
         <div className="fixed inset-x-4 bottom-6 flex h-[60px] items-center gap-1.5 rounded-pill bg-bg p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] md:hidden">
           <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="flex h-12 grow items-center justify-center gap-2 rounded-pill text-[15px] font-extrabold text-[#160804]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
             <CheckIcon size={18} /> {rsvpLabel[rsvp!.status as RsvpStatus]} <ChevronDownIcon size={16} />

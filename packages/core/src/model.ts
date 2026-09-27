@@ -96,3 +96,10 @@ export type Conversation = {
   unread: number;
 };
 export type Message = { id: string; senderId: string; text: string; at: string; read: boolean };
+
+/** A dated plan is over once it ends (or 6 hours after it starts when there is no end time). TBD plans never end. */
+export const isPlanOver = (plan: { startsAt?: string; endsAt?: string; dateTbd?: boolean }, now = Date.now()): boolean => {
+  if (plan.dateTbd || !plan.startsAt) return false;
+  const end = plan.endsAt ? new Date(plan.endsAt).getTime() : new Date(plan.startsAt).getTime() + 6 * 3600e3;
+  return now > end;
+};

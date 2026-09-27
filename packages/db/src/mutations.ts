@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import { slugify, type PlanDraft, type Rsvp } from "@partile/core";
+import { formatDayLong, formatTime, slugify, type PlanDraft, type Rsvp } from "@partile/core";
 import { getDb } from "./client";
 import { blasts, conversations, feedItems, follows, guests, laterReminders, planCodeAliases, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
 
@@ -582,4 +582,26 @@ export async function deleteAccount(userId: string): Promise<AccountDeletion | n
   await db.delete(users).where(eq(users.id, userId)); // follows, mutes, later reminders cascade
 
   return { files: [...new Set(files)], cancelled };
+}
+
+/* ---------- date change ---------- */
+
+/**
+ * The host moved the date (or a poll day was picked): feed line + in-app notification to everyone who has not said
+ * "Gelemiyorum", and the plan's reminders re-arm for the new date. Like a cancellation it ignores mutes.
+ * Returns the recipients' e-mails for the caller to mail.
+ */
+export async function announceDateChange(planId: string, hostId: string, startsAt: string, kind: "changed" | "picked") {
+  const db = await getDb();
+  const [plan] = await db.select({ title: plans.title, code: plans.code, status: plans.status }).from(plans).where(eq(plans.id, planId)).limit(1);
+  if (!plan || plan.status !== "published") return null;
+  const when = `${formatDayLong(startsAt)} · ${formatTime(startsAt)}`;
+  const line = kind === "picked" ? `Tarih netleşti: ${when}` : `Tarih değişti: ${when}`;
+  await db.insert(feedItems).values({ id: id(), planId, actorId: hostId, kind: "blast", text: line });
+  const gs = await db.select({ userId: guests.userId, email: guests.email }).from(guests).where(and(eq(guests.planId, planId), ne(guests.status, "no")));
+  const [host] = await db.select({ name: users.name }).from(users).where(eq(users.id, hostId)).limit(1);
+  const rows = gs.filter((g) => g.userId && g.userId !== hostId).map((g) => ({ id: id(), userId: g.userId!, planId, kind: "blast", actorName: host?.name ?? "", text: `${plan.title} · ${line}`, role: "guest" }));
+  if (rows.length) await db.insert(notifications).values(rows);
+  await db.delete(reminderLog).where(eq(reminderLog.planId, planId));
+  return { plan: { title: plan.title, code: plan.code, startsAt }, hostName: host?.name ?? "", line, emails: [...new Set(gs.map((g) => g.email).filter((e): e is string => !!e))] };
 }

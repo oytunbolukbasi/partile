@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { PlanDraft, Rsvp, VerificationCode, isPlaceholderTitle } from "@partile/core";
+import { PlanDraft, Rsvp, VerificationCode, isPlaceholderTitle, isPlanOver } from "@partile/core";
 import {
   addComment,
   DEMO_EMAIL,
@@ -35,12 +35,13 @@ import {
   upsertRsvp,
   votePoll,
   deleteAccount as deleteAccountRow,
+  announceDateChange,
   setMuted,
   setFollow,
   setLaterReminder,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
-import { mailEnabled, sendBlastMail, sendCancelMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
+import { mailEnabled, sendBlastMail, sendCancelMail, sendDateChangeMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
 import { materialize, remove as removeFile } from "@/lib/storage";
 import { routes } from "@/lib/routes";
 
@@ -139,6 +140,13 @@ export async function savePlan(code: string, patch: Partial<PlanDraft>) {
   if (!h) return { ok: false as const };
   if (patch.title !== undefined && isPlaceholderTitle(patch.title)) return { ok: false as const, error: "Planına bir ad ver." };
   const saved = await updatePlan(h.plan.id, "posterUrl" in patch ? { ...patch, posterUrl: await materialize(patch.posterUrl) } : patch);
+  // A real move of a published plan's start (not a TBD plan, not the same minute) tells the guests.
+  const before = h.plan.dateTbd ? undefined : h.plan.startsAt;
+  const after = saved && !saved.dateTbd ? saved.startsAt : undefined;
+  if (h.plan.status === "published" && after && (!before || Math.abs(new Date(after).getTime() - new Date(before).getTime()) >= 60_000)) {
+    const r = await announceDateChange(h.plan.id, h.v.id, after, before ? "changed" : "picked");
+    if (r) await sendDateChangeMail(r.emails, { ...r.plan, district: saved?.location?.district }, r.hostName || "Düzenleyen", before ? "changed" : "picked");
+  }
   revalidatePath(routes.plan(code));
   if (saved && saved.code !== code) revalidatePath(routes.plan(saved.code));
   revalidatePath(routes.home);
@@ -149,6 +157,11 @@ export async function pickDay(code: string, optionId: string) {
   const h = await hostOf(code);
   if (!h) return { ok: false as const };
   await pickPollDay(h.plan.id, optionId);
+  const picked = await getPlanByCode(code);
+  if (picked?.startsAt) {
+    const r = await announceDateChange(picked.id, h.v.id, picked.startsAt, "picked");
+    if (r) await sendDateChangeMail(r.emails, { ...r.plan, district: picked.location?.district }, r.hostName || "Düzenleyen", "picked");
+  }
   revalidatePath(routes.plan(code));
   return { ok: true as const };
 }
@@ -201,6 +214,8 @@ export async function submitRsvp(code: string, input: unknown) {
   if (!parsed.success) return { ok: false as const, error: `Eksik bilgi: ${parsed.error.issues[0]?.message ?? "formu kontrol et"}` };
   const plan = await getPlanByCode(code);
   if (!plan) return { ok: false as const, error: "Plan bulunamadı." };
+  if (plan.status === "cancelled") return { ok: false as const, error: "Bu plan iptal edildi." };
+  if (isPlanOver(plan)) return { ok: false as const, error: "Bu plan sona erdi." };
   try {
     if (!v.name) await updateUser(v.id, { name: parsed.data.name });
     const r = await upsertRsvp(plan.id, v.id, v.email, parsed.data);
@@ -218,6 +233,7 @@ export async function submitVotes(code: string, name: string, votes: Record<stri
   if (!v) return { ok: false as const, error: "Önce e-postanı doğrula." };
   const plan = await getPlanByCode(code);
   if (!plan) return { ok: false as const, error: "Plan bulunamadı." };
+  if (plan.status === "cancelled") return { ok: false as const, error: "Bu plan iptal edildi." };
   if (!v.name && name.trim()) await updateUser(v.id, { name: name.trim() });
   await votePoll(plan.id, v.id, v.email, name.trim() || v.name || "Misafir", votes);
   revalidatePath(routes.plan(code));

@@ -129,6 +129,32 @@ export async function sendLaterReminderMail(to: string, plan: { title: string; c
   return send(to, title, shell(body, "Bu e-postayı, plan sayfasında “Sonra hatırlat” dediğin için aldın. Tek seferliktir."), `${title}\n${when}\n\n${url}`);
 }
 
+/** Date moved or a poll day was picked: subject + HTML + text (also used by /api/eposta-onizleme?tur=tarih). */
+export function dateChangeMail(plan: { title: string; code: string; startsAt: string; district?: string }, hostName: string, kind: "changed" | "picked") {
+  const when = `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}`;
+  const first = hostName.split(" ")[0] || "Düzenleyen";
+  const subject = kind === "picked" ? `${plan.title}: gün belli oldu` : `${plan.title}: tarih değişti`;
+  const lead = kind === "picked" ? `${first} anketi kapattı, plan şu gün:` : `${first} planın tarihini değiştirdi. Yeni tarih:`;
+  const body = `<p style="margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-0.4px">${esc(subject)}</p>
+<p style="margin:0 0 10px;font-size:15px;line-height:1.5;color:#3D3832">${esc(lead)}</p>
+<p style="margin:0 0 18px;font-size:20px;font-weight:800">${esc(when)}${plan.district ? `<br><span style="font-size:15px;font-weight:600;color:#3D3832">${esc(plan.district)}</span>` : ""}</p>
+<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:#3D3832">Yeni tarih sana uyuyor mu? Uymuyorsa katılımını güncelle; takvimine eklediysen de düzelt.</p>
+${button(planUrl(plan.code), "Katılımını güncelle")}`;
+  return {
+    subject,
+    html: shell(body, "Bu e-posta, katıldığın ya da davet edildiğin planın tarihi değiştiği için gönderildi.", `Yeni tarih: ${when}`),
+    text: `${subject}\n${lead} ${when}\n\n${planUrl(plan.code)}`,
+  };
+}
+
+/** One message per guest so addresses stay private. */
+export async function sendDateChangeMail(to: string[], plan: { title: string; code: string; startsAt: string; district?: string }, hostName: string, kind: "changed" | "picked") {
+  if (!to.length) return { sent: false as const };
+  const m = dateChangeMail(plan, hostName, kind);
+  const results = await Promise.all(to.map((addr) => send(addr, m.subject, m.html, m.text)));
+  return { sent: results.some((r) => r.sent) };
+}
+
 /** Plan cancelled: one message per guest so addresses stay private. */
 export async function sendCancelMail(to: string[], plan: { title: string; code: string; startsAt?: string }, hostName: string, note?: string) {
   if (!to.length) return { sent: false as const };

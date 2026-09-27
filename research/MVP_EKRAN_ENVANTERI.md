@@ -77,9 +77,9 @@
 | Efekt paneli | Çizildi → `Effects` (#30) | Bu satır #30 ile değişti. |
 | Masrafı böl — misafir tarafı | `EventMobile` kartı + sheet | "IBAN'ı kopyala" / "Papara'yı aç" → "Gönderdim" onayı → düzenleyen panelinde beyan olarak görünür. Doğrulama yok. |
 | Yorum / fotoğraf yükleme | `Event` akışı | Kodda: metin yorumu (misafir + düzenleyen), düzenleyen siler; fotoğraflar albümde. GIF ve yanıtlar yok. |
-| İptal / sil / tarih değişikliği | Onay diyaloğu | **İptal kodda:** isteğe bağlı not, misafirlere bildirim + e-posta, davetiye "Bu plan iptal edildi", geri alınabilir. Tarih değişikliği bildirimi ve silme (30 gün geri alma) henüz yok. |
-| Sistem sayfaları | Kabuk | Kodda 404 ve plan iptal edildi. Plan sona erdi durumu yok. |
-| Profil ayarları | Profil → “Hesap ayarları” modalı (rail’de ayar ikonu yok) | Kodda: e-posta (salt okunur), bildirimler anahtarı, çıkış. Takvim senkronu ve “Verilerim” (KVKK indir/sil) “Yakında”. Dil ve erişilebilirlik yok. |
+| İptal / sil / tarih değişikliği | Onay diyaloğu | **İptal kodda:** isteğe bağlı not, misafirlere bildirim + e-posta, davetiye "Bu plan iptal edildi", geri alınabilir. **Tarih değişikliği kodda:** akış satırı + bildirim + e-posta (“Katılımını güncelle”), anketten gün seçilince de. Planı silme (30 gün geri alma) yok; plan hesapla birlikte silinir. |
+| Sistem sayfaları | Kabuk | Kodda 404, plan iptal edildi ve plan sona erdi (katılım kapalı, albüm/akış katılımcılara açık). |
+| Profil ayarları | Profil → “Hesap ayarları” modalı (rail’de ayar ikonu yok) | Kodda: e-posta (salt okunur), bildirimler anahtarı, çıkış. “Verilerim”: verilerini indir (JSON) + hesabımı sil (“SİL” yazarak). Takvim senkronu “Yakında”. Dil ve erişilebilirlik yok. Profil linki ve “Profil değiştir” herkese açık profil gelene dek kaldırıldı. |
 | Takvime ekle | Cam açılır menü | Kodda: Google Takvim linki + `.ics` (`/api/takvim/{kod}`), katılım sonrası. |
 | Kart gönder, Organizasyon profili | çizili (`Card`, `OrgProfile`) | **Faz 2** — menüde görünmez; ana sayfada Kartlar kartı “Yakında”. Keşfet (`Explore`) ve Mesajlar (#29) MVP'ye alındı, kodda. |
 
@@ -114,3 +114,6 @@
 | Masrafı böl — misafir | Plan sayfası kartı | IBAN kopyala, Papara, “Gönderdim” ↔ “Geri al”. |
 | Açık tema kontrolleri | Tüm tema sayfaları | Limonata/Pudra'da çipler beyaz pill + koyu metin, birincil buton koyu. |
 | Hukuk sayfaları | `/kvkk`, `/gizlilik`, `/kosullar` | Taslak metin, footer bağlantıları. |
+| Verilerim (KVKK) | Profil → Hesap ayarları | İndir + Hesabımı sil onay modalı (“SİL” yaz, silinecekler listesi). |
+| Tarih değişikliği bildirimi | Akış, bildirimler, e-posta | “Tarih değişti: …” / “Tarih netleşti: …”; e-postada “Katılımını güncelle”. |
+| Plan sona erdi | Davetiye | Band + katılım kapalı; katılımcılar için albüm/akış açık. |
