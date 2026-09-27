@@ -1,33 +1,50 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { PlanDraft } from "@partile/core";
 import { PinIcon } from "@/components/shell/icons";
 import { Modal, btnPrimary, field } from "@/components/ui/Modal";
+import { searchPlaces, type Place } from "@/lib/geocode";
 
 type Location = NonNullable<PlanDraft["location"]>;
 
-/* Placeholder suggestions until Google Places is wired; the free-text row always works. */
-const SAMPLE = [
-  { name: "Moda Deniz Kulübü", address: "Caferağa, Moda Cad. 12, Kadıköy", district: "Moda, Kadıköy" },
-  { name: "Moda Sahil Parkı", address: "Caferağa, Moda Sahil Yolu, Kadıköy", district: "Moda, Kadıköy" },
-  { name: "Cihangir Parkı", address: "Cihangir, Beyoğlu", district: "Cihangir, Beyoğlu" },
-  { name: "Fenerbahçe Parkı", address: "Fenerbahçe, Kadıköy", district: "Fenerbahçe, Kadıköy" },
-];
-
-/** `LocationPicker` artboard: search, results, map placeholder, district-only vs full address. */
+/** `LocationPicker` artboard: Photon autocomplete, results, map placeholder, district-only vs full address. */
 export function LocationModal({ open, onClose, value, onSave }: { open: boolean; onClose: () => void; value?: Location; onSave: (v: Location) => void }) {
   const [q, setQ] = useState(value?.name ?? "");
+  const [results, setResults] = useState<Place[]>([]);
+  const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">("idle");
   const [picked, setPicked] = useState<Location | null>(value ?? null);
   const [display, setDisplay] = useState<"district" | "full">(value?.display ?? "district");
 
-  const results = useMemo(() => {
-    const s = q.trim().toLocaleLowerCase("tr-TR");
-    return s ? SAMPLE.filter((r) => r.name.toLocaleLowerCase("tr-TR").includes(s) || r.address.toLocaleLowerCase("tr-TR").includes(s)) : SAMPLE;
-  }, [q]);
+  useEffect(() => {
+    if (!open) return;
+    const query = q.trim();
+    if (query.length < 2) {
+      setResults([]);
+      setStatus("idle");
+      return;
+    }
+    const ctrl = new AbortController();
+    setStatus("loading");
+    const t = setTimeout(() => {
+      searchPlaces(query, ctrl.signal)
+        .then((r) => {
+          setResults(r);
+          setStatus("done");
+        })
+        .catch((e) => {
+          if (e?.name !== "AbortError") setStatus("error");
+        });
+    }, 300);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [q, open]);
 
-  const custom = q.trim() && !results.some((r) => r.name === q.trim());
+  const custom = q.trim().length > 1 && !results.some((r) => r.name === q.trim());
   const districtLabel = picked?.district ?? "Semt";
+  const commit = () => picked && onSave({ ...picked, display });
 
   return (
     <Modal open={open} onClose={onClose} title="Nerede?" width={920}>
@@ -36,25 +53,33 @@ export function LocationModal({ open, onClose, value, onSave }: { open: boolean;
           <label htmlFor="loc" className="sr-only">
             Mekân ara
           </label>
-          <input id="loc" data-autofocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Mekân ya da adres ara" className={field} />
-          <div className="flex flex-col overflow-hidden rounded-lg border border-white/10">
+          <input id="loc" data-autofocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Mekân ya da adres yaz: Moda, Cihangir, Bağdat Cad…" autoComplete="off" className={field} />
+          <div className="flex min-h-[220px] flex-col overflow-hidden rounded-lg border border-white/10">
+            {status === "idle" && <p className="p-4 text-sm text-subtle">Yazdıkça öneriler gelir. Veriler OpenStreetMap’ten.</p>}
+            {status === "loading" && results.length === 0 && <p className="p-4 text-sm text-subtle">Aranıyor…</p>}
+            {status === "error" && <p className="p-4 text-sm text-subtle">Öneriler alınamadı; adresi aşağıdan kendin ekleyebilirsin.</p>}
             {results.map((r) => {
-              const sel = picked?.name === r.name;
+              const sel = picked?.name === r.name && picked?.address === r.address;
               return (
-                <button key={r.name} type="button" onClick={() => setPicked({ ...r, display })} className={`flex items-center gap-3 border-b border-white/6 px-3.5 py-3 text-left last:border-b-0 ${sel ? "bg-white/10" : "hover:bg-white/5"}`}>
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setPicked({ name: r.name, address: r.address, district: r.district, lat: r.lat, lng: r.lng, display })}
+                  className={`flex items-center gap-3 border-b border-white/6 px-3.5 py-3 text-left last:border-b-0 ${sel ? "bg-white/10" : "hover:bg-white/5"}`}
+                >
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-white/8">
                     <PinIcon size={18} />
                   </span>
                   <span className="flex min-w-0 flex-col">
-                    <span className="text-[15px] font-bold">{r.name}</span>
+                    <span className="truncate text-[15px] font-bold">{r.name}</span>
                     <span className="truncate text-[13px] text-subtle">{r.address}</span>
                   </span>
                 </button>
               );
             })}
-            {custom && (
+            {custom && status !== "loading" && (
               <button type="button" onClick={() => setPicked({ name: q.trim(), address: q.trim(), district: q.trim().split(",")[0]?.trim(), display })} className="flex items-center gap-3 border-t border-dashed border-white/20 px-3.5 py-3 text-left hover:bg-white/5">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-white/8">+</span>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-white/8 font-bold">+</span>
                 <span className="text-[15px] font-bold">“{q.trim()}” olarak ekle</span>
               </button>
             )}
@@ -78,24 +103,24 @@ export function LocationModal({ open, onClose, value, onSave }: { open: boolean;
           <div className="absolute inset-0" style={{ background: "repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 48px), radial-gradient(60% 40% at 30% 70%, #12313A 0%, rgba(18,49,58,0) 70%)" }} />
           <div className="absolute inset-x-0 bottom-0 h-[220px]" style={{ background: "linear-gradient(180deg, rgba(18,49,58,0) 0%, #12313A 60%)" }} />
           <div className="absolute left-1/2 top-[45%] flex -translate-x-1/2 flex-col items-center">
-            <span className="mb-1.5 flex h-9 items-center rounded-pill bg-white px-3 text-[13px] font-extrabold text-bg shadow-[0_8px_20px_rgba(0,0,0,0.4)]">{display === "district" ? districtLabel : (picked?.name ?? "Konum")}</span>
+            <span className="mb-1.5 flex h-9 max-w-[260px] items-center truncate rounded-pill bg-white px-3 text-[13px] font-extrabold text-bg shadow-[0_8px_20px_rgba(0,0,0,0.4)]">{display === "district" ? districtLabel : (picked?.name ?? "Konum")}</span>
             <PinIcon size={40} className="text-coral" />
           </div>
           {display === "district" && <div className="absolute left-1/2 top-[40%] h-[180px] w-[220px] -translate-x-1/2 rounded-pill border-2 border-dashed border-white/40 bg-coral/12" />}
-          <div className="absolute bottom-4 left-4 text-xs tracking-wider text-white/45">HARİTA · Google Places sonra bağlanacak</div>
+          <div className="absolute bottom-4 left-4 text-xs tracking-wider text-white/45">{picked?.lat ? `${picked.lat.toFixed(4)}, ${picked.lng?.toFixed(4)} · harita sonra` : "HARİTA · sonra"}</div>
           <div className="absolute inset-x-4 bottom-4 hidden items-center gap-2.5 rounded-xl border border-white/12 bg-bg/85 px-4 py-3.5 md:flex">
             <span className="flex min-w-0 grow flex-col">
               <span className="truncate font-bold">{picked?.name ?? "Bir mekân seç"}</span>
               <span className="truncate text-[13px] text-subtle">{picked?.address ?? ""}</span>
             </span>
-            <button type="button" disabled={!picked} onClick={() => picked && onSave({ ...picked, display })} className={`${btnPrimary} h-11 disabled:opacity-40`}>
+            <button type="button" disabled={!picked} onClick={commit} className={`${btnPrimary} h-11 disabled:opacity-40`}>
               Konumu seç
             </button>
           </div>
         </section>
       </div>
       <div className="flex border-t border-line px-5 py-4 md:hidden">
-        <button type="button" disabled={!picked} onClick={() => picked && onSave({ ...picked, display })} className={`${btnPrimary} w-full justify-center disabled:opacity-40`}>
+        <button type="button" disabled={!picked} onClick={commit} className={`${btnPrimary} w-full justify-center disabled:opacity-40`}>
           Konumu seç
         </button>
       </div>
