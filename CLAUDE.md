@@ -109,6 +109,6 @@ Ton: samimi "sen" dili, kısa cümle. Emoji yok.
 ## Çalışma kuralları
 
 - Dil: dokümanlar ve UI Türkçe; kod, commit mesajları ve tanımlayıcılar İngilizce.
-- Commit'ler `origin` (SSH) üzerinden, dal: `claude/compassionate-fermi-3a9llp` → `main`'e PR ile. `PLAN_*.docx` ve `.DS_Store` commit'lenmez.
+- Commit'ler `origin` (SSH) üzerinden. Geliştirme dalı `claude/compassionate-fermi-3a9llp`; **`main` = Railway'in deploy ettiği dal** (28 Eyl 2026'dan itibaren). Bir iş bitince fast-forward ile `main`'e alınır (`git push origin HEAD:main`); doğrudan `main`'e commit yok. `PLAN_*.docx` ve `.DS_Store` commit'lenmez.
 - Partiful hesabıyla yapılan incelemede: gerçek etkinlik oluşturulmaz, kimseye mesaj/duyuru gönderilmez, ayar kaydedilmez.
 - Tasarımda büyük değişiklik = önce tuval, sonra envanter güncellenir; ikisi birbirini tutmalı.
