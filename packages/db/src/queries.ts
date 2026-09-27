@@ -325,3 +325,60 @@ export async function dueLaterReminders(now = new Date()): Promise<DueLaterRemin
   }
   return out;
 }
+
+export type Person = { id: string; name: string; initials: string; gradient: string; shared: number };
+
+/**
+ * People the user shared a plan with: on plans the user hosts or answered Geliyorum/Belki, everyone else with an
+ * account who answered Geliyorum/Belki or hosts it. `shared` = number of such plans. Names only; no e-mails.
+ */
+export async function listCoAttendees(userId: string): Promise<Person[]> {
+  const db = await getDb();
+  const live = ["going", "maybe"];
+  const hosted = await db.select({ planId: planHosts.planId }).from(planHosts).where(and(eq(planHosts.userId, userId), eq(planHosts.accepted, true)));
+  const joined = await db.select({ planId: guests.planId }).from(guests).where(and(eq(guests.userId, userId), inArray(guests.status, live)));
+  const planIds = [...new Set([...hosted, ...joined].map((r) => r.planId))];
+  if (!planIds.length) return [];
+  const gs = await db.select({ userId: guests.userId, planId: guests.planId }).from(guests).where(and(inArray(guests.planId, planIds), inArray(guests.status, live)));
+  const hs = await db.select({ userId: planHosts.userId, planId: planHosts.planId }).from(planHosts).where(and(inArray(planHosts.planId, planIds), eq(planHosts.accepted, true)));
+  const shared = new Map<string, Set<string>>();
+  for (const r of [...gs, ...hs]) {
+    if (!r.userId || r.userId === userId) continue;
+    const set = shared.get(r.userId) ?? new Set<string>();
+    set.add(r.planId);
+    shared.set(r.userId, set);
+  }
+  if (!shared.size) return [];
+  const people = await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, [...shared.keys()]));
+  return people
+    .filter((p) => p.name.trim())
+    .map((p) => ({ id: p.id, name: p.name, initials: initials(p.name), gradient: gradientFor(p.id), shared: shared.get(p.id)!.size }))
+    .sort((a, b) => b.shared - a.shared || a.name.localeCompare(b.name, "tr"));
+}
+
+/** Hosts the user follows, newest first, with their upcoming public plan count. */
+export async function listFollowing(userId: string): Promise<(Person & { upcoming: number })[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ id: users.id, name: users.name, at: follows.createdAt })
+    .from(follows)
+    .innerJoin(users, eq(users.id, follows.followeeId))
+    .where(eq(follows.followerId, userId))
+    .orderBy(desc(follows.createdAt));
+  const now = new Date();
+  return Promise.all(
+    rows.map(async (r) => {
+      const [c] = await db
+        .select({ n: count() })
+        .from(plans)
+        .where(and(eq(plans.ownerId, r.id), eq(plans.status, "published"), eq(plans.visibility, "public"), sql`${plans.startsAt} > ${now}`));
+      return { id: r.id, name: r.name || "Adsız", initials: initials(r.name || "?"), gradient: gradientFor(r.id), shared: 0, upcoming: c?.n ?? 0 };
+    }),
+  );
+}
+
+export async function countFollowers(userId: string): Promise<number> {
+  const db = await getDb();
+  const [c] = await db.select({ n: count() }).from(follows).where(eq(follows.followeeId, userId));
+  return c?.n ?? 0;
+}

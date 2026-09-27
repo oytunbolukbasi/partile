@@ -372,6 +372,15 @@ export async function followHosts(code: string, follow: boolean) {
   return { ok: true as const };
 }
 
+/** Follow / unfollow one person by id (profile → Takip ettiklerin). */
+export async function followUser(userId: string, follow: boolean) {
+  const v = await getViewer();
+  if (!v) return { ok: false as const };
+  await setFollow(v.id, [userId], follow);
+  revalidatePath(routes.profile);
+  return { ok: true as const };
+}
+
 export type LaterOption = "tomorrow" | "in3days" | "dayBefore";
 const HOUR = 3600e3;
 

@@ -27,7 +27,7 @@ const badge = (role: PlanRole, cancelled = false) => (cancelled ? "İPTAL EDİLD
 const chip = (on: boolean) => `flex h-11 shrink-0 items-center gap-2 rounded-pill px-4 text-[15px] ${on ? "border border-white/45 bg-white/14 font-bold text-white" : "bg-white/10 font-semibold text-text hover:bg-white/14"}`;
 
 /** `Home` / `HomeMobile`: greeting, filter chips, plan cards with a per-card menu, drafts, cards & mutuals. */
-export function HomeView({ viewer, plans, mutedIds = [] }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[]; mutedIds?: string[] }) {
+export function HomeView({ viewer, plans, mutedIds = [], people = [] }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[]; mutedIds?: string[]; people?: { id: string; name: string; initials: string; gradient: string }[] }) {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [menu, setMenu] = useState<string | null>(null);
   const [draft, setDraft] = useState<(PlanDraft & { touched: boolean }) | null>(null);
@@ -113,20 +113,27 @@ export function HomeView({ viewer, plans, mutedIds = [] }: { viewer: Viewer; pla
             <div className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
               <div className="flex size-[72px] shrink-0 -rotate-6 items-center justify-center rounded-xl text-center font-poster text-[11px] font-extrabold leading-[1.3] tracking-wider text-bg md:size-24 md:text-xs" style={{ background: "linear-gradient(160deg, #FFB020, #FF6A3D)" }}>İYİ Kİ<br />DOĞDUN</div>
               <div className="flex grow flex-col gap-1.5"><div className="text-[17px] font-bold md:text-lg">Dijital kart gönder</div><div className="text-sm text-muted md:text-[15px]">Doğum günü, kutlama, teşekkür — davetiye gerektirmeyen her şey için.</div></div>
-              <span className="hidden h-10 shrink-0 items-center rounded-pill bg-white px-4 text-sm font-bold text-bg md:flex">+ Yeni kart</span>
+              <span className="hidden h-10 shrink-0 items-center rounded-pill border border-white/20 px-4 text-sm font-bold text-subtle md:flex">Yakında</span>
             </div>
           </section>
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-bold md:text-2xl md:tracking-tight">Ortak arkadaşlar</h2>
-            <div className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
-              <div className="flex shrink-0">
-                {["#1EC9B0,#0E7C86", "#FFD166,#FF6A3D", "#F59E0B,#C2410C"].map((c, i) => (
-                  <span key={c} className={`size-11 rounded-pill border-2 border-panel ${i ? "-ml-3.5" : ""}`} style={{ background: `linear-gradient(135deg, ${c})` }} />
-                ))}
+            <Link href={`${routes.profile}#ortak-arkadaslar`} className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
+              {people.length > 0 ? (
+                <div className="flex shrink-0">
+                  {people.slice(0, 3).map((p, i) => (
+                    <Avatar key={p.id} initials={p.initials} gradient={p.gradient} size={44} ring="var(--panel)" className={i ? "-ml-3.5" : ""} />
+                  ))}
+                </div>
+              ) : (
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-pill border border-dashed border-white/30 text-muted"><UsersIcon size={20} /></span>
+              )}
+              <div className="flex grow flex-col gap-1.5">
+                <div className="text-[17px] font-bold md:text-lg">{people.length > 0 ? `Birlikte eğlendiğin ${people.length} kişi` : "Henüz ortak arkadaş yok"}</div>
+                <div className="text-sm text-muted md:text-[15px]">{people.length > 0 ? people.slice(0, 3).map((p) => p.name.split(" ")[0]).join(", ") + (people.length > 3 ? " ve diğerleri" : "") : "Aynı plana katıldığın kişiler burada görünür."}</div>
               </div>
-              <div className="flex grow flex-col gap-1.5"><div className="text-[17px] font-bold md:text-lg">Birlikte eğlendiğin 14 kişi</div><div className="text-sm text-muted md:text-[15px]">Bir sonraki planına doğrudan buradan davet et.</div></div>
-              <span className="hidden h-10 shrink-0 items-center rounded-pill border border-white/30 px-4 text-sm font-bold md:flex">Tümünü gör</span>
-            </div>
+              {people.length > 0 && <span className="hidden h-10 shrink-0 items-center rounded-pill border border-white/30 px-4 text-sm font-bold md:flex">Tümünü gör</span>}
+            </Link>
           </section>
         </div>
       </div>

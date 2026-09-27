@@ -11,30 +11,22 @@ import { CameraIcon, LinkIcon, PlusIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, field, modalFooter } from "@/components/ui/Modal";
 import { SettingRow, Toggle } from "@/components/ui/Toggle";
 import { countByStatus, gradientFor, type Plan, type PlanRole } from "@partile/core";
-import { signOut, updateProfile } from "@/app/actions";
+import { followUser, signOut, updateProfile } from "@/app/actions";
 import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
 
-/** People who answered more than one of the viewer's plans (a stand-in for the mutual-friends graph). */
-function mutualsOf(plans: { plan: Plan; role: PlanRole }[]) {
-  const seen = new Map<string, { id: string; name: string; initials: string; gradient: string; shared: number }>();
-  for (const { plan } of plans) for (const g of plan.guests) {
-    if (g.status === "invited" || g.status === "pending") continue;
-    const m = seen.get(g.name) ?? { id: g.id, name: g.name, initials: g.initials, gradient: g.gradient, shared: 0 };
-    m.shared += 1;
-    seen.set(g.name, m);
-  }
-  return [...seen.values()].filter((m) => !/^(Misafir|Koşucu|Davetli) \d+$/.test(m.name)).sort((a, b) => b.shared - a.shared).slice(0, 4);
-}
+type Person = { id: string; name: string; initials: string; gradient: string; shared: number };
+type Followed = Person & { upcoming: number };
 
 /** `Profile` artboard: own profile. Account settings (e-mail, notifications, sign-out) open from here, not from the rail. */
-export function ProfileView({ viewer, plans }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[] }) {
+export function ProfileView({ viewer, plans, people, following, followers }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[]; people: Person[]; following: Followed[]; followers: number }) {
   const router = useRouter();
   const [, start] = useTransition();
   const update = (p: { name?: string; bio?: string; birthday?: string; notifications?: boolean }) => start(async () => { await updateProfile(p); router.refresh(); });
   const session = viewer;
   const ready = true;
-  const mutuals = mutualsOf(plans);
+  const [showAll, setShowAll] = useState(false);
+  const mutuals = showAll ? people : people.slice(0, 5);
   const me = { gradient: gradientFor(viewer.id) };
   const [modal, setModal] = useState<"edit" | "account" | null>(null);
   const [copied, setCopied] = useState(false);
@@ -68,7 +60,7 @@ export function ProfileView({ viewer, plans }: { viewer: Viewer; plans: { plan: 
         <h1 className="display text-[32px] tracking-tight md:text-[40px]">{name}</h1>
         <p className="max-w-[520px] text-muted">{bio || <button type="button" onClick={() => setModal("edit")} className="font-bold text-subtle">Kısa bir tanıtım ekle</button>}</p>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[15px] text-subtle">
-          <span>Eyl ’26’da katıldı</span><span>·</span><span><strong className="text-text">{hosted.length}</strong> plan düzenledi</span><span>·</span><span><strong className="text-text">{mutuals.length}</strong> ortak arkadaş</span>
+          <span>Eyl ’26’da katıldı</span><span>·</span><span><strong className="text-text">{hosted.length}</strong> plan düzenledi</span><span>·</span><span><strong className="text-text">{people.length}</strong> ortak arkadaş</span><span>·</span><span><strong className="text-text">{followers}</strong> takipçi</span>
         </div>
         <div className="flex flex-wrap justify-center gap-2.5 pt-1.5">
           <button type="button" onClick={() => setModal("edit")} className={btn}>Profili düzenle</button>
@@ -97,10 +89,10 @@ export function ProfileView({ viewer, plans }: { viewer: Viewer; plans: { plan: 
             <Link href={routes.create} className="flex h-[180px] w-[180px] shrink-0 flex-col items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-dashed border-white/30 text-[15px] font-bold md:h-[220px] md:w-[220px]"><PlusIcon size={22} /> Yeni plan</Link>
           </div>
         </section>
-        <section className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between"><h2 className="text-[22px] font-bold tracking-tight md:text-[26px]">Ortak arkadaşlar</h2><span className="text-sm font-bold text-muted">Tümü ({mutuals.length})</span></div>
+        <section id="ortak-arkadaslar" className="flex flex-col gap-4">
+          <div className="flex items-baseline justify-between"><h2 className="text-[22px] font-bold tracking-tight md:text-[26px]">Ortak arkadaşlar</h2>{people.length > 5 && <button type="button" onClick={() => setShowAll(!showAll)} className="text-sm font-bold text-muted">{showAll ? "Daha az" : `Tümü (${people.length})`}</button>}</div>
           <div className="flex flex-col rounded-2xl border border-white/8 bg-white/5">
-            {mutuals.length === 0 && <p className="px-4 py-6 text-sm text-subtle">Henüz ortak arkadaş yok. İlk planını paylaş, katılanlar burada birikir.</p>}
+            {mutuals.length === 0 && <p className="px-4 py-6 text-sm text-subtle">Henüz ortak arkadaş yok. Aynı plana katıldığın kişiler burada birikir.</p>}
             {mutuals.map((m) => (
               <div key={m.id} className="flex items-center gap-3 border-b border-white/6 px-4 py-3 last:border-b-0">
                 <Avatar initials={m.initials} gradient={m.gradient} size={44} />
@@ -109,6 +101,7 @@ export function ProfileView({ viewer, plans }: { viewer: Viewer; plans: { plan: 
               </div>
             ))}
           </div>
+          <FollowingList following={following} />
         </section>
       </div>
 
@@ -171,5 +164,32 @@ function EditProfileModal({ open, onClose, name, bio, birthday, onSave }: { open
         <button type="button" onClick={() => n.trim() && onSave({ name: n.trim(), bio: b.trim(), birthday: d.trim() || undefined })} className={btnPrimary}>Kaydet</button>
       </div>
     </Modal>
+  );
+}
+
+/** Takip ettiklerin: hosts the viewer follows; unfollow in place. New public plans from them show up in Bildirimler. */
+function FollowingList({ following }: { following: Followed[] }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+  const toggle = async (id: string, follow: boolean) => {
+    setBusy(id);
+    await followUser(id, follow);
+    setBusy(null);
+    router.refresh();
+  };
+  return (
+    <>
+      <div id="takip" className="flex items-baseline justify-between pt-4"><h2 className="text-[22px] font-bold tracking-tight md:text-[26px]">Takip ettiklerin</h2><span className="text-sm text-subtle">{following.length} kişi</span></div>
+      <div className="flex flex-col rounded-2xl border border-white/8 bg-white/5">
+        {following.length === 0 && <p className="px-4 py-6 text-sm text-subtle">Kimseyi takip etmiyorsun. Bir davetiyede “Takip et” dersen, o kişi herkese açık plan yayınlayınca haber veririz.</p>}
+        {following.map((f) => (
+          <div key={f.id} className="flex items-center gap-3 border-b border-white/6 px-4 py-3 last:border-b-0">
+            <Avatar initials={f.initials} gradient={f.gradient} size={44} />
+            <span className="flex min-w-0 grow flex-col"><span className="truncate font-bold">{f.name}</span><span className="text-[13px] text-subtle">{f.upcoming > 0 ? `${f.upcoming} yaklaşan herkese açık plan` : "Yaklaşan herkese açık planı yok"}</span></span>
+            <button type="button" disabled={busy === f.id} onClick={() => toggle(f.id, false)} className="flex h-9 shrink-0 items-center rounded-pill border border-white/25 px-3.5 text-[13px] font-bold disabled:opacity-50">Takibi bırak</button>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
