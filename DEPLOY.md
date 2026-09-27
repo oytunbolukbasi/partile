@@ -5,7 +5,7 @@ Tek servis (web) + Postgres + kalıcı volume + saatlik cron. Görsel dosyalar v
 ## 1. Proje ve servisler
 
 1. Railway → **New Project → Deploy from GitHub repo** → `oytunbolukbasi/partile`, dal `main` (ya da bu dal). Builder otomatik **Dockerfile** (kökteki `Dockerfile`, `railway.toml` sağlık kontrolünü tanımlar).
-2. **+ New → Database → PostgreSQL**. Oluşan `DATABASE_URL` değişkenini web servisine referansla: `${{Postgres.DATABASE_URL}}`.
+2. Veritabanı: **Neon** projesi kullanılıyor (27 Eyl 2026’da bağlandı, şema + örnek içerik yüklendi). Railway Postgres tercih edilirse **+ New → Database → PostgreSQL** ve `${{Postgres.DATABASE_URL}}`.
 3. Web servisi → **Volumes → Add Volume**, mount path **`/data`** (yüklemeler `/data/uploads`'a yazılır; `UPLOAD_DIR` imajda hazır).
 4. **Settings → Networking → Custom Domain**: `getpartile.com` ve `www.getpartile.com`. Railway'in verdiği CNAME'leri DNS'e ekle (apex için ALIAS/ANAME ya da Railway'in IP yönergesi).
 
@@ -13,7 +13,7 @@ Tek servis (web) + Postgres + kalıcı volume + saatlik cron. Görsel dosyalar v
 
 | Değişken | Değer |
 |---|---|
-| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| `DATABASE_URL` | Neon bağlantı dizesi (pooler, `sslmode=require`) — ya da Railway Postgres için `${{Postgres.DATABASE_URL}}` |
 | `AUTH_SECRET` | `openssl rand -hex 32` çıktısı — zorunlu, değişirse herkes çıkış yapar |
 | `CRON_SECRET` | `openssl rand -hex 24` — cron servisiyle aynı değer |
 | `NEXT_PUBLIC_SITE_URL` | `https://getpartile.com` (paylaşım linkleri, e-posta linkleri, OG görseli) |

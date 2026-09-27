@@ -35,8 +35,13 @@ async function open(): Promise<Db> {
   if (url && url.startsWith("postgres")) {
     const { Pool } = await import("pg");
     const { migrate } = await import("drizzle-orm/node-postgres/migrator");
-    const needsSsl = /sslmode=require/.test(url) || process.env.PGSSL === "1";
-    const pool = new Pool({ connectionString: url, ssl: needsSsl ? { rejectUnauthorized: false } : undefined, max: 10 });
+    // Hosted Postgres (Neon, Railway) needs TLS; we set it explicitly and drop the libpq-style params
+    // (sslmode, channel_binding) that node-postgres warns about.
+    const u = new URL(url);
+    const needsSsl = u.searchParams.get("sslmode") !== "disable" && (u.searchParams.has("sslmode") || process.env.PGSSL === "1" || !/^(localhost|127\.0\.0\.1)$/.test(u.hostname));
+    u.searchParams.delete("sslmode");
+    u.searchParams.delete("channel_binding");
+    const pool = new Pool({ connectionString: u.toString(), ssl: needsSsl ? { rejectUnauthorized: false } : undefined, max: 10 });
     const db = drizzlePg({ client: pool, schema });
     if (process.env.DB_AUTO_MIGRATE !== "0") await migrate(db, { migrationsFolder: migrationsFolder() });
     if (process.env.SEED_SAMPLE === "1") {
