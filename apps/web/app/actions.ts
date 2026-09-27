@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { PlanDraft, Rsvp, VerificationCode } from "@partile/core";
 import {
   addComment,
+  DEMO_EMAIL,
+  getUserByEmail,
   consumeVerificationCode,
   createPlan,
   createVerificationCode,
@@ -44,6 +46,8 @@ const EMAIL = /^\S+@\S+\.\S+$/;
 export async function requestCode(email: string, purpose: "login" | "rsvp" = "login", next?: string) {
   const e = email.trim().toLowerCase();
   if (!EMAIL.test(e)) return { ok: false as const, error: "Geçerli bir e-posta gir." };
+  // Demo account: no mailbox exists, so never mail it (bounces hurt the sender reputation).
+  if (e === DEMO_EMAIL && process.env.DEMO_LOGIN_CODE) return { ok: true as const, devCode: undefined };
   const code = await createVerificationCode(e, purpose);
   if (!mailEnabled()) return { ok: true as const, devCode: code };
   const r = await sendVerificationMail(e, code, purpose, next);
@@ -54,7 +58,10 @@ export async function requestCode(email: string, purpose: "login" | "rsvp" = "lo
 
 export async function verifyCode(email: string, code: string) {
   if (!VerificationCode.safeParse(code).success) return { ok: false as const, error: "6 haneli kodu gir." };
-  const user = await consumeVerificationCode(email, code);
+  const e = email.trim().toLowerCase();
+  // Test-only static code for the demo account, enabled by setting DEMO_LOGIN_CODE (remove before launch).
+  const demoCode = process.env.DEMO_LOGIN_CODE;
+  const user = e === DEMO_EMAIL && demoCode && /^\d{6}$/.test(demoCode) && code === demoCode ? await getUserByEmail(e) : await consumeVerificationCode(e, code);
   if (!user) return { ok: false as const, error: "Kod geçersiz ya da süresi dolmuş." };
   await setSession(user.id);
   return { ok: true as const, onboarded: user.onboarded, name: user.name };

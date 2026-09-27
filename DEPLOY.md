@@ -25,6 +25,7 @@ Sık görülen hata: **“The executable `pnpm` could not be found”** — Rail
 | `RESEND_API_KEY` | Resend panelinden |
 | `RESEND_FROM` | `partile <merhaba@getpartile.com>` |
 | `PGSSL` | Railway Postgres için boş bırak; harici SSL zorunlu DB'de `1` |
+| `DEMO_LOGIN_CODE` | Yalnız test: `demo@getpartile.com` için sabit 6 haneli kod (bu hesaba e-posta gönderilmez). Canlıya açmadan önce sil. |
 | `SEED_SAMPLE` | İlk açılışta örnek planları istiyorsan `1`, sonra kaldır. Prod'da önerilmez. |
 
 Migrasyonlar her açılışta otomatik uygulanır (`drizzle-orm` migrator, `packages/db/drizzle`). Kapatmak için `DB_AUTO_MIGRATE=0`.
