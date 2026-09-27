@@ -381,6 +381,14 @@ export async function followUser(userId: string, follow: boolean) {
   return { ok: true as const };
 }
 
+/** Poster picker → Galerim. */
+export async function myGallery() {
+  const v = await getViewer();
+  if (!v) return { posters: [] as string[], photos: [] as string[] };
+  const { listGallery } = await import("@partile/db");
+  return listGallery(v.id);
+}
+
 export type LaterOption = "tomorrow" | "in3days" | "dayBefore";
 const HOUR = 3600e3;
 

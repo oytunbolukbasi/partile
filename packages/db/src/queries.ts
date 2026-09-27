@@ -382,3 +382,18 @@ export async function countFollowers(userId: string): Promise<number> {
   const [c] = await db.select({ n: count() }).from(follows).where(eq(follows.followeeId, userId));
   return c?.n ?? 0;
 }
+
+/** "Galerim": posters of plans the user hosts and photos they uploaded, newest first, stored files only (no data: URLs). */
+export async function listGallery(userId: string, limit = 36): Promise<{ posters: string[]; photos: string[] }> {
+  const db = await getDb();
+  const hosted = await db
+    .select({ url: plans.posterUrl, at: plans.updatedAt })
+    .from(plans)
+    .innerJoin(planHosts, and(eq(planHosts.planId, plans.id), eq(planHosts.userId, userId), eq(planHosts.accepted, true)))
+    .orderBy(desc(plans.updatedAt));
+  const own = await db.select({ url: photos.url }).from(photos).where(eq(photos.userId, userId)).orderBy(desc(photos.createdAt)).limit(limit);
+  const stored = (u: string | null): u is string => !!u && !u.startsWith("data:");
+  const posters = [...new Set(hosted.map((h) => h.url).filter(stored))].slice(0, limit);
+  const seen = new Set(posters);
+  return { posters, photos: [...new Set(own.map((p) => p.url).filter(stored))].filter((u) => !seen.has(u)) };
+}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { myGallery } from "@/app/actions";
 import { invitationThemes } from "@partile/ui-tokens";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
 import { titleFontStyle } from "@/lib/fonts";
@@ -12,14 +13,14 @@ const CATS = ["Tümü", "Doğum günü", "Yemek", "Ev partisi", "Yılbaşı", "K
 
 /* Template = theme + text + font; the poster component renders it. */
 const TEMPLATES = [
-  { id: "30", name: "30 kor", text: "30", theme: "kor", font: "poster" },
-  { id: "aksam", name: "Akşam yemeği", text: "akşam\nyemeği", theme: "limonata", font: "eklektik" },
-  { id: "ev", name: "Ev partisi", text: "EV\nPARTİSİ", theme: "gece", font: "klasik" },
-  { id: "kina", name: "Kına gecesi", text: "kına\ngecesi", theme: "kiraz", font: "sik" },
-  { id: "brunch", name: "Brunch", text: "BRUNCH", theme: "pudra", font: "dijital" },
-  { id: "mac", name: "Maç gecesi", text: "MAÇ\nGECESİ", theme: "zeytinlik", font: "klasik" },
-  { id: "yilbasi", name: "Yılbaşı", text: "2027", theme: "kobalt", font: "poster" },
-  { id: "mangal", name: "Mangal", text: "mangal", theme: "derin-deniz", font: "eklektik" },
+  { id: "30", name: "30 kor", text: "30", theme: "kor", font: "poster", cat: "Doğum günü" },
+  { id: "aksam", name: "Akşam yemeği", text: "akşam\nyemeği", theme: "limonata", font: "eklektik", cat: "Yemek" },
+  { id: "ev", name: "Ev partisi", text: "EV\nPARTİSİ", theme: "gece", font: "klasik", cat: "Ev partisi" },
+  { id: "kina", name: "Kına gecesi", text: "kına\ngecesi", theme: "kiraz", font: "sik", cat: "Kına & nişan" },
+  { id: "brunch", name: "Brunch", text: "BRUNCH", theme: "pudra", font: "dijital", cat: "Yemek" },
+  { id: "mac", name: "Maç gecesi", text: "MAÇ\nGECESİ", theme: "zeytinlik", font: "klasik", cat: "Ev partisi" },
+  { id: "yilbasi", name: "Yılbaşı", text: "2027", theme: "kobalt", font: "poster", cat: "Yılbaşı" },
+  { id: "mangal", name: "Mangal", text: "mangal", theme: "derin-deniz", font: "eklektik", cat: "Yemek" },
 ];
 
 const MAX_DATA_URL = 1.5 * 1024 * 1024;
@@ -33,6 +34,12 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cat, setCat] = useState("Tümü");
+  const [gallery, setGallery] = useState<{ posters: string[]; photos: string[] } | null>(null);
+  const [galleryPick, setGalleryPick] = useState<string | null>(null);
+  useEffect(() => {
+    if (open && tab === "Galerim" && canUpload && !gallery) myGallery().then(setGallery);
+  }, [open, tab, canUpload, gallery]);
 
   const onFile = async (f?: File | null) => {
     if (!f) return;
@@ -64,6 +71,7 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
 
   const save = () => {
     if (tab === "Yükle" && upload) return onSave({ posterUrl: upload });
+    if (tab === "Galerim" && galleryPick) return onSave({ posterUrl: galleryPick });
     const t = TEMPLATES.find((x) => x.id === pick) ?? TEMPLATES[0]!;
     onSave({ posterUrl: undefined, posterText: t.text, themeId: t.theme });
   };
@@ -83,14 +91,14 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
         {tab === "Şablonlar" && (
           <>
             <div className="flex flex-wrap gap-2">
-              {CATS.map((c, i) => (
-                <span key={c} className={`flex h-8 items-center rounded-pill px-3 text-[13px] ${i === 0 ? "border border-white/40 bg-white/14 font-bold" : "bg-white/6 font-semibold"}`}>
+              {CATS.map((c) => (
+                <button key={c} type="button" onClick={() => setCat(c)} aria-pressed={cat === c} className={`flex h-8 items-center rounded-pill px-3 text-[13px] ${cat === c ? "border border-white/40 bg-white/14 font-bold" : "bg-white/6 font-semibold"}`}>
                   {c}
-                </span>
+                </button>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
-              {TEMPLATES.map((t) => {
+              {TEMPLATES.filter((t) => cat === "Tümü" || t.cat === cat).map((t) => {
                 const th = invitationThemes.find((x) => x.id === t.theme)!;
                 const sel = pick === t.id;
                 return (
@@ -144,11 +152,13 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
           </div>
         )}
 
-        {tab === "Galerim" && (
-          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-dashed border-white/25 text-sm text-subtle">Önceki planlarının afişleri burada birikecek.</div>
-        )}
+        {tab === "Galerim" && <Gallery signedIn={canUpload} data={gallery} pick={galleryPick} onPick={setGalleryPick} />}
         {tab === "GIF" && (
-          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-dashed border-white/25 text-sm text-subtle">GIF arama (GIPHY) sonra bağlanacak.</div>
+          <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/25 px-6 text-center">
+            <span className="display text-lg tracking-normal">GIF arama yakında</span>
+            <span className="max-w-[420px] text-sm text-subtle">Şimdilik bilgisayarındaki GIF'i Yükle sekmesinden ekleyebilirsin; afişte hareketli kalır.</span>
+            <button type="button" onClick={() => setTab("Yükle")} className={btnGhost}>GIF yükle</button>
+          </div>
         )}
       </div>
 
@@ -156,10 +166,38 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
         <button type="button" onClick={onClose} className={btnGhost}>
           Vazgeç
         </button>
-        <button type="button" onClick={save} disabled={tab === "Yükle" && !upload} className={`${btnPrimary} disabled:opacity-40`}>
+        <button type="button" onClick={save} disabled={(tab === "Yükle" && !upload) || (tab === "Galerim" && !galleryPick) || tab === "GIF"} className={`${btnPrimary} disabled:opacity-40`}>
           Afişi kullan
         </button>
       </div>
     </Modal>
+  );
+}
+
+/** Galerim: earlier posters and own album photos; pick one to reuse as this plan's poster. */
+function Gallery({ signedIn, data, pick, onPick }: { signedIn: boolean; data: { posters: string[]; photos: string[] } | null; pick: string | null; onPick: (url: string) => void }) {
+  const box = "flex min-h-[300px] items-center justify-center rounded-2xl border border-dashed border-white/25 px-6 text-center text-sm text-subtle";
+  if (!signedIn) return <div className={box}>Giriş yapınca önceki planlarının afişleri ve yüklediğin fotoğraflar burada görünür.</div>;
+  if (!data) return <div className={box}>Yükleniyor…</div>;
+  if (!data.posters.length && !data.photos.length) return <div className={box}>Henüz bir şey yok. Yüklediğin afişler ve albüm fotoğrafların burada birikir.</div>;
+  const grid = (title: string, urls: string[]) =>
+    urls.length > 0 && (
+      <div className="flex flex-col gap-2.5">
+        <span className="text-[13px] font-bold text-muted">{title}</span>
+        <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+          {urls.map((u) => (
+            <button key={u} type="button" onClick={() => onPick(u)} aria-pressed={pick === u} className="relative aspect-square overflow-hidden rounded-lg" style={{ border: pick === u ? "3px solid #FFFFFF" : "1px solid rgba(255,255,255,0.1)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={u} alt="" loading="lazy" className="size-full object-cover" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  return (
+    <div className="flex flex-col gap-5">
+      {grid("Afişlerin", data.posters)}
+      {grid("Albüm fotoğrafların", data.photos)}
+    </div>
   );
 }
