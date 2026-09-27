@@ -84,3 +84,14 @@ ${button(link, "Davetiyeyi aç")}
 <p style="margin:16px 0 0;font-size:12px;color:#5F584F">Link 10 dakika geçerli; sonra ${esc(SITE.replace("https://", ""))}/e/${esc(plan.code)} adresinden e-postanla giriş yapabilirsin.</p>`;
   return send(to, `${hostName} seni davet etti: ${plan.title}`, shell(body, "E-postan yalnızca giriş ve hatırlatma için kullanılır; düzenleyenlere gösterilmez."), `${hostName} seni davet etti: ${plan.title}\n${when}\n\n${link}`);
 }
+
+/** Scheduled reminders: "Katılımını bildir" a week before, "2 saat kaldı" before the plan. */
+export async function sendReminderMail(to: string, kind: "rsvp" | "event", plan: { title: string; code: string; startsAt?: string; district?: string; address?: string }) {
+  const url = planUrl(plan.code);
+  const when = plan.startsAt ? `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}` : "";
+  const title = kind === "rsvp" ? `${plan.title} — geliyor musun?` : `${plan.title} 2 saat sonra başlıyor`;
+  const body = kind === "rsvp"
+    ? `<p style="margin:0 0 12px;font-size:18px;font-weight:800">${esc(plan.title)}</p><p style="margin:0 0 16px;font-size:14px;line-height:1.5">${esc(when)}${plan.district ? ` · ${esc(plan.district)}` : ""}<br>Bir hafta kaldı, düzenleyen kimlerin geleceğini bilmek istiyor. Katılımını bildir.</p>${button(url, "Katılımını bildir")}`
+    : `<p style="margin:0 0 12px;font-size:18px;font-weight:800">2 saat kaldı: ${esc(plan.title)}</p><p style="margin:0 0 16px;font-size:14px;line-height:1.5">${esc(when)}${plan.address ? `<br>${esc(plan.address)}` : ""}</p>${button(url, "Planı aç")}`;
+  return send(to, title, shell(body, "Bu hatırlatma, katılım bildirdiğin ya da davet edildiğin plan için gönderildi. Planı sessize almak için plan sayfasındaki zili kullan."), `${title}\n${when}\n\n${url}`);
+}

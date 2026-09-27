@@ -238,3 +238,17 @@ export const photos = pgTable(
   },
   (t) => [index("photos_plan_idx").on(t.planId)],
 );
+
+/** One row per plan per reminder kind so the cron never sends twice. */
+export const reminderLog = pgTable(
+  "reminder_log",
+  {
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // rsvp | event
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.planId, t.kind] })],
+);

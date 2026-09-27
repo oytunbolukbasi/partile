@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
 
 const isoOf = (d: Date | null | undefined) => (d ? d.toISOString() : undefined);
 
@@ -237,4 +237,39 @@ export async function getConversation(id: string, userId: string): Promise<{ met
   const db = await getDb();
   const rows = await db.select().from(messages).where(eq(messages.conversationId, id)).orderBy(asc(messages.createdAt));
   return { meta, messages: rows.map((m) => ({ id: m.id, senderId: m.senderId, text: m.text, at: m.createdAt.toISOString(), read: !!m.readAt })) };
+}
+
+/* ---------- reminders (cron) ---------- */
+
+export type DueReminder = { plan: Plan; kind: "rsvp" | "event"; recipients: { guestId: string; userId: string | null; email: string | null; name: string }[] };
+
+/**
+ * Plans whose reminder window opened and that were not reminded yet:
+ * rsvp → 7 days before (plans published at least that early), to invited + maybe;
+ * event → 2 hours before, to going.
+ */
+export async function dueReminders(now = new Date()): Promise<DueReminder[]> {
+  const db = await getDb();
+  const WEEK = 7 * 864e5;
+  const TWO_H = 2 * 3600e3;
+  const rows = await db.select().from(plans).where(and(eq(plans.status, "published"), eq(plans.remindersEnabled, true)));
+  const sent = await db.select().from(reminderLog);
+  const wasSent = (planId: string, kind: string) => sent.some((r) => r.planId === planId && r.kind === kind);
+  const out: DueReminder[] = [];
+  for (const r of rows) {
+    if (!r.startsAt || r.startsAt.getTime() <= now.getTime()) continue;
+    const until = r.startsAt.getTime() - now.getTime();
+    const published = (r.publishedAt ?? r.createdAt).getTime();
+    const kinds: ("rsvp" | "event")[] = [];
+    if (until <= WEEK && published <= r.startsAt.getTime() - WEEK && !wasSent(r.id, "rsvp")) kinds.push("rsvp");
+    if (until <= TWO_H && !wasSent(r.id, "event")) kinds.push("event");
+    if (!kinds.length) continue;
+    const gs = await db.select({ id: guests.id, userId: guests.userId, email: guests.email, name: guests.name, status: guests.status }).from(guests).where(eq(guests.planId, r.id));
+    const plan = await assemble(r);
+    for (const kind of kinds) {
+      const want = kind === "rsvp" ? ["invited", "maybe"] : ["going"];
+      out.push({ plan, kind, recipients: gs.filter((g) => want.includes(g.status)).map((g) => ({ guestId: g.id, userId: g.userId, email: g.email, name: g.name })) });
+    }
+  }
+  return out;
 }

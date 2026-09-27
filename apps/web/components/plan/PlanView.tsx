@@ -10,7 +10,7 @@ import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
 import { CalendarMenu } from "@/components/plan/CalendarMenu";
-import { openConversation, respondCohost } from "@/app/actions";
+import { markPaid, openConversation, respondCohost } from "@/app/actions";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
@@ -38,7 +38,7 @@ const timeAgo = (iso: string) => {
 };
 
 /** `InviteDesktop` / `InviteMobile` (pre-RSVP) and `Event` / `EventMobile` (post-RSVP) in one component. */
-type ViewerGuest = { id: string; name: string; status: string; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
+type ViewerGuest = { id: string; name: string; status: string; paid?: boolean; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
 
 export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInvite = false }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean; cohostInvite?: boolean }) {
   const router = useRouter();
@@ -157,13 +157,26 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
           <p className="whitespace-pre-line text-lg leading-relaxed opacity-90">{plan.description}</p>
 
           {joined && plan.cost.mode !== "off" && (
-            <div className="glass flex items-center gap-3.5 rounded-xl px-4.5 py-4">
-              <span className="flex size-11 items-center justify-center rounded-md font-poster text-base font-extrabold text-bg" style={{ background: t.accent }}>₺</span>
-              <span className="flex grow flex-col">
-                <span className="text-[17px] font-bold">{plan.cost.mode === "fixed" && plan.cost.amountTry ? `Kişi başı ${formatTry(plan.cost.amountTry)}` : "Gönlünden ne koparsa"} · Masrafı böl</span>
-                <span className="text-sm opacity-80">{[plan.cost.iban && "IBAN", plan.cost.papara && "Papara"].filter(Boolean).join(" · ")} · ödemeni işaretle</span>
-              </span>
-              <button type="button" className="h-10 rounded-pill bg-white px-4 text-sm font-bold text-bg">Gönderdim</button>
+            <div className="glass flex flex-col gap-3 rounded-xl px-4.5 py-4">
+              <div className="flex items-center gap-3.5">
+                <span className="flex size-11 items-center justify-center rounded-md font-poster text-base font-extrabold text-bg" style={{ background: t.accent }}>₺</span>
+                <span className="flex grow flex-col">
+                  <span className="text-[17px] font-bold">{plan.cost.mode === "fixed" && plan.cost.amountTry ? `Kişi başı ${formatTry(plan.cost.amountTry)}` : "Gönlünden ne koparsa"} · Masrafı böl</span>
+                  <span className="text-sm opacity-80">{viewerGuest?.paid ? "Gönderdin · düzenleyen görüyor" : "Gönderince işaretle; doğrulama yok"}</span>
+                </span>
+                {!preview && (
+                  <button type="button" onClick={async () => { await markPaid(plan.code, !viewerGuest?.paid); router.refresh(); }} className={`h-10 shrink-0 rounded-pill px-4 text-sm font-bold ${viewerGuest?.paid ? "border border-white/35 bg-white/8" : "bg-white text-bg"}`}>
+                    {viewerGuest?.paid ? "Geri al" : "Gönderdim"}
+                  </button>
+                )}
+              </div>
+              {(plan.cost.iban || plan.cost.papara || plan.cost.note) && (
+                <div className="flex flex-col gap-1 rounded-lg bg-bg/35 px-3.5 py-2.5 text-sm">
+                  {plan.cost.iban && <span className="flex flex-wrap items-center gap-2"><span className="opacity-70">IBAN</span><code className="font-semibold">{plan.cost.iban}</code><button type="button" onClick={() => navigator.clipboard?.writeText(plan.cost.iban!)} className="text-xs font-bold" style={{ color: t.accent }}>Kopyala</button></span>}
+                  {plan.cost.papara && <span className="flex items-center gap-2"><span className="opacity-70">Papara</span><code className="font-semibold">{plan.cost.papara}</code></span>}
+                  {plan.cost.note && <span className="opacity-80">Açıklama: {plan.cost.note}</span>}
+                </div>
+              )}
             </div>
           )}
 

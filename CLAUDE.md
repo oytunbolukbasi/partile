@@ -9,7 +9,7 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
 - **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
 - Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
-- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron). Efekt paneli ve katılım butonu stili kodlandı (27 Eyl 2026). Prod: **Railway** (Vercel değil) — Neon ya da Railway Postgres `DATABASE_URL`, `AUTH_SECRET`, blob depo, `pnpm --filter @partile/db exec drizzle-kit migrate`; hatırlatma cron’u Railway cron job olarak. Resend domain’i doğrulandı (27 Eyl 2026), anahtar yalnız `apps/web/.env`’de (git dışı).
+- Kalan yer tutucular: GIF arama, “Galerim”, plan iptali, Sessize al / Takip et, görüntü boyutlandırma (sharp), hukuk metinleri. Prod: **Railway** (Vercel değil) — Railway Postgres ya da Neon `DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, kalıcı volume ile `UPLOAD_DIR` (ya da blob), `pnpm --filter @partile/db exec drizzle-kit migrate`; hatırlatma cron’u Railway cron job: saatte bir `GET /api/cron/hatirlatma` (Bearer `CRON_SECRET`). Resend domain’i doğrulandı (27 Eyl 2026), anahtar yalnız `apps/web/.env`’de (git dışı).
 
 ## Kod
 
@@ -66,7 +66,7 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Gizlilik / mevzuat | Düzenleyen misafirin e-postasını **göremez**. KVKK aydınlatma + açık rıza (e-posta), İYS/ETK (hatırlatma e-postası işlem mesajıdır; pazarlama e-postası ayrı izin). |
 | Ödeme | **Masrafı böl** = IBAN / Papara gösterimi + misafir "gönderdim" beyanı; doğrulama yok. Gerçek tahsilat (iyzico/PayTR) ve bilet Faz 3. |
 | Tarih anketi | MVP'de var; masrafı böl ve katılım onayıyla aynı anda kapalı. Gün seçilince oylar katılıma dönüşür. |
-| Hatırlatmalar | Sabit program: katılım hatırlatması 1 hafta önce (davetli + belki), etkinlik hatırlatması 2 saat önce (geliyor). |
+| Hatırlatmalar | Sabit program: katılım hatırlatması 1 hafta önce (davetli + belki; plan en az 1 hafta önce yayınlandıysa), etkinlik hatırlatması 2 saat önce (geliyor). `reminder_log` plan+tür başına bir kez; e-posta (Resend) + uygulama içi bildirim; plan “hatırlatmalar kapalı” ise atlanır. Cron `/api/cron/hatirlatma`. |
 | AI | Oluştur ekranında serbest metin → başlık/tarih/tema önerisi (Claude API). Sonuç her zaman düzenlenebilir form alanına dolar. Faz 1 sonu. |
 | Premium | Karar (27 Eyl 2026): **şablon ve temalar Premium değil**, taç rozeti yok. Premium ileride başka özelliklere (ör. gelişmiş araçlar) ayrılacak; MVP'de ödeme yok. |
 | Domain | **getpartile.com**. Paylaşım linki `getpartile.com/e/{kod}`. Gönderici e-postası `merhaba@getpartile.com` (Resend domain doğrulaması bekliyor). |

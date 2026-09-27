@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { PlanDraft, Rsvp } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, users, verificationCodes } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
 
 const id = () => randomUUID();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -412,4 +412,12 @@ export async function addInvitedGuests(planId: string, entries: { name: string; 
     added.push({ id: gid, name, email });
   }
   return added;
+}
+
+/** Record a sent reminder and drop in-app notifications for recipients with accounts. */
+export async function logReminder(planId: string, kind: "rsvp" | "event", recipients: { userId: string | null }[], text: string) {
+  const db = await getDb();
+  await db.insert(reminderLog).values({ planId, kind, count: recipients.length }).onConflictDoNothing();
+  const rows = recipients.filter((r) => r.userId).map((r) => ({ id: id(), userId: r.userId!, planId, kind: "reminder", actorName: "partile", text, role: "guest" }));
+  if (rows.length) await db.insert(notifications).values(rows);
 }

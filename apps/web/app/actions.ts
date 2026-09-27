@@ -318,3 +318,18 @@ export async function addGuests(code: string, text: string) {
   revalidatePath(routes.plan(code));
   return { ok: true as const, added: added.length, mailed, skipped: entries.length - added.length };
 }
+
+/* ---------- cost split ---------- */
+
+/** Guest marks "gönderdim" (or takes it back). No verification; hosts see the count. */
+export async function markPaid(code: string, paid: boolean) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  const { getViewerGuest } = await import("@partile/db");
+  const g = await getViewerGuest(plan.id, v.id);
+  if (!g) return { ok: false as const };
+  await setPaid(g.id, paid);
+  revalidatePath(routes.plan(code));
+  return { ok: true as const };
+}
