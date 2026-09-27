@@ -69,7 +69,7 @@
 | Yorum / fotoğraf yükleme | `Event` akışı | Metin + GIF (GIPHY) + görsel; yanıt tek seviye; düzenleyen sabitler/siler. |
 | İptal / sil / tarih değişikliği | Onay diyaloğu | İptal: misafirlere bildirim, sayfa "Bu plan iptal edildi" durumuna geçer. Tarih değişikliği: "Yeni tarih uyuyor mu?" bildirimi. Silme: 30 gün geri alma. |
 | Sistem sayfaları | Kabuk | 404, link geçersiz, plan iptal edildi, plan sona erdi (fotoğraf albümü açık kalır). |
-| Profil ayarları | `Settings` benzeri modal | Hesap (numara değiştir, çıkış, hesabı sil), Bildirimler (katılım/yorum/fotoğraf/hatırlatma: Tümü/Kapalı), Takvim senkronu (Google, .ics), Dil, Erişilebilirlik (hareketi azalt). |
+| Profil ayarları | `Settings` benzeri modal; giriş yalnızca profil avatarı → menü (rail’de ayar ikonu yok) | Hesap (numara değiştir, çıkış, hesabı sil), Bildirimler (katılım/yorum/fotoğraf/hatırlatma: Tümü/Kapalı), Takvim senkronu (Google, .ics), Dil, Erişilebilirlik (hareketi azalt). |
 | Takvime ekle | — | `.ics` indir + Google Calendar linki; ekran yok. |
 | Kart gönder, Keşfet, Organizasyon profili, Mesajlar | çizili (`Card`, `Explore`, `OrgProfile`) | **Faz 2** — MVP'de menüde görünmez. |
 

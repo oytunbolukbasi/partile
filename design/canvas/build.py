@@ -48,7 +48,7 @@ def rail(active, height, avatar="OB"):
     av = f'<a href="Profile.dc.html" aria-label="Profil" style="width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #1EC9B0, #FFB020); display: flex; align-items: center; justify-content: center; color: #0C0C0D; font-weight: 800; font-size: 13px; text-decoration: none">{avatar}</a>'
     return (f'<nav aria-label="Ana menü" style="position: absolute; left: 0; top: 0; width: 72px; height: {height}px; background: rgba(12,12,13,0.55); border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; padding: 20px 0 16px; box-sizing: border-box; color: #F5F2EC">'
             f'{LOGO_RAIL}<div style="margin-top: 88px; display: flex; flex-direction: column; gap: 22px; align-items: center">{"".join(items)}</div>'
-            f'<div style="margin-top: auto; display: flex; flex-direction: column; gap: 18px; align-items: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); width: 48px">{gear}{av}</div></nav>')
+            f'<div style="margin-top: auto; display: flex; flex-direction: column; gap: 18px; align-items: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); width: 48px">{av}</div></nav>')
 
 TOPRIGHT = ('<div style="position: absolute; right: 40px; top: 18px; display: flex; align-items: center; gap: 10px">'
             '<a href="#" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: #F5F2EC; font-weight: 600; font-size: 15px; display: flex; align-items: center; text-decoration: none">Uygulamayı indir</a>'
