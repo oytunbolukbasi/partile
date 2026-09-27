@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Efekt paneli</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&amp;family=Hanken+Grotesk:wght@400..800&amp;family=Unbounded:wght@800&amp;family=Fraunces:ital,wght@0,800;1,800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Hanken Grotesk',sans-serif;background:#0C0C0D;color:#F5F2EC}
+a{color:#F5F2EC}a:hover{color:#FFFFFF}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0)}100%{transform:translateY(420px) rotate(320deg)}}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes rise{0%{transform:translateY(0)}100%{transform:translateY(-380px)}}
+.fx-piece{position:absolute;top:-16px;width:10px;height:14px;border-radius:2px;animation:fall 5s linear infinite}
+.fx-star{position:absolute;width:8px;height:8px;border-radius:999px;background:#FFF1E3;box-shadow:0 0 12px 3px rgba(255,209,102,.7);animation:twinkle 2.4s ease-in-out infinite}
+.fx-flake{position:absolute;top:-10px;width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.9);box-shadow:0 0 8px rgba(255,255,255,.7);animation:fall 7s linear infinite}
+.fx-balloon{position:absolute;bottom:-60px;width:34px;height:42px;border-radius:50% 50% 50% 50%/45% 45% 55% 55%;animation:rise 9s ease-in infinite}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1180px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.fg}}; font-family: 'Hanken Grotesk', sans-serif">
+__RAIL:create:1180__
+<div style="position: absolute; right: 40px; top: 18px; display: flex; align-items: center; gap: 10px">
+<span style="height: 44px; padding: 0 16px; border-radius: 999px; background: rgba(12,12,13,0.55); border: 1px solid rgba(255,255,255,0.14); font-size: 14px; display: flex; align-items: center; color: #CFC9C0">Taslak kaydedildi · 14:06</span>
+</div>
+
+<!-- sol sütun: editör özeti -->
+<div style="position: absolute; left: 152px; top: 120px; width: 400px; display: flex; flex-direction: column; gap: 16px">
+<div style="border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 22px 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Fraunces', serif; font-weight: 800; font-size: 56px; line-height: 1; letter-spacing: -1.5px">Ece 30 Oluyor</div>
+<div style="display: flex; gap: 8px"><span style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12); font: 700 14px 'Fraunces', serif; display: flex; align-items: center">Eklektik</span><span style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.18); font: 700 14px 'Schibsted Grotesk', sans-serif; display: flex; align-items: center; opacity: .7">Klasik</span></div>
+</div>
+<div style="border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 16px 20px; display: flex; flex-direction: column; gap: 2px"><span style="font: 700 22px 'Schibsted Grotesk', sans-serif">Cumartesi, 17 Ekim</span><span style="font-size: 15px; opacity: .8">20:00 – 23:30 · TSİ</span></div>
+<div style="border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 16px 20px; font-size: 16px; opacity: .85">Moda, Kadıköy · Adres katılınca</div>
+
+<!-- efekt açıklaması -->
+<div style="border-radius: 16px; border: 1px dashed rgba(255,255,255,0.3); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.5; color: {{t.fg}}">
+<span style="font: 700 15px 'Schibsted Grotesk', sans-serif">Efekt nasıl çalışır</span>
+<span>• Efekt <strong>davetiyenin üstünde</strong> oynar: afiş ve metin değişmez, üstüne parçacık katmanı gelir.</span>
+<span>• <strong>Açılışta bir kez</strong>: misafir linki açınca 4 sn oynar, biter. <strong>Sürekli</strong>: hafif, döngüde.</span>
+<span>• Sistem “hareketi azalt” açıksa efekt oynamaz; misafir sağ üstten kapatabilir.</span>
+<span>• Hikâye afişi ve WhatsApp kartında efekt yok (statik).</span>
+</div>
+</div>
+
+<!-- afiş + canlı efekt -->
+<div style="position: absolute; left: 600px; top: 120px; width: 430px; display: flex; flex-direction: column; gap: 14px; align-items: center">
+<div style="position: relative; width: 430px; height: 430px; border-radius: 16px; overflow: hidden; background: {{t.poster}}; box-shadow: 0 30px 60px rgba(0,0,0,0.45)">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 220px 'Unbounded', sans-serif; letter-spacing: -12px; color: {{t.fg}}; text-shadow: 0 0 80px {{t.glow}}">30</div>
+<div style="position: absolute; left: 26px; top: 24px; font: 800 14px 'Unbounded', sans-serif; letter-spacing: 4px; opacity: .85">PARTİLE</div>
+<div style="position: absolute; right: 26px; bottom: 24px; font: 800 14px 'Unbounded', sans-serif; letter-spacing: 4px; opacity: .85">MODA</div>
+<!-- efekt katmanı -->
+<sc-if value="{{isConfetti}}" hint-placeholder-val="{{true}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">
+<span class="fx-piece" style="left: 6%; background: #FFB020; animation-delay: 0s"></span><span class="fx-piece" style="left: 16%; background: #FF6A3D; animation-delay: -1.2s; width: 8px"></span><span class="fx-piece" style="left: 27%; background: #1EC9B0; animation-delay: -2.4s"></span><span class="fx-piece" style="left: 38%; background: #FFF1E3; animation-delay: -0.6s; width: 7px"></span><span class="fx-piece" style="left: 49%; background: #FFB020; animation-delay: -3.1s"></span><span class="fx-piece" style="left: 60%; background: #FF6A3D; animation-delay: -1.8s"></span><span class="fx-piece" style="left: 71%; background: #1EC9B0; animation-delay: -4s; width: 8px"></span><span class="fx-piece" style="left: 82%; background: #FFD166; animation-delay: -2.9s"></span><span class="fx-piece" style="left: 92%; background: #FF6A3D; animation-delay: -0.3s"></span><span class="fx-piece" style="left: 33%; background: #FFD166; animation-delay: -3.7s; width: 6px"></span><span class="fx-piece" style="left: 55%; background: #FFF1E3; animation-delay: -4.6s"></span><span class="fx-piece" style="left: 77%; background: #FFB020; animation-delay: -1.5s; width: 7px"></span>
+</div>
+</sc-if>
+<sc-if value="{{isSparkle}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">
+<span class="fx-star" style="left: 12%; top: 18%; animation-delay: 0s"></span><span class="fx-star" style="left: 78%; top: 14%; animation-delay: -.6s"></span><span class="fx-star" style="left: 88%; top: 62%; animation-delay: -1.2s"></span><span class="fx-star" style="left: 22%; top: 72%; animation-delay: -1.8s"></span><span class="fx-star" style="left: 52%; top: 9%; animation-delay: -.9s"></span><span class="fx-star" style="left: 64%; top: 84%; animation-delay: -1.5s"></span><span class="fx-star" style="left: 8%; top: 48%; animation-delay: -2.1s"></span>
+</div>
+</sc-if>
+<sc-if value="{{isSnow}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">
+<span class="fx-flake" style="left: 5%; animation-delay: 0s"></span><span class="fx-flake" style="left: 15%; animation-delay: -2s; width: 6px; height: 6px"></span><span class="fx-flake" style="left: 26%; animation-delay: -4s"></span><span class="fx-flake" style="left: 37%; animation-delay: -1s; width: 5px; height: 5px"></span><span class="fx-flake" style="left: 48%; animation-delay: -5.5s"></span><span class="fx-flake" style="left: 59%; animation-delay: -3s; width: 6px; height: 6px"></span><span class="fx-flake" style="left: 70%; animation-delay: -6.2s"></span><span class="fx-flake" style="left: 81%; animation-delay: -2.6s; width: 5px; height: 5px"></span><span class="fx-flake" style="left: 92%; animation-delay: -4.8s"></span>
+</div>
+</sc-if>
+<sc-if value="{{isBalloon}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">
+<span class="fx-balloon" style="left: 8%; background: #FF6A3D; animation-delay: 0s"></span><span class="fx-balloon" style="left: 28%; background: #FFB020; animation-delay: -3s"></span><span class="fx-balloon" style="left: 50%; background: #1EC9B0; animation-delay: -6s"></span><span class="fx-balloon" style="left: 70%; background: #FFD166; animation-delay: -1.5s"></span><span class="fx-balloon" style="left: 86%; background: #FF6A3D; animation-delay: -4.5s"></span>
+</div>
+</sc-if>
+<!-- misafir kapatma düğmesi -->
+<button type="button" aria-label="Efekti kapat" style="position: absolute; right: 12px; top: 12px; height: 32px; padding: 0 12px; border-radius: 999px; border: 0; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 12px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; gap: 6px">{{fxName}} · kapat</button>
+</div>
+<div style="font-size: 14px; opacity: .8; text-align: center">Afişte canlı önizleme · {{fxName}} · {{levelName}} · {{modeName}}</div>
+</div>
+
+<!-- efekt paneli (tema paneliyle aynı yer ve ölçü) -->
+<div style="position: absolute; left: 1076px; top: 126px; width: 200px; box-sizing: border-box; border-radius: 20px; background: rgba(12,12,13,0.82); border: 1px solid rgba(255,255,255,0.12); color: #F5F2EC; padding: 16px 14px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 60px rgba(0,0,0,0.4)">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font: 700 18px 'Schibsted Grotesk', sans-serif">Efekt</span>
+<button type="button" aria-label="Paneli kapat" style="width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #F5F2EC; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{fx}}" as="f" hint-placeholder-count="6">
+<button type="button" onClick="{{f.pick}}" aria-pressed="{{f.sel}}" aria-label="{{f.name}}" style="width: 52px; height: 52px; border-radius: 999px; border: 2px solid {{f.ring}}; box-shadow: 0 0 0 3px {{f.halo}}; padding: 0; background: {{f.swatch}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font: 800 11px 'Hanken Grotesk', sans-serif; letter-spacing: .3px; text-shadow: 0 1px 4px rgba(0,0,0,.6)">{{f.short}}</button>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 800; letter-spacing: .5px; color: #A8A39B">YOĞUNLUK</span>
+<div role="radiogroup" style="display: flex; gap: 4px">
+<sc-for list="{{levels}}" as="l" hint-placeholder-count="3">
+<button type="button" role="radio" onClick="{{l.pick}}" aria-checked="{{l.sel}}" style="flex-grow: 1; height: 30px; border-radius: 999px; border: 1px solid {{l.line}}; background: {{l.bg}}; color: #F5F2EC; font: 700 12px 'Hanken Grotesk', sans-serif">{{l.name}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 800; letter-spacing: .5px; color: #A8A39B">NE ZAMAN</span>
+<div role="radiogroup" style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+<button type="button" role="radio" onClick="{{m.pick}}" aria-checked="{{m.sel}}" style="height: 34px; border-radius: 10px; border: 1px solid {{m.line}}; background: {{m.bg}}; color: #F5F2EC; font: 700 13px 'Hanken Grotesk', sans-serif; text-align: left; padding: 0 10px">{{m.name}}</button>
+</sc-for>
+</div>
+</div>
+<span style="font-size: 12px; color: #A8A39B; line-height: 1.4">Seçili: <strong style="color: #F5F2EC">{{fxName}}</strong>. Hareketi azaltan misafirlerde oynamaz.</span>
+</div>
+
+<!-- sağ araç çubuğu: Efekt aktif -->
+<div style="position: absolute; left: 1300px; top: 126px; width: 100px; box-sizing: border-box; border-radius: 20px; background: rgba(12,12,13,0.6); border: 1px solid rgba(255,255,255,0.1); color: #F5F2EC; padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 18px">
+<button type="button" style="width: 84px; border: 0; background: transparent; color: #CFC9C0; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 600 13px 'Hanken Grotesk', sans-serif; padding: 6px 0"><span style="width: 40px; height: 40px; border-radius: 999px; background: {{t.swatch}}"></span>Tema</button>
+<button type="button" aria-pressed="true" style="width: 84px; border: 0; background: transparent; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 600 13px 'Hanken Grotesk', sans-serif; padding: 6px 0"><span style="width: 40px; height: 40px; border-radius: 999px; background: radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06); border: 2px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; color: #FFFFFF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"></path></svg></span>Efekt</button>
+<button type="button" style="width: 84px; border: 0; background: transparent; color: #CFC9C0; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 600 13px 'Hanken Grotesk', sans-serif; padding: 6px 0"><span style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></span>Ayarlar</button>
+<button type="button" style="width: 84px; border: 0; background: transparent; color: #CFC9C0; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 600 13px 'Hanken Grotesk', sans-serif; padding: 6px 0"><span style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>Önizle</button>
+</div>
+
+<!-- alt şerit: misafirde nasıl görünür -->
+<div style="position: absolute; left: 152px; right: 40px; top: 760px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: baseline; gap: 12px"><span style="font: 700 22px 'Schibsted Grotesk', sans-serif">Misafirde nasıl görünür</span><span style="font-size: 14px; opacity: .75">Mobil davetiye, üst kısım · efekt tam sayfada, afişle sınırlı değil</span></div>
+<div style="display: flex; gap: 20px">
+<sc-for list="{{previews}}" as="p" hint-placeholder-count="3">
+<div style="position: relative; width: 300px; height: 340px; border-radius: 22px; overflow: hidden; background: {{p.bg}}; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4)">
+<div style="position: absolute; left: 0; right: 0; top: 0; height: 40px; background: #0C0C0D; color: #F5F2EC; display: flex; align-items: center; justify-content: center; font-size: 11px; gap: 8px">Plan yapmak bu kadar kolay <span style="height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid #FFB020; display: flex; align-items: center; font-weight: 700">Sen de oluştur</span></div>
+<div style="position: absolute; left: 20px; top: 62px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -1px; color: {{p.fg}}">Ece 30<br>Oluyor</div>
+<div style="position: absolute; left: 20px; right: 20px; top: 172px; height: 150px; border-radius: 12px; background: {{p.poster}}; display: flex; align-items: center; justify-content: center; font: 800 90px 'Unbounded', sans-serif; letter-spacing: -5px; color: {{p.fg}}; text-shadow: 0 0 40px {{p.glow}}">30</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">{{p.layer}}</div>
+<span style="position: absolute; right: 10px; top: 50px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 11px 'Hanken Grotesk', sans-serif; display: flex; align-items: center">{{p.name}} · kapat</span>
+</div>
+</sc-for>
+<div style="flex-grow: 1; border-radius: 16px; border: 1px dashed rgba(255,255,255,0.3); padding: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.5">
+<span style="font: 700 15px 'Schibsted Grotesk', sans-serif">Efekt kataloğu (MVP)</span>
+<span><strong>Konfeti</strong> · doğum günü, kutlama — tema vurgu renkleri</span>
+<span><strong>Işıltı</strong> · şık/zarif planlar — yumuşak, sürekli</span>
+<span><strong>Kar</strong> · yılbaşı, kış</span>
+<span><strong>Balon</strong> · çocuk, sürpriz</span>
+<span><strong>Kalp</strong> · kına, nişan, sevgililer</span>
+<span><strong>Havai fişek</strong> · yılbaşı, açılışta bir kez</span>
+<span style="color: #A8A39B">Teknik: CSS/canvas parçacıkları, 60 parçacık üst sınır, 4 sn “açılışta” · efekt planla kaydedilir (`extras.effect`).</span>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { fx: 1, level: 1, mode: 0 }; }
+  renderVals() {
+    const t = { fg: '#FFF1E3', glow: 'rgba(255,177,71,0.7)',
+      bg: 'radial-gradient(48% 42% at 18% 8%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(40% 36% at 82% 22%, #F59E0B 0%, rgba(245,158,11,0) 70%), radial-gradient(70% 55% at 50% 105%, #3F0D06 0%, rgba(63,13,6,0) 70%), #160804',
+      poster: 'radial-gradient(70% 60% at 25% 20%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(60% 55% at 85% 35%, #F59E0B 0%, rgba(245,158,11,0) 70%), #160804',
+      swatch: 'linear-gradient(135deg, #F59E0B, #C2410C 60%, #160804)' };
+    const FX = [
+      { name: 'Yok', short: 'YOK', swatch: 'rgba(255,255,255,0.08)' },
+      { name: 'Konfeti', short: 'KONFETİ', swatch: 'linear-gradient(135deg, #FFB020, #FF6A3D 50%, #1EC9B0)' },
+      { name: 'Işıltı', short: 'IŞILTI', swatch: 'radial-gradient(circle at 40% 40%, #FFF1E3, #FFD166 40%, #7A4A12)' },
+      { name: 'Kar', short: 'KAR', swatch: 'radial-gradient(circle at 40% 40%, #FFFFFF, #BFD8E6 45%, #1D4ED8)' },
+      { name: 'Balon', short: 'BALON', swatch: 'radial-gradient(circle at 35% 35%, #FFD166, #FF6A3D 55%, #B91C3C)' },
+      { name: 'Kalp', short: 'KALP', swatch: 'radial-gradient(circle at 40% 40%, #FB7185, #B91C3C 60%, #2A0710)' },
+      { name: 'Havai fişek', short: 'FİŞEK', swatch: 'radial-gradient(circle at 50% 50%, #FFF1E3, #FFB020 30%, #071233 75%)' }
+    ];
+    const LEVELS = ['Az', 'Orta', 'Çok'];
+    const MODES = ['Açılışta bir kez (4 sn)', 'Sürekli, hafif'];
+    const { fx, level, mode } = this.state;
+    const sel = (on) => on ? 'true' : 'false';
+    const confetti = (c) => `<span class="fx-piece" style="left: 10%; background: #FFB020"></span><span class="fx-piece" style="left: 30%; background: #FF6A3D; animation-delay: -1.5s"></span><span class="fx-piece" style="left: 50%; background: #1EC9B0; animation-delay: -3s"></span><span class="fx-piece" style="left: 70%; background: #FFD166; animation-delay: -2.2s"></span><span class="fx-piece" style="left: 88%; background: #FFF1E3; animation-delay: -4s"></span>`;
+    const snow = `<span class="fx-flake" style="left: 8%"></span><span class="fx-flake" style="left: 28%; animation-delay: -2s"></span><span class="fx-flake" style="left: 48%; animation-delay: -4s"></span><span class="fx-flake" style="left: 68%; animation-delay: -1s"></span><span class="fx-flake" style="left: 88%; animation-delay: -5s"></span>`;
+    const sparkle = `<span class="fx-star" style="left: 14%; top: 22%"></span><span class="fx-star" style="left: 80%; top: 18%; animation-delay: -.7s"></span><span class="fx-star" style="left: 60%; top: 78%; animation-delay: -1.4s"></span><span class="fx-star" style="left: 26%; top: 88%; animation-delay: -1.9s"></span>`;
+    const kor = t, deniz = { fg: '#EAFBF8', glow: 'rgba(31,182,166,0.7)', bg: 'radial-gradient(48% 42% at 15% 10%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(40% 36% at 85% 25%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C', poster: 'radial-gradient(70% 60% at 20% 15%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(55% 50% at 85% 35%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C' };
+    const kobalt = { fg: '#EAF2FF', glow: 'rgba(56,189,248,0.7)', bg: 'radial-gradient(48% 42% at 18% 8%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(40% 36% at 82% 22%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233', poster: 'radial-gradient(70% 60% at 25% 20%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(60% 55% at 85% 40%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233' };
+    return {
+      t,
+      fxName: FX[fx].name, levelName: LEVELS[level], modeName: MODES[mode],
+      isConfetti: fx === 1, isSparkle: fx === 2, isSnow: fx === 3, isBalloon: fx === 4,
+      fx: FX.map((f, i) => ({ ...f, sel: sel(i === fx), ring: i === fx ? '#FFFFFF' : 'rgba(255,255,255,0.18)', halo: i === fx ? 'rgba(255,255,255,0.15)' : 'transparent', pick: () => this.setState({ fx: i }) })),
+      levels: LEVELS.map((n, i) => ({ name: n, sel: sel(i === level), line: i === level ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.14)', bg: i === level ? 'rgba(255,255,255,0.14)' : 'transparent', pick: () => this.setState({ level: i }) })),
+      modes: MODES.map((n, i) => ({ name: n, sel: sel(i === mode), line: i === mode ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.14)', bg: i === mode ? 'rgba(255,255,255,0.14)' : 'transparent', pick: () => this.setState({ mode: i }) })),
+      previews: [
+        { name: 'Konfeti', ...kor, layer: confetti() },
+        { name: 'Işıltı', ...deniz, layer: sparkle },
+        { name: 'Kar', ...kobalt, layer: snow }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

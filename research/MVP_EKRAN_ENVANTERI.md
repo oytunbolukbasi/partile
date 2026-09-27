@@ -46,6 +46,14 @@
 | 23 | Boş durumlar | `Empty` | 1440 | — | Ortak arkadaşlar / Mesajlar / Bildirimler → "ilk planını oluştur" |
 | 24 | Tasarım dili · Logo | `Main`, `LogoFinal` | 1440 | — | Referans panoları |
 
+## Eklenen artboard'lar (27 Eyl 2026 — kullanıcı revizyonu)
+
+| # | Ekran | Artboard | Cihaz | Etkileşim | Not |
+|---|---|---|---|---|---|
+| 29 | Mesajlar | `Messages` | 1440 | sohbet seçimi canlı | Plan bazlı yazışma: düzenleyen ↔ misafir; sol liste (Tümü · Planlar · Kişiler), sağ yazışma, plan çipi, sessize al. Grup sohbeti yok. Rail'de zarf ikonu; "Kart gönder" rail'den kaldırıldı. |
+| 30 | Efekt paneli | `Effects` | 1440 | efekt/yoğunluk/zaman seçimi canlı | Tema paneliyle aynı yer ve ölçü; Yok · Konfeti · Işıltı · Kar · Balon · Kalp · Havai fişek; yoğunluk Az/Orta/Çok; "açılışta bir kez (4 sn)" / "sürekli"; misafir kapatabilir; hareketi azalt'a saygı; `extras.effect` olarak kaydedilir. |
+| 31 | Katılım butonu stili | `RsvpStyles` | 1440 | menü canlı | Editör kartındaki açılır menü: Simgeler (varsayılan) · Metin · Tek düğme; Ayarlar → Katılım ile aynı değer. |
+
 ## Faz 1 — giriş yapmamış (public) yüzeyler (çizili)
 
 | # | Ekran | Artboard | Cihaz | Not |

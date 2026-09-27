@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Katılım butonu stili</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&amp;family=Hanken+Grotesk:wght@400..800&amp;family=Unbounded:wght@800&amp;family=Fraunces:wght@800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Hanken Grotesk',sans-serif;background:#0C0C0D;color:#F5F2EC}
+a{color:#F5F2EC}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; position: relative; overflow: hidden; background: radial-gradient(48% 42% at 18% 8%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(40% 36% at 82% 22%, #F59E0B 0%, rgba(245,158,11,0) 70%), radial-gradient(70% 55% at 50% 105%, #3F0D06 0%, rgba(63,13,6,0) 70%), #160804; color: #FFF1E3; font-family: 'Hanken Grotesk', sans-serif">
+__RAIL:create:960__
+<div style="position: absolute; left: 152px; top: 40px; display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font: 800 34px 'Schibsted Grotesk', sans-serif; letter-spacing: -1px">Katılım butonu stili</h1>
+<p style="margin: 0; font-size: 16px; opacity: .85">Editördeki “Katılım seçenekleri” kartındaki açılır menü. Aynı seçenek Ayarlar → Katılım’da da var; ikisi aynı değeri yazar.</p>
+</div>
+
+<!-- sol: editör kartı + açık menü -->
+<div style="position: absolute; left: 152px; top: 150px; width: 430px">
+<div style="border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 18px 20px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>
+<span style="flex-grow: 1; font-size: 17px; font-weight: 600">Katılım seçenekleri</span>
+<button type="button" aria-haspopup="menu" aria-expanded="{{openStr}}" onClick="{{toggle}}" style="height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.14); color: inherit; font: 700 15px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; gap: 8px">{{current}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+<div style="display: flex; justify-content: space-around; min-height: 110px; align-items: center">{{cardPreview}}</div>
+</div>
+<sc-if value="{{open}}" hint-placeholder-val="{{true}}">
+<div role="menu" style="position: absolute; right: 0; top: 66px; width: 300px; z-index: 2; border-radius: 16px; background: rgba(28,28,31,0.72); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 24px 60px rgba(0,0,0,0.55); padding: 6px; display: flex; flex-direction: column; gap: 2px; backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%); color: #F5F2EC">
+<sc-for list="{{styles}}" as="s" hint-placeholder-count="3">
+<button type="button" role="menuitemradio" aria-checked="{{s.sel}}" onClick="{{s.pick}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 0; background: {{s.bg}}; color: #F5F2EC; text-align: left; cursor: pointer">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0">{{s.icon}}</span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font: 700 15px 'Hanken Grotesk', sans-serif">{{s.name}}</span><span style="font-size: 12px; color: #CFC9C0; line-height: 1.35">{{s.desc}}</span></span>
+<span style="width: 20px; color: #1EC9B0">{{s.check}}</span>
+</button>
+</sc-for>
+<span style="margin: 4px 8px 6px; font-size: 11px; color: #A8A39B; line-height: 1.4">Etiketler her zaman Geliyorum / Belki / Gelemiyorum. “Belki” kapalıysa iki seçenek kalır.</span>
+</div>
+</sc-if>
+</div>
+
+<!-- sağ: davetiyede üç stil -->
+<div style="position: absolute; left: 640px; top: 150px; display: flex; gap: 24px">
+<sc-for list="{{demos}}" as="d" hint-placeholder-count="3">
+<div style="width: 240px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font: 700 16px 'Schibsted Grotesk', sans-serif">{{d.name}}</span><span style="font-size: 12px; color: {{d.tagColor}}; font-weight: 700">{{d.tag}}</span></div>
+<div style="position: relative; height: 560px; border-radius: 22px; overflow: hidden; background: radial-gradient(70% 45% at 20% 10%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(60% 40% at 90% 30%, #F59E0B 0%, rgba(245,158,11,0) 70%), #160804; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; padding: 18px 16px; box-sizing: border-box; gap: 12px">
+<div style="align-self: stretch; font-family: 'Fraunces', serif; font-weight: 800; font-size: 34px; line-height: 1; letter-spacing: -1px; text-align: center">Ece 30 Oluyor</div>
+<div style="width: 150px; height: 150px; border-radius: 12px; background: radial-gradient(70% 60% at 25% 20%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(60% 55% at 85% 35%, #F59E0B 0%, rgba(245,158,11,0) 70%), #160804; display: flex; align-items: center; justify-content: center; font: 800 80px 'Unbounded', sans-serif; letter-spacing: -5px; text-shadow: 0 0 40px rgba(255,177,71,0.7)">30</div>
+<div style="font: 700 16px 'Schibsted Grotesk', sans-serif">Geliyor musun?</div>
+<div style="align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: 8px">{{d.buttons}}</div>
+<div style="font-size: 11px; opacity: .7; text-align: center; line-height: 1.4; margin-top: auto">Ad ve e-posta yeter; uygulama gerekmez.</div>
+</div>
+<div style="font-size: 13px; color: #FFD9B0; line-height: 1.45; opacity: .9">{{d.note}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { style: 0, open: true }; }
+  renderVals() {
+    const check = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+    const q = '<span style="font-size: 18px; font-weight: 800; line-height: 1">?</span>';
+    const x = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+    const gold = 'radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)';
+    const circle = (size, bg, fg, border, inner, label, fs) => `<span style="width: ${size}px; height: ${size}px; box-sizing: border-box; border-radius: 999px; background: ${bg}; color: ${fg}; border: ${border}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-weight: 800; font-size: ${fs}px">${inner}${label}</span>`;
+    const icons = (size, fs) => `<span style="display: flex; gap: 10px">${circle(size, gold, '#160804', '0', check.replace('12" height="12','18" height="18'), 'Geliyorum', fs)}${circle(size, 'rgba(255,255,255,0.1)', '#FFF1E3', '1.5px solid rgba(255,255,255,0.3)', q, 'Belki', fs)}${circle(size, 'rgba(255,255,255,0.1)', '#FFF1E3', '1.5px solid rgba(255,255,255,0.3)', x, 'Gelemiyorum', fs)}</span>`;
+    const pill = (bg, fg, border, text, w) => `<span style="width: ${w}; height: 44px; box-sizing: border-box; border-radius: 999px; background: ${bg}; color: ${fg}; border: ${border}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px">${text}</span>`;
+    const text = `<span style="display: flex; flex-direction: column; gap: 8px; width: 100%">${pill(gold, '#160804', '0', 'Geliyorum', '100%')}<span style="display: flex; gap: 8px">${pill('rgba(255,255,255,0.1)', '#FFF1E3', '1.5px solid rgba(255,255,255,0.3)', 'Belki', '50%')}${pill('rgba(255,255,255,0.1)', '#FFF1E3', '1.5px solid rgba(255,255,255,0.3)', 'Gelemiyorum', '50%')}</span></span>`;
+    const single = `<span style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%"><span style="width: 100%; height: 56px; border-radius: 999px; background: ${gold}; color: #160804; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4)">${check.replace('12" height="12','18" height="18')}Geliyorum</span><span style="font-size: 13px; font-weight: 700; opacity: .85">Belki · Gelemiyorum</span></span>`;
+    const STYLES = [
+      { name: 'Simgeler', desc: 'Üç yuvarlak düğme: onay, soru, çarpı. Varsayılan.', icon: icons(22, 0).replace(/Geliyorum|Belki|Gelemiyorum/g, ''), buttons: icons(64, 9), cardPreview: icons(92, 12), tag: 'varsayılan', tagColor: '#1EC9B0', note: 'En hızlı taranan seçenek; Partiful’daki alışkanlık. Mobilde 3×64 px yan yana sığar.' },
+      { name: 'Metin', desc: 'Hap düğmeler, ikon yok. Kurumsal ve sakin planlar için.', icon: '<span style="width: 26px; height: 10px; border-radius: 999px; background: #FFB547"></span>', buttons: text, cardPreview: `<span style="width: 320px">${text}</span>`, tag: 'sakin', tagColor: '#CFC9C0', note: 'Ekran okuyucu ve yaşlı misafirler için en net seçenek; metin her zaman görünür.' },
+      { name: 'Tek düğme', desc: '“Geliyorum” öne çıkar; Belki ve Gelemiyorum küçük metin.', icon: '<span style="width: 30px; height: 14px; border-radius: 999px; background: linear-gradient(90deg, #FFE3A8, #FF7A3D)"></span>', buttons: single, cardPreview: `<span style="width: 320px">${single}</span>`, tag: 'dönüşüm', tagColor: '#FFB547', note: 'Katılımı artırmak için; kontenjanlı ve ücretli planlarda önerilir.' }
+    ];
+    const { style, open } = this.state;
+    return {
+      open, openStr: open ? 'true' : 'false', toggle: () => this.setState({ open: !open }),
+      current: STYLES[style].name, cardPreview: STYLES[style].cardPreview,
+      styles: STYLES.map((s, i) => ({ ...s, sel: i === style ? 'true' : 'false', bg: i === style ? 'rgba(255,255,255,0.1)' : 'transparent', check: i === style ? check : '', pick: () => this.setState({ style: i }) })),
+      demos: STYLES
+    };
+  }
+}
+</script>
+</body>
+</html>
