@@ -108,7 +108,7 @@ export function RsvpFlow({ plan, viewer, open, initial = "going", existing, onCl
             </label>
             <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[#5F584F]">
               <input type="checkbox" defaultChecked className="mt-0.5 size-5 shrink-0 accent-bg" />
-              <span>Bu plan için hatırlatma ve duyuru almayı kabul ediyorum. KVKK aydınlatma metni</span>
+              <span>Bu plan için hatırlatma ve duyuru almayı kabul ediyorum. <a href="/kvkk" target="_blank" rel="noreferrer" className="font-bold text-bg underline-offset-2 hover:underline">KVKK aydınlatma metni</a></span>
             </label>
             {err && <p className="text-sm font-bold text-[#C2410C]">{err}</p>}
             <button type="button" onClick={next1} disabled={pending} className="h-14 rounded-pill bg-bg text-base font-extrabold text-white disabled:opacity-60">

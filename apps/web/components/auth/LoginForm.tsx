@@ -124,7 +124,7 @@ export function LoginForm({ next, error }: { next?: string; error?: string }) {
               {err && <p className="text-sm font-bold text-[#FF8C6B]">{err}</p>}
               <button type="submit" disabled={pending} className="h-14 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-60">{pending ? "Gönderiliyor…" : "Kodu gönder"}</button>
               <p className="text-center text-[13px] leading-relaxed text-subtle">
-                Devam ederek <Link href="#" className="font-bold text-muted">Kullanım Koşulları</Link>’nı ve <Link href="#" className="font-bold text-muted">KVKK Aydınlatma Metni</Link>’ni kabul etmiş olursun. E-postan düzenleyenlere gösterilmez.
+                Devam ederek <Link href="/kosullar" className="font-bold text-muted">Kullanım Koşulları</Link>’nı ve <Link href="/kvkk" className="font-bold text-muted">KVKK Aydınlatma Metni</Link>’ni kabul etmiş olursun. E-postan düzenleyenlere gösterilmez.
               </p>
               <p className="text-center text-xs text-subtle">Örnek planları düzenleyen olarak görmek için <strong className="text-muted">demo@getpartile.com</strong> ile gir.</p>
             </form>
@@ -157,7 +157,7 @@ export function LoginForm({ next, error }: { next?: string; error?: string }) {
       </div>
       <div className="relative flex h-[88px] w-full items-center justify-center gap-7 border-t border-white/6 text-[15px] text-muted">
         <span>Türkçe ▾</span>
-        {["Yardım", "Blog", "Hakkında", "Gizlilik"].map((l) => <Link key={l} href="#">{l}</Link>)}
+        {([["Gizlilik", "/gizlilik"], ["KVKK", "/kvkk"], ["Koşullar", "/kosullar"]] as const).map(([l, h]) => <Link key={l} href={h}>{l}</Link>)}
       </div>
     </main>
   );

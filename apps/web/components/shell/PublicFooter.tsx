@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { routes } from "@/lib/routes";
 
-const links = ["Yardım", "Blog", "Hakkında", "Gizlilik", "KVKK", "Kullanım koşulları"];
+const links: [string, string][] = [["Gizlilik", "/gizlilik"], ["KVKK", "/kvkk"], ["Kullanım koşulları", "/kosullar"], ["İletişim", "mailto:merhaba@getpartile.com"]];
 
 export function PublicFooter() {
   return (
@@ -21,8 +21,8 @@ export function PublicFooter() {
       </div>
       <div className="flex flex-wrap justify-center gap-5 text-[15px] font-semibold text-subtle">
         <span>Türkçe ▾</span>
-        {links.map((l) => (
-          <Link key={l} href="#" className="hover:text-text">
+        {links.map(([l, href]) => (
+          <Link key={l} href={href} className="hover:text-text">
             {l}
           </Link>
         ))}
