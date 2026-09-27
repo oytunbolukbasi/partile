@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@partile/core", "@partile/ui-tokens", "@partile/db"],
   serverExternalPackages: ["@electric-sql/pglite", "pg"],
   images: { remotePatterns: [] },
+  // The OG card reads the self-hosted woff files at runtime.
+  outputFileTracingIncludes: { "/e/[kod]/opengraph-image": ["./app/fonts/**"] },
 };
 
 export default nextConfig;
