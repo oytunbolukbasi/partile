@@ -4,24 +4,32 @@ Türkiye için davetiye + katılım (RSVP) ürünü. Referans: Partiful. Tek cü
 
 Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `research/MVP_EKRAN_ENVANTERI.md`'yi oku.
 
-## Durum (26 Eylül 2026)
+## Durum (27 Eylül 2026)
 
-- Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı; kullanıcı tuvalde yorumla inceliyor.
-- **Kod iskeleti kuruldu (27 Eyl 2026):** Turborepo + pnpm, `apps/web` (Next.js 15, App Router, Tailwind v4), `packages/ui-tokens`, `packages/core`. Build ve typecheck temiz; landing hero ilk gerçek ekran.
-- Sıradaki iş: ekranları envanter sırasıyla koda dökmek (landing'in kalanı → oluştur → davetiye → katılım). **Resend en son** bağlanacak (tüm sayfalar bitince). Veritabanı seçimi bekliyor (öneri: Postgres/Neon + Drizzle).
+- Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
+- **Faz 1 ekranlarının tamamı koda döküldü (27 Eyl 2026), veri katmanı yok:** tüm sayfalar `apps/web/lib/fixtures.ts` (örnek planlar `ece30`, `sahil`, `mangal`) ve `localStorage` (taslak, misafir katılımı, anket oyu, oturum) üzerinden çalışır. Build, typecheck ve core testleri temiz. Kullanıcı en son toplu test edecek.
+- Sıradaki iş: **veri katmanı** (öneri: Postgres — dev'de PGlite, prod'da Neon — + Drizzle; fixture'lar seed olur), ardından **Resend** (giriş kodu, katılım kodu, duyuru ve hatırlatma e-postaları). Efekt paneli, harita karosu, fotoğraf yükleme ve “Misafir ekle” hâlâ yer tutucu.
 
 ## Kod
 
 ```
-apps/web            Next.js 15 · app/ (page.tsx landing, giris, (app)/planlar|olustur|profil, e/[kod]) · components/{brand,shell} · lib/routes.ts
-packages/ui-tokens  src/index.ts (renkler, 8 davetiye teması, fontlar, köşe) + src/tokens.css (CSS değişkenleri)
-packages/core       src/domain.ts (zod: PlanDraft, Rsvp, Question, CostSettings, RsvpStatus) · src/format.ts (TR tarih/saat/₺, planUrl, initials)
+apps/web
+  app/                page.tsx (landing) · giris · ilk-giris · [occasion] (5 SEO sayfası, SSG) · e/[kod] (misafir/düzenleyen; ?goruntule=misafir, ?paylas=1)
+                      (app)/ planlar · olustur · profil · bildirimler   (rail + mobil alt menü)
+  components/         brand · shell (Rail, TabBar, PublicNav/Footer, icons) · landing · create (editör + pickers, Settings, Poll)
+                      plan (PlanView, RsvpFlow, PollCard, Poster, ThemeSurface, Avatar) · host (HostView, GuestList, Blast, PollResults)
+                      share (ShareModal, StoryPoster) · home · notifications · profile · auth (LoginForm, Onboarding) · ui (Modal, Toggle)
+  lib/                routes · fixtures (Plan, me, roleFor, myPlans, notifications) · draft · guest (RSVP + anket oyu) · session · geocode (Photon) · occasions · fonts
+packages/ui-tokens    src/index.ts (renkler, 8 davetiye teması, başlık fontları) + src/tokens.css
+packages/core         src/domain.ts (zod: PlanDraft, PollOption, Rsvp, Question, CostSettings, RsvpStatus, VerificationCode) · src/format.ts (TR tarih/saat/₺, formatPill, planUrl, initials) + testler
 ```
 
-- Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` · `pnpm typecheck` · `pnpm --filter @partile/core test`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`.
+- Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` · `pnpm typecheck` · `pnpm --filter @partile/core test`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`. `next build` çalışan dev sunucusuyla `.next`'i paylaşır: build'den önce dev'i durdur, sonra `rm -rf apps/web/.next`.
 - Stil: Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility oluyor (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez, token'dan gelir.
 - Fontlar `next/font/google` ile (Schibsted Grotesk, Hanken Grotesk, Unbounded); davetiye başlık fontları plan sayfasında ihtiyaç anında yüklenir.
-- Rotalar Türkçe: `/`, `/giris`, `/planlar`, `/olustur`, `/profil`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil.
+- Rotalar Türkçe: `/`, `/giris`, `/ilk-giris`, `/planlar`, `/olustur`, `/profil`, `/bildirimler`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil → Hesap ayarları.
+- Doğrulama kodu (giriş ve katılım) Resend bağlanana kadar stub: herhangi 6 hane geçer; oturum `partile:session:v1`.
+- Bağımlılıklar: `qrcode` (QR), `html-to-image` (hikâye afişi PNG). Harita/adres: Photon.
 - Env: `apps/web/.env.example` (NEXT_PUBLIC_SITE_URL, RESEND_API_KEY, RESEND_FROM, DATABASE_URL).
 - Kod, commit mesajları, tanımlayıcılar İngilizce; UI metinleri Türkçe ve `core`'daki `rsvpLabel` gibi sözlüklerden gelir.
 
