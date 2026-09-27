@@ -55,7 +55,7 @@ export function CreateEditor() {
         <span className="text-xs opacity-80 md:hidden">{savedAt ? "Kaydedildi" : "Taslak"}</span>
       </div>
 
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:gap-14 md:px-8 md:pb-40 md:pl-[144px] md:pr-[400px] md:pt-[120px]">
+      <div className="flex flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:gap-14 md:pb-40 md:pl-[128px] md:pr-[400px] md:pt-[120px]">
         {/* left column */}
         <div className="flex w-full max-w-[420px] flex-col gap-3.5">
           <div className="glass flex flex-col gap-3 rounded-2xl px-3 pb-3 pt-3.5">
