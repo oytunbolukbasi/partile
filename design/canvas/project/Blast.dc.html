@@ -84,7 +84,7 @@ textarea::placeholder{color:#A8A39B}
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = { on: { going: true, maybe: true } }; }
   renderVals() {
-    const defs = [['going', 'Geliyor', 14, '#1EC9B0'], ['maybe', 'Belki', 3, '#F5F2EC'], ['inv', 'Davetli · yanıtsız', 9, '#A8A39B'], ['pend', 'Onay bekliyor', 2, '#FFB547'], ['in', 'Giriş yapanlar', 0, '#FF6A3D']];
+    const defs = [['going', 'Geliyor', 14, '#1EC9B0'], ['maybe', 'Belki', 3, '#F5F2EC'], ['inv', 'Davetli · yanıtsız', 9, '#A8A39B'], ['pend', 'Onay bekliyor', 2, '#FFB547'], ['in', 'Giriş yapanlar', 0, '#F5F2EC']];
     const on = this.state.on;
     const total = defs.reduce((a, d) => a + (on[d[0]] ? d[2] : 0), 0);
     return { total,
