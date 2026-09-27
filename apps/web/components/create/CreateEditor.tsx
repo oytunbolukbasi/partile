@@ -25,6 +25,7 @@ import { useDraft } from "@/lib/draft";
 import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
 import { DatePickerModal } from "./DatePickerModal";
+import { PollModal } from "./PollModal";
 import { LocationModal } from "./LocationModal";
 import { PosterModal } from "./PosterModal";
 import { useSession } from "@/lib/session";
@@ -39,7 +40,7 @@ export function CreateEditor() {
   const { draft, patch, savedAt } = useDraft();
   const [panel, setPanel] = useState<"theme" | null>("theme");
   const [sheet, setSheet] = useState<"theme" | null>(null);
-  const [modal, setModal] = useState<"date" | "location" | "poster" | "settings" | null>(null);
+  const [modal, setModal] = useState<"date" | "poll" | "location" | "poster" | "settings" | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   // Publishing lands on the sample plan's share step until the data layer exists; signed-out users verify first.
   const { session } = useSession();
@@ -52,8 +53,8 @@ export function CreateEditor() {
   const theme = themeById(draft.themeId);
   const posterText = draft.posterText ?? draft.title.match(/\d+/)?.[0] ?? draft.title.slice(0, 1).toLocaleUpperCase("tr-TR");
 
-  const dateLabel = draft.dateTbd ? "Tarih netleşmedi" : draft.startsAt ? formatDayLong(draft.startsAt) : "Tarih seç…";
-  const timeLabel = draft.startsAt && !draft.dateTbd ? `${formatTimeRange(draft.startsAt, draft.endsAt)} · TSİ` : "Saat ve süre";
+  const dateLabel = draft.poll?.length ? "Misafirlere sor: hangi gün?" : draft.dateTbd ? "Tarih netleşmedi" : draft.startsAt ? formatDayLong(draft.startsAt) : "Tarih seç…";
+  const timeLabel = draft.poll?.length ? `${draft.poll.length} seçenek · misafirler oy verir` : draft.startsAt && !draft.dateTbd ? `${formatTimeRange(draft.startsAt, draft.endsAt)} · TSİ` : "Saat ve süre";
   const locationLabel = draft.location?.district ?? draft.location?.name ?? "Konum ekle";
 
   const toolbar = (
@@ -134,7 +135,7 @@ export function CreateEditor() {
             <PencilIcon /> Düzenle
           </button>
 
-          <button type="button" onClick={() => setModal("date")} className="glass flex h-[72px] items-center justify-between rounded-xl px-5 text-left">
+          <button type="button" onClick={() => setModal(draft.poll?.length ? "poll" : "date")} className="glass flex h-[72px] items-center justify-between rounded-xl px-5 text-left">
             <span className="flex flex-col gap-0.5">
               <span className="display text-[22px] tracking-tight">{dateLabel}</span>
               <span className="text-[15px] opacity-80">{timeLabel}</span>
@@ -321,7 +322,17 @@ export function CreateEditor() {
         onClose={() => setModal(null)}
         value={{ startsAt: draft.startsAt, endsAt: draft.endsAt, dateTbd: draft.dateTbd }}
         onSave={(v) => {
-          patch(v);
+          patch({ ...v, poll: undefined });
+          setModal(null);
+        }}
+        onPoll={() => setModal("poll")}
+      />
+      <PollModal
+        open={modal === "poll"}
+        onClose={() => setModal(null)}
+        draft={draft}
+        onSave={(p) => {
+          patch(p);
           setModal(null);
         }}
       />

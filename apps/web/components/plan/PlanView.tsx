@@ -7,6 +7,7 @@ import { themeById } from "@partile/ui-tokens";
 import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
+import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
 import { RsvpButtons } from "@/components/plan/RsvpButtons";
 import { RsvpFlow } from "@/components/plan/RsvpFlow";
@@ -36,6 +37,7 @@ export function PlanView({ plan }: { plan: Plan }) {
   const t = themeById(plan.themeId);
   const counts = countByStatus(plan.guests);
   const joined = !!rsvp && rsvp.status !== "no";
+  const polling = !!plan.poll?.length && !plan.startsAt;
   const hostNames = plan.hosts.map((h) => h.name).join(" & ");
   const poster = <Poster themeId={plan.themeId} text={plan.posterText ?? "30"} src={plan.posterUrl} topLeft="PARTİLE" bottomRight={plan.location?.district?.split(",")[0]?.toLocaleUpperCase("tr-TR")} className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.4)]" />;
 
@@ -70,12 +72,16 @@ export function PlanView({ plan }: { plan: Plan }) {
             {plan.title}
           </h1>
           <div className="md:hidden">{poster}</div>
-          <div className="flex flex-col gap-1">
-            <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
-            {plan.startsAt && !plan.dateTbd && <div className="text-[22px] opacity-85">{formatTimeRange(plan.startsAt, plan.endsAt)} · TSİ</div>}
-          </div>
+          {polling ? (
+            <PollCard code={plan.code} themeId={plan.themeId} hostName={plan.hosts[0]?.name ?? "Düzenleyen"} options={plan.poll!} tally={plan.pollVotes ?? {}} />
+          ) : (
+            <div className="flex flex-col gap-1">
+              <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
+              {plan.startsAt && !plan.dateTbd && <div className="text-[22px] opacity-85">{formatTimeRange(plan.startsAt, plan.endsAt)} · TSİ</div>}
+            </div>
+          )}
 
-          {!joined && ready && (
+          {!joined && !polling && ready && (
             <div className="flex flex-col items-center gap-4 md:hidden">
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
               <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} />
@@ -199,7 +205,9 @@ export function PlanView({ plan }: { plan: Plan }) {
 
         <aside className="hidden w-[346px] shrink-0 flex-col items-center gap-6 md:flex">
           {poster}
-          {!joined ? (
+          {polling ? (
+            <span className="max-w-[300px] text-center text-sm opacity-75">Tarih anketi açık: soldaki seçeneklere oy ver. Gün seçilince oyun katılıma dönüşür.</span>
+          ) : !joined ? (
             <>
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
               {ready && <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} />}

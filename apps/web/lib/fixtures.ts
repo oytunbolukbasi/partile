@@ -6,6 +6,7 @@ import type { PlanDraft, RsvpStatus } from "@partile/core";
  */
 export type Host = { id: string; name: string; initials: string; gradient: string };
 export type Guest = { id: string; name: string; initials: string; gradient: string; status: RsvpStatus; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; checkedIn?: boolean; at: string };
+export type PollVotes = Record<string, { yes: number; maybe: number; no: number }>;
 export type Blast = { id: string; at: string; to: string; count: number; text: string };
 export type Notification = { id: string; code: string; initials: string; gradient: string; kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album"; text: string; at: string; unread: boolean; role: "host" | "guest" };
 export type FeedItem = { id: string; guestId: string; kind: "rsvp" | "comment" | "blast"; text?: string; at: string };
@@ -17,6 +18,8 @@ export type Plan = PlanDraft & {
   feed: FeedItem[];
   blasts: Blast[];
   views: number;
+  /** Tally per poll option id, when the plan has a date poll. */
+  pollVotes?: PollVotes;
   publishedAt: string;
 };
 
@@ -112,6 +115,42 @@ export const plans: Record<string, Plan> = {
     blasts: [],
     views: 480,
     publishedAt: "2026-09-20T08:00:00Z",
+  },
+  mangal: {
+    code: "mangal",
+    title: "Polonezköy Mangal",
+    titleFont: "eklektik",
+    themeId: "zeytinlik",
+    posterText: "mangal",
+    description: "Ormanın içinde mangal, uzun masa, akşama doğru ateş başı. Et ve kömür bizden, meze ve tatlı sizden.",
+    dateTbd: true,
+    poll: [
+      { id: "o1", startsAt: "2026-10-17T14:00:00.000Z" },
+      { id: "o2", startsAt: "2026-10-23T14:30:00.000Z" },
+      { id: "o3", startsAt: "2026-10-24T13:30:00.000Z" },
+    ],
+    pollVotes: { o1: { yes: 9, maybe: 3, no: 1 }, o2: { yes: 5, maybe: 4, no: 3 }, o3: { yes: 7, maybe: 2, no: 2 } },
+    location: { name: "Polonezköy Tabiat Parkı", address: "Polonezköy, Beykoz", district: "Polonezköy, Beykoz", display: "district", lat: 41.1129, lng: 29.1291 },
+    visibility: "private",
+    plusOnesMax: 2,
+    requirePlusOneNames: false,
+    requireApproval: false,
+    allowMaybe: true,
+    guestsCanInviteMutuals: true,
+    remindersEnabled: true,
+    showGuestNames: true,
+    showGuestCount: true,
+    showTimestamps: true,
+    albumGuestsCanUpload: true,
+    albumFilter: "none",
+    questions: [],
+    cost: { mode: "off" },
+    hosts: [{ id: "h1", name: "Oytun", initials: "OB", gradient: g("#1EC9B0", "#FFB020") }],
+    guests: Array.from({ length: 13 }, (_, i) => ({ id: `m${i}`, name: `Davetli ${i + 1}`, initials: "D", gradient: g("#A8B545", "#4B5D2A"), status: "invited" as RsvpStatus, at: "2026-09-25T09:00:00Z" })),
+    feed: [],
+    blasts: [],
+    views: 61,
+    publishedAt: "2026-09-25T08:00:00Z",
   },
 };
 

@@ -24,7 +24,7 @@ function fromIso(iso?: string) {
 export type DateValue = { startsAt?: string; endsAt?: string; dateTbd: boolean };
 
 /** `DatePicker` artboard: month grid (Monday first), time, optional end time, "date not final". */
-export function DatePickerModal({ open, onClose, value, onSave }: { open: boolean; onClose: () => void; value: DateValue; onSave: (v: DateValue) => void }) {
+export function DatePickerModal({ open, onClose, value, onSave, onPoll }: { open: boolean; onClose: () => void; value: DateValue; onSave: (v: DateValue) => void; onPoll?: () => void }) {
   const init = fromIso(value.startsAt);
   const today = useMemo(() => new Date(), []);
   const [view, setView] = useState({ y: init?.y ?? today.getFullYear(), m: init?.m ?? today.getMonth() });
@@ -46,7 +46,7 @@ export function DatePickerModal({ open, onClose, value, onSave }: { open: boolea
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Ne zaman?" headerRight={<button type="button" className="text-sm font-bold text-amber-soft">Anket →</button>}>
+    <Modal open={open} onClose={onClose} title="Ne zaman?" headerRight={<button type="button" onClick={onPoll} className="text-sm font-bold text-amber-soft">Misafirlere sor: hangi gün? →</button>}>
       <div className="flex flex-col md:flex-row">
         <section className="flex flex-col gap-4 border-b border-line p-6 md:w-[460px] md:border-b-0 md:border-r">
           <div className="flex items-center justify-between">

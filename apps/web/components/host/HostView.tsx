@@ -8,6 +8,8 @@ import { themeById } from "@partile/ui-tokens";
 import { SettingsModal, type SettingsTab } from "@/components/create/SettingsModal";
 import { BlastModal } from "@/components/host/BlastModal";
 import { GuestListModal } from "@/components/host/GuestListModal";
+import { PollResults } from "@/components/host/PollResults";
+import { PollModal } from "@/components/create/PollModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
@@ -30,7 +32,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
   const [plan, setPlan] = useState(initial);
   const [guests, setGuests] = useState<Guest[]>(initial.guests);
   const params = useSearchParams();
-  const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | null>(params.get("paylas") ? "share" : null);
+  const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | "poll" | null>(params.get("paylas") ? "share" : null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   const [copied, setCopied] = useState(false);
   const t = themeById(plan.themeId);
@@ -77,10 +79,14 @@ export function HostView({ plan: initial }: { plan: Plan }) {
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-[72px]">
           <main className="flex min-w-0 flex-col gap-6.5 md:w-[430px] md:shrink-0">
             <h1 className="text-[52px] leading-none md:text-[76px] md:tracking-[-0.03em]" style={titleFontStyle(plan.titleFont)}>{plan.title}</h1>
-            <div className="flex flex-col gap-1">
-              <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
-              {plan.startsAt && !plan.dateTbd && <div className="text-[22px] opacity-85">{formatTimeRange(plan.startsAt, plan.endsAt)} · TSİ</div>}
-            </div>
+            {plan.poll?.length && !plan.startsAt ? (
+              <PollResults themeId={plan.themeId} options={plan.poll} tally={plan.pollVotes ?? {}} onEdit={() => setModal("poll")} onPick={(o) => setPlan({ ...plan, startsAt: o.startsAt, endsAt: o.endsAt, dateTbd: false, poll: undefined })} />
+            ) : (
+              <div className="flex flex-col gap-1">
+                <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
+                {plan.startsAt && !plan.dateTbd && <div className="text-[22px] opacity-85">{formatTimeRange(plan.startsAt, plan.endsAt)} · TSİ</div>}
+              </div>
+            )}
 
             <div className="grid grid-cols-4 gap-2">
               {[
@@ -200,6 +206,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
         </div>
       </div>
 
+      <PollModal open={modal === "poll"} onClose={() => setModal(null)} draft={plan} onSave={(p) => { setPlan({ ...plan, ...p }); setModal(null); }} />
       <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
       <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onChange={setGuests} onBlast={() => setModal("blast")} />
       <BlastModal plan={plan} guests={guests} open={modal === "blast"} onClose={() => setModal(null)} onSend={sendBlast} />

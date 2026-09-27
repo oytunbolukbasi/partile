@@ -48,6 +48,7 @@ export const PollOption = z.object({
   startsAt: z.string().datetime(),
   endsAt: z.string().datetime().optional(),
 });
+export type PollOption = z.infer<typeof PollOption>;
 
 /** Slug used in the share link: getpartile.com/e/{code}. */
 export const PlanCode = z.string().regex(/^[a-z0-9-]{4,32}$/);
