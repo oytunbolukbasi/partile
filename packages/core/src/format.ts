@@ -51,3 +51,15 @@ export const initials = (name: string): string =>
     .slice(0, 2)
     .map((w) => w.charAt(0).toLocaleUpperCase("tr-TR"))
     .join("");
+
+/** Share-code stem from a title: Turkish letters folded, lowercase, hyphenated, at most 20 chars. */
+export function slugify(title: string): string {
+  return title
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 20)
+    .replace(/-+$/g, "");
+}

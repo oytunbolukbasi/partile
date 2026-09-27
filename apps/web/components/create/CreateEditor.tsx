@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatDayLong, formatTimeRange, formatTry } from "@partile/core";
+import { PLACEHOLDER_TITLE, formatDayLong, formatTimeRange, formatTry, isPlaceholderTitle } from "@partile/core";
 import { themeById, titleFonts } from "@partile/ui-tokens";
 import { Poster } from "@/components/plan/Poster";
 import { RsvpButtons } from "@/components/plan/RsvpButtons";
@@ -55,15 +55,21 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   // Signed-out hosts verify their e-mail first; the draft stays in the browser and publishes on return (?yayinla=1).
   const loginHref = `${routes.login}?next=${encodeURIComponent(`${routes.create}?yayinla=1`)}`;
+  const needTitle = () => {
+    setPublishError("Planına bir ad ver.");
+    document.getElementById("title")?.focus();
+  };
   const publish = () =>
     startPublish(async () => {
       if (existing) {
+        if (isPlaceholderTitle(draft.title)) return needTitle();
         const r = await savePlan(existing.code, draft);
-        if (!r.ok) return setPublishError("Kaydedilemedi.");
-        router.push(routes.plan(existing.code));
+        if (!r.ok) return setPublishError(r.error ?? "Kaydedilemedi.");
+        router.push(routes.plan(r.code));
         router.refresh();
         return;
       }
+      if (isPlaceholderTitle(draft.title)) return needTitle();
       const r = await publishDraft(draft);
       if (!r.ok) return setPublishError(r.error);
       reset();
@@ -71,7 +77,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
       router.refresh();
     });
   useEffect(() => {
-    if (autoPublish && viewer && !existing && draft.title !== "Planın adı") publish();
+    if (autoPublish && viewer && !existing && !isPlaceholderTitle(draft.title)) publish();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPublish, viewer, draft.title]);
   const publishLabel = existing ? "Kaydet" : publishing ? "Yayınlanıyor…" : "Yayınla ve paylaş";
@@ -132,8 +138,11 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
             </label>
             <input
               id="title"
-              value={draft.title}
-              onChange={(e) => patch({ title: e.target.value })}
+              value={isPlaceholderTitle(draft.title) ? "" : draft.title}
+              onChange={(e) => {
+                patch({ title: e.target.value.trim() ? e.target.value : PLACEHOLDER_TITLE });
+                setPublishError(null);
+              }}
               onFocus={(e) => e.target.select()}
               className="w-full bg-transparent px-1 text-center text-[40px] leading-[1.05] text-current outline-none placeholder:opacity-50 md:text-left md:text-[60px] md:leading-none"
               style={titleFontStyle(draft.titleFont)}

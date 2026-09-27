@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDayLong, formatPill, formatTime, formatTry, initials, planUrl } from "./format";
+import { formatDayLong, formatPill, formatTime, formatTry, initials, planUrl, slugify } from "./format";
 
 describe("format", () => {
   it("formats a Turkish long day", () => {
@@ -22,5 +22,19 @@ describe("format", () => {
 
   it("formats the card pill", () => {
     expect(formatPill("2026-10-17T17:00:00.000Z")).toBe("Cmt 17.10 · 20:00");
+  });
+});
+
+describe("slugify", () => {
+  it("folds Turkish letters and hyphenates", () => {
+    expect(slugify("Ece 30 Oluyor")).toBe("ece-30-oluyor");
+    expect(slugify("Şişli'de Çay Ağacı")).toBe("sisli-de-cay-agaci");
+    expect(slugify("Planın adı")).toBe("planin-adi");
+  });
+  it("caps at 20 chars without a trailing hyphen", () => {
+    expect(slugify("Moda sahilinde uzun bir akşam")).toBe("moda-sahilinde-uzun");
+  });
+  it("returns empty for symbols only", () => {
+    expect(slugify("!!!")).toBe("");
   });
 });

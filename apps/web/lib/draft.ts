@@ -1,6 +1,6 @@
 "use client";
 
-import { PlanDraft } from "@partile/core";
+import { PLACEHOLDER_TITLE, PlanDraft, isPlaceholderTitle } from "@partile/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const KEY = "partile:draft:v1";
@@ -13,15 +13,15 @@ export function loadDraft(): (PlanDraft & { touched: boolean }) | null {
     const parsed = PlanDraft.safeParse(JSON.parse(raw));
     if (!parsed.success) return null;
     const d = parsed.data;
-    const touched = d.title !== "Planın adı" || !!d.startsAt || !!d.description || !!d.location;
+    const touched = !isPlaceholderTitle(d.title) || !!d.startsAt || !!d.description || !!d.location;
     return { ...d, touched };
   } catch {
     return null;
   }
 }
 
-/** A fresh draft. Title is empty on purpose — the editor shows "Planın adı" as placeholder. */
-export const emptyDraft = (): PlanDraft => PlanDraft.parse({ title: "Planın adı" });
+/** A fresh draft. The title is the placeholder sentinel; the editor shows it as an empty field and publishing refuses it. */
+export const emptyDraft = (): PlanDraft => PlanDraft.parse({ title: PLACEHOLDER_TITLE });
 
 /**
  * Draft lives in localStorage until the host verifies their e-mail on publish

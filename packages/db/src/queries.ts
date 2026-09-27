@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, follows, guests, laterReminders, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
+import { blasts, conversations, feedItems, follows, guests, laterReminders, planCodeAliases, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
 
 const isoOf = (d: Date | null | undefined) => (d ? d.toISOString() : undefined);
 
@@ -89,10 +89,13 @@ const toGuest = (g: typeof guests.$inferSelect): Guest => ({
   at: g.createdAt.toISOString(),
 });
 
+/** Looks up by the current share code, falling back to an old code of a renamed plan (callers redirect on `plan.code !== code`). */
 export async function getPlanByCode(code: string): Promise<Plan | null> {
   const db = await getDb();
   const [row] = await db.select().from(plans).where(eq(plans.code, code)).limit(1);
-  return row ? assemble(row) : null;
+  if (row) return assemble(row);
+  const [alias] = await db.select({ planId: planCodeAliases.planId }).from(planCodeAliases).where(eq(planCodeAliases.code, code)).limit(1);
+  return alias ? getPlanById(alias.planId) : null;
 }
 
 export async function getPlanById(id: string): Promise<Plan | null> {

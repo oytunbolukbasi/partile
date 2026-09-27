@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
-import type { PlanDraft, Rsvp } from "@partile/core";
+import { slugify, type PlanDraft, type Rsvp } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, follows, guests, laterReminders, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
+import { blasts, conversations, feedItems, follows, guests, laterReminders, planCodeAliases, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
 
 const id = () => randomUUID();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -51,21 +51,40 @@ export async function consumeVerificationCode(email: string, code: string) {
 /* ---------- plans ---------- */
 
 const CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
-async function freeCode(base: string): Promise<string> {
+/** Whether `code` is `slug` itself or `slug-xxxx` (the collision form). */
+const codeMatchesSlug = (code: string, slug: string) => code === slug || new RegExp(`^${slug || "plan"}-[a-z0-9]{4}$`).test(code);
+
+/** A code nobody uses: not a live code, not another plan's old code. `planId`'s own old codes may be reused. */
+async function freeCode(base: string, planId?: string): Promise<string> {
   const db = await getDb();
-  const slug = base
-    .toLocaleLowerCase("tr-TR")
-    .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 20);
+  const slug = slugify(base);
+  const taken = async (code: string) => {
+    const [hit] = await db.select({ id: plans.id }).from(plans).where(eq(plans.code, code)).limit(1);
+    if (hit) return true;
+    const [alias] = await db.select({ planId: planCodeAliases.planId }).from(planCodeAliases).where(eq(planCodeAliases.code, code)).limit(1);
+    return !!alias && alias.planId !== planId;
+  };
   for (let i = 0; i < 10; i++) {
     const suffix = Array.from({ length: 4 }, () => CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]).join("");
     const code = slug.length >= 4 && i === 0 ? slug : `${slug || "plan"}-${suffix}`;
-    const [hit] = await db.select({ id: plans.id }).from(plans).where(eq(plans.code, code)).limit(1);
-    if (!hit) return code;
+    if (!(await taken(code))) return code;
   }
   return `plan-${randomUUID().slice(0, 8)}`;
+}
+
+/**
+ * Title changed → the share code follows it (`/e/yeni-baslik`). The old code stays as an alias, so links already
+ * sent on WhatsApp keep working and redirect. Returns the current code.
+ */
+async function renameCode(planId: string, currentCode: string, title: string): Promise<string> {
+  const slug = slugify(title);
+  if (codeMatchesSlug(currentCode, slug)) return currentCode;
+  const db = await getDb();
+  const next = await freeCode(title, planId);
+  await db.delete(planCodeAliases).where(eq(planCodeAliases.code, next));
+  await db.insert(planCodeAliases).values({ code: currentCode, planId }).onConflictDoNothing();
+  await db.update(plans).set({ code: next }).where(eq(plans.id, planId));
+  return next;
 }
 
 function draftToRow(d: PlanDraft) {
@@ -143,7 +162,8 @@ export async function updatePlan(planId: string, patch: Partial<PlanDraft>) {
   const merged = { ...rowToDraft(current), ...patch };
   await db.update(plans).set(draftToRow(merged)).where(eq(plans.id, planId));
   if ("poll" in patch) await syncPoll(planId, patch.poll);
-  return merged;
+  const code = patch.title && patch.title !== current.title ? await renameCode(planId, current.code, patch.title) : current.code;
+  return { ...merged, code };
 }
 
 function rowToDraft(r: typeof plans.$inferSelect): PlanDraft {

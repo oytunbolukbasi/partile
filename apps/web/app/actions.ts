@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { PlanDraft, Rsvp, VerificationCode } from "@partile/core";
+import { PlanDraft, Rsvp, VerificationCode, isPlaceholderTitle } from "@partile/core";
 import {
   addComment,
   DEMO_EMAIL,
@@ -101,6 +101,7 @@ export async function publishDraft(input: unknown) {
   if (!v) return { ok: false as const, error: "Önce giriş yap." };
   const parsed = PlanDraft.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Plan eksik." };
+  if (isPlaceholderTitle(parsed.data.title)) return { ok: false as const, error: "Planına bir ad ver." };
   const posterUrl = await materialize(parsed.data.posterUrl);
   const { code } = await createPlan(v.id, { ...parsed.data, posterUrl }, true);
   revalidatePath(routes.home);
@@ -117,10 +118,12 @@ async function hostOf(code: string) {
 export async function savePlan(code: string, patch: Partial<PlanDraft>) {
   const h = await hostOf(code);
   if (!h) return { ok: false as const };
-  await updatePlan(h.plan.id, "posterUrl" in patch ? { ...patch, posterUrl: await materialize(patch.posterUrl) } : patch);
+  if (patch.title !== undefined && isPlaceholderTitle(patch.title)) return { ok: false as const, error: "Planına bir ad ver." };
+  const saved = await updatePlan(h.plan.id, "posterUrl" in patch ? { ...patch, posterUrl: await materialize(patch.posterUrl) } : patch);
   revalidatePath(routes.plan(code));
+  if (saved && saved.code !== code) revalidatePath(routes.plan(saved.code));
   revalidatePath(routes.home);
-  return { ok: true as const };
+  return { ok: true as const, code: saved?.code ?? code };
 }
 
 export async function pickDay(code: string, optionId: string) {

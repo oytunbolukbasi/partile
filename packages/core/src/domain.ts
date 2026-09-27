@@ -69,6 +69,10 @@ export type PollOption = z.infer<typeof PollOption>;
 /** Slug used in the share link: getpartile.com/e/{code}. */
 export const PlanCode = z.string().regex(/^[a-z0-9-]{4,32}$/);
 
+/** The editor starts every draft with this title and shows it as a placeholder; it cannot be published. */
+export const PLACEHOLDER_TITLE = "Planın adı";
+export const isPlaceholderTitle = (title: string) => title.trim() === "" || title.trim() === PLACEHOLDER_TITLE;
+
 export const PlanDraft = z.object({
   title: z.string().trim().min(1, "Planın adı gerekli").max(80),
   titleFont: z.string().default("klasik"),

@@ -299,3 +299,16 @@ export const laterReminders = pgTable(
   },
   (t) => [primaryKey({ columns: [t.planId, t.userId] }), index("later_reminders_due_idx").on(t.remindAt)],
 );
+
+/** Old share codes of a plan. A renamed plan gets a new code; links already shared keep working via a redirect. */
+export const planCodeAliases = pgTable(
+  "plan_code_aliases",
+  {
+    code: text("code").primaryKey(),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("plan_code_aliases_plan_idx").on(t.planId)],
+);

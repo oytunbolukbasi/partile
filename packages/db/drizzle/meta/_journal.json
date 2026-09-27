@@ -43,6 +43,13 @@
       "when": 1790520014377,
       "tag": "0005_broad_mach_iv",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790528461997,
+      "tag": "0006_kind_the_fury",
+      "breakpoints": true
     }
   ]
 }

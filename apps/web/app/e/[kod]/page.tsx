@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { PlanCode, formatDayLong, formatTime } from "@partile/core";
 import { bumpViews, getPlanByCode, getViewerGuest, pendingCohostInvite, roleFor, viewerPlanState } from "@partile/db";
 import { HostView } from "@/components/host/HostView";
 import { PlanView } from "@/components/plan/PlanView";
 import { getViewer } from "@/lib/auth";
+import { routes } from "@/lib/routes";
 
 type Props = { params: Promise<{ kod: string }>; searchParams: Promise<{ goruntule?: string; paylas?: string }> };
 export const dynamic = "force-dynamic";
@@ -26,10 +27,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * `?goruntule=misafir` lets a host preview the guest view; `?paylas=1` opens the share step.
  */
 export default async function PlanPage({ params, searchParams }: Props) {
-  const [{ kod }, { goruntule }] = await Promise.all([params, searchParams]);
+  const [{ kod }, query] = await Promise.all([params, searchParams]);
+  const { goruntule } = query;
   if (!PlanCode.safeParse(kod).success) notFound();
   const plan = await getPlanByCode(kod);
   if (!plan) notFound();
+  // Renamed plan: old links (already on WhatsApp) move to the current code.
+  if (plan.code !== kod) {
+    const qs = new URLSearchParams(Object.entries(query).filter((e): e is [string, string] => typeof e[1] === "string")).toString();
+    permanentRedirect(`${routes.plan(plan.code)}${qs ? `?${qs}` : ""}`);
+  }
   const viewer = await getViewer();
   const role = await roleFor(plan.id, viewer?.id ?? null);
   if (role === "host" && goruntule !== "misafir") return <HostView plan={plan} viewerId={viewer!.id} />;
