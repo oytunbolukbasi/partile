@@ -41,6 +41,29 @@ export function CreateEditor() {
   const timeLabel = draft.startsAt && !draft.dateTbd ? `${formatTimeRange(draft.startsAt, draft.endsAt)} · TSİ` : "Saat ve süre";
   const locationLabel = draft.location?.district ?? draft.location?.name ?? "Konum ekle";
 
+  const toolbar = (
+    <div className="glass-menu flex w-[100px] flex-col items-center gap-4.5 rounded-2xl py-4 text-text">
+        <button type="button" onClick={() => setPanel(panel === "theme" ? null : "theme")} aria-pressed={panel === "theme"} className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold">
+          <span className="size-10 rounded-pill border-2 border-white shadow-[0_0_0_3px_rgba(255,255,255,0.15)]" style={{ background: theme.poster }} />
+          Tema
+        </button>
+        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
+          <span className="flex size-10 items-center justify-center rounded-pill text-white" style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }}>
+            <SparklesIcon />
+          </span>
+          Efekt
+        </button>
+        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
+          <span className="flex size-10 items-center justify-center"><SettingsIcon /></span>
+          Ayarlar
+        </button>
+        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
+          <span className="flex size-10 items-center justify-center"><EyeIcon /></span>
+          Önizle
+        </button>
+    </div>
+  );
+
   return (
     <ThemeSurface themeId={draft.themeId} className="relative min-h-dvh">
       {/* top bar */}
@@ -55,9 +78,9 @@ export function CreateEditor() {
         <span className="text-xs opacity-80 md:hidden">{savedAt ? "Kaydedildi" : "Taslak"}</span>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:gap-14 md:pb-40 md:pl-[128px] md:pr-[400px] md:pt-[120px]">
+      <div className="flex flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:items-start md:gap-8 md:pb-40 md:pl-24 md:pr-[400px] md:pt-[120px] 2xl:pr-10">
         {/* left column */}
-        <div className="flex w-full max-w-[420px] flex-col gap-3.5">
+        <div className="flex w-full max-w-[460px] flex-col gap-3.5">
           <div className="glass flex flex-col gap-3 rounded-2xl px-3 pb-3 pt-3.5">
             <label htmlFor="title" className="sr-only">
               Planın adı
@@ -219,36 +242,25 @@ export function CreateEditor() {
           </div>
         </div>
 
+
+        {/* 2xl+: panel and toolbar flow as columns so nothing floats over empty space */}
+        {panel === "theme" && (
+          <div className="glass-menu sticky top-[126px] hidden w-[220px] shrink-0 rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] 2xl:block">
+            <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
+          </div>
+        )}
+        <div className="sticky top-[126px] hidden shrink-0 2xl:block">{toolbar}</div>
       </div>
 
-      {/* theme panel (desktop): fixed, left of the toolbar so it never overlaps it */}
+      {/* theme panel (desktop, below 2xl): fixed, left of the fixed toolbar */}
       {panel === "theme" && (
-        <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block">
+        <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block 2xl:hidden">
           <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
         </div>
       )}
 
-      {/* desktop toolbar */}
-      <div className="glass-menu fixed right-10 top-[126px] hidden w-[100px] flex-col items-center gap-4.5 rounded-2xl py-4 text-text md:flex">
-        <button type="button" onClick={() => setPanel(panel === "theme" ? null : "theme")} aria-pressed={panel === "theme"} className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold">
-          <span className="size-10 rounded-pill border-2 border-white shadow-[0_0_0_3px_rgba(255,255,255,0.15)]" style={{ background: theme.poster }} />
-          Tema
-        </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
-          <span className="flex size-10 items-center justify-center rounded-pill text-white" style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }}>
-            <SparklesIcon />
-          </span>
-          Efekt
-        </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
-          <span className="flex size-10 items-center justify-center"><SettingsIcon /></span>
-          Ayarlar
-        </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
-          <span className="flex size-10 items-center justify-center"><EyeIcon /></span>
-          Önizle
-        </button>
-      </div>
+      {/* desktop toolbar (fixed below 2xl; in-flow column at 2xl+) */}
+      <div className="fixed right-10 top-[126px] hidden md:block 2xl:hidden">{toolbar}</div>
 
       {/* desktop actions */}
       <div className="fixed bottom-10 right-10 hidden gap-2.5 md:flex">
