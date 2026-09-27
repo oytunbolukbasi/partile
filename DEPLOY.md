@@ -32,13 +32,19 @@ Migrasyonlar her açılışta otomatik uygulanır (`drizzle-orm` migrator, `pack
 
 ## 3. Hatırlatma cron'u
 
-**+ New → Empty Service** → Settings → **Cron Schedule**: `0 * * * *` (saatte bir). Start command:
+1. Projede **+ New → Docker Image** → `curlimages/curl:latest` (içinde `curl` ve `sh` var; boş servisin imajı olmadığı için komut çalışmaz).
+2. Bu servisin **Variables**'ına `CRON_SECRET` ekle (web servisindekiyle aynı değer; ya da referans: `${{@partile/web.CRON_SECRET}}`).
+3. **Settings → Deploy → Custom Start Command** (Railway komutu kabuksuz çalıştırır, değişkenin açılması için `sh -c` şart):
 
 ```bash
-curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://getpartile.com/api/cron/hatirlatma
+sh -c 'curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://getpartile.com/api/cron/hatirlatma'
 ```
 
-Bu servise `CRON_SECRET`'ı web ile aynı ver. Kural: 1 hafta önce “katılımını bildir” (davetli + belki), 2 saat önce “2 saat kaldı” (geliyor); plan başına bir kez.
+4. **Settings → Cron Schedule**: `0 * * * *` (saatte bir, UTC). Servis her çalışmada komutu koşup kapanır; "Completed" normaldir.
+
+Elle deneme (kendi bilgisayarında `$CRON_SECRET` tanımlı olmadığından değeri doğrudan yaz): cevap `{"now":…,"sent":[…]}` ve HTTP 200 olmalı; 401 dönüyorsa değer yanlıştır.
+
+Kural: 1 hafta önce “katılımını bildir” (davetli + belki), 2 saat önce “2 saat kaldı” (geliyor); plan başına bir kez.
 
 ## 4. İlk açılış kontrolü
 
