@@ -156,7 +156,7 @@ export function PosterModal({ open, onClose, onSave, canUpload = false }: { open
         {tab === "GIF" && (
           <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/25 px-6 text-center">
             <span className="display text-lg tracking-normal">GIF arama yakında</span>
-            <span className="max-w-[420px] text-sm text-subtle">Şimdilik bilgisayarındaki GIF'i Yükle sekmesinden ekleyebilirsin; afişte hareketli kalır.</span>
+            <span className="max-w-[420px] text-sm text-subtle">Şimdilik {"bilgisayarındaki GIF’i Yükle sekmesinden ekleyebilirsin; afişte hareketli kalır."}</span>
             <button type="button" onClick={() => setTab("Yükle")} className={btnGhost}>GIF yükle</button>
           </div>
         )}
