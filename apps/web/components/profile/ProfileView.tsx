@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { formatPill, initials as toInitials } from "@partile/core";
 import { Avatar } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
@@ -9,27 +10,39 @@ import { TabBar } from "@/components/shell/TabBar";
 import { CameraIcon, LinkIcon, PlusIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, field, modalFooter } from "@/components/ui/Modal";
 import { SettingRow, Toggle } from "@/components/ui/Toggle";
-import { countByStatus, me, myPlans, plans } from "@/lib/fixtures";
+import { countByStatus, gradientFor, type Plan, type PlanRole } from "@partile/core";
+import { signOut, updateProfile } from "@/app/actions";
+import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
-import { useSession } from "@/lib/session";
 
-const mutuals = [
-  { ...plans.ece30!.guests[1]!, shared: 3 },
-  { ...plans.ece30!.guests[2]!, shared: 2 },
-  { ...plans.ece30!.guests[3]!, shared: 2 },
-  { ...plans.ece30!.guests[0]!, shared: 1 },
-];
+/** People who answered more than one of the viewer's plans (a stand-in for the mutual-friends graph). */
+function mutualsOf(plans: { plan: Plan; role: PlanRole }[]) {
+  const seen = new Map<string, { id: string; name: string; initials: string; gradient: string; shared: number }>();
+  for (const { plan } of plans) for (const g of plan.guests) {
+    if (g.status === "invited" || g.status === "pending") continue;
+    const m = seen.get(g.name) ?? { id: g.id, name: g.name, initials: g.initials, gradient: g.gradient, shared: 0 };
+    m.shared += 1;
+    seen.set(g.name, m);
+  }
+  return [...seen.values()].filter((m) => !/^(Misafir|Koşucu|Davetli) \d+$/.test(m.name)).sort((a, b) => b.shared - a.shared).slice(0, 4);
+}
 
 /** `Profile` artboard: own profile. Account settings (e-mail, notifications, sign-out) open from here, not from the rail. */
-export function ProfileView() {
-  const { session, update, signOut, ready } = useSession();
+export function ProfileView({ viewer, plans }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[] }) {
+  const router = useRouter();
+  const [, start] = useTransition();
+  const update = (p: { name?: string; bio?: string; birthday?: string; notifications?: boolean }) => start(async () => { await updateProfile(p); router.refresh(); });
+  const session = viewer;
+  const ready = true;
+  const mutuals = mutualsOf(plans);
+  const me = { gradient: gradientFor(viewer.id) };
   const [modal, setModal] = useState<"edit" | "account" | null>(null);
   const [copied, setCopied] = useState(false);
-  const name = session?.name || "Oytun Bölükbaşı";
-  const bio = session?.bio ?? "Kadıköy’de yaşıyor, planları iyi yapar, tatlıyı unutur.";
+  const name = session.name || "Adsız";
+  const bio = session.bio ?? "";
   const ini = toInitials(name);
-  const hosted = myPlans().filter((x) => x.role === "host");
-  const upcoming = myPlans().filter((x) => x.plan.startsAt && new Date(x.plan.startsAt).getTime() > Date.now());
+  const hosted = plans.filter((x) => x.role === "host");
+  const upcoming = plans.filter((x) => x.plan.startsAt && new Date(x.plan.startsAt).getTime() > Date.now());
   const handle = name.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşıöç]+/g, "-");
 
   const copy = async () => {
@@ -53,9 +66,9 @@ export function ProfileView() {
           <button type="button" aria-label="Fotoğraf değiştir" title="Yakında" className="absolute -right-1 bottom-1 flex size-12 items-center justify-center rounded-pill border-[3px] border-bg bg-white text-bg"><CameraIcon size={20} /></button>
         </span>
         <h1 className="display text-[32px] tracking-tight md:text-[40px]">{name}</h1>
-        <p className="max-w-[520px] text-muted">{bio}</p>
+        <p className="max-w-[520px] text-muted">{bio || <button type="button" onClick={() => setModal("edit")} className="font-bold text-subtle">Kısa bir tanıtım ekle</button>}</p>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[15px] text-subtle">
-          <span>Eyl ’26’da katıldı</span><span>·</span><span><strong className="text-text">{hosted.length}</strong> plan düzenledi</span><span>·</span><span><strong className="text-text">{mutuals.length + 10}</strong> ortak arkadaş</span>
+          <span>Eyl ’26’da katıldı</span><span>·</span><span><strong className="text-text">{hosted.length}</strong> plan düzenledi</span><span>·</span><span><strong className="text-text">{mutuals.length}</strong> ortak arkadaş</span>
         </div>
         <div className="flex flex-wrap justify-center gap-2.5 pt-1.5">
           <button type="button" onClick={() => setModal("edit")} className={btn}>Profili düzenle</button>
@@ -85,8 +98,9 @@ export function ProfileView() {
           </div>
         </section>
         <section className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between"><h2 className="text-[22px] font-bold tracking-tight md:text-[26px]">Ortak arkadaşlar</h2><span className="text-sm font-bold text-muted">Tümü ({mutuals.length + 10})</span></div>
+          <div className="flex items-baseline justify-between"><h2 className="text-[22px] font-bold tracking-tight md:text-[26px]">Ortak arkadaşlar</h2><span className="text-sm font-bold text-muted">Tümü ({mutuals.length})</span></div>
           <div className="flex flex-col rounded-2xl border border-white/8 bg-white/5">
+            {mutuals.length === 0 && <p className="px-4 py-6 text-sm text-subtle">Henüz ortak arkadaş yok. İlk planını paylaş, katılanlar burada birikir.</p>}
             {mutuals.map((m) => (
               <div key={m.id} className="flex items-center gap-3 border-b border-white/6 px-4 py-3 last:border-b-0">
                 <Avatar initials={m.initials} gradient={m.gradient} size={44} />
@@ -100,8 +114,8 @@ export function ProfileView() {
 
       <div className="relative mt-8 flex flex-col gap-3 px-4 md:mt-12 md:flex-row md:px-14">
         <div className={`${card} grow`}>
-          <span className="flex flex-col"><span className="font-bold">{session?.birthday ? `Doğum günün: ${session.birthday}` : "Doğum günün ne zaman?"}</span><span className="text-sm text-subtle">Zamanı gelince sana plan fikirleri gönderelim.</span></span>
-          <button type="button" onClick={() => setModal("edit")} className="ml-auto h-10 shrink-0 rounded-pill bg-white px-4 text-sm font-bold text-bg">{session?.birthday ? "Değiştir" : "Ekle"}</button>
+          <span className="flex flex-col"><span className="font-bold">{session.birthday ? `Doğum günün: ${session.birthday}` : "Doğum günün ne zaman?"}</span><span className="text-sm text-subtle">Zamanı gelince sana plan fikirleri gönderelim.</span></span>
+          <button type="button" onClick={() => setModal("edit")} className="ml-auto h-10 shrink-0 rounded-pill bg-white px-4 text-sm font-bold text-bg">{session.birthday ? "Değiştir" : "Ekle"}</button>
         </div>
         <div className={`${card} text-sm text-subtle`}>
           E-posta · yalnızca sen görürsün · <button type="button" onClick={() => setModal("account")} className="font-bold text-muted">Hesap ayarları</button>
@@ -109,14 +123,14 @@ export function ProfileView() {
       </div>
       <TabBar initials={ini} />
 
-      <EditProfileModal open={modal === "edit"} onClose={() => setModal(null)} name={name} bio={bio} birthday={session?.birthday ?? ""} onSave={(p) => { update(p); setModal(null); }} />
+      <EditProfileModal open={modal === "edit"} onClose={() => setModal(null)} name={name} bio={bio} birthday={session.birthday ?? ""} onSave={(p) => { update(p); setModal(null); }} />
       <Modal open={modal === "account"} onClose={() => setModal(null)} title="Hesap ayarları" width={560}>
         <div className="flex flex-col">
           <SettingRow title="E-posta" hint="Giriş ve bildirimler için. Düzenleyenlere gösterilmez.">
-            <span className="text-sm font-semibold text-muted">{ready ? session?.email ?? "Giriş yapılmadı" : ""}</span>
+            <span className="text-sm font-semibold text-muted">{ready ? session.email : ""}</span>
           </SettingRow>
           <SettingRow title="Katılım ve hatırlatma bildirimleri" hint="Uygulama içi + e-posta">
-            <Toggle checked={session?.notifications ?? true} onChange={(v) => update({ notifications: v })} label="Bildirimler" />
+            <Toggle checked={session.notifications} onChange={(v) => update({ notifications: v })} label="Bildirimler" />
           </SettingRow>
           <SettingRow title="Takvim" hint="Katıldığın planlar takvimine düşsün (.ics)">
             <span className="text-sm font-semibold text-subtle">Yakında</span>
@@ -126,7 +140,7 @@ export function ProfileView() {
           </SettingRow>
         </div>
         <div className={modalFooter}>
-          <Link href={routes.landing} onClick={signOut} className={`${btnGhost} text-[#FF8C6B]`}>Çıkış yap</Link>
+          <button type="button" onClick={() => start(async () => { await signOut(); router.push(routes.landing); router.refresh(); })} className={`${btnGhost} text-[#FF8C6B]`}>Çıkış yap</button>
           <button type="button" onClick={() => setModal(null)} className={btnPrimary}>Tamam</button>
         </div>
       </Modal>

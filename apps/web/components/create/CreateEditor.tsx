@@ -28,7 +28,11 @@ import { DatePickerModal } from "./DatePickerModal";
 import { PollModal } from "./PollModal";
 import { LocationModal } from "./LocationModal";
 import { PosterModal } from "./PosterModal";
-import { useSession } from "@/lib/session";
+import { useRouter } from "next/navigation";
+import { useEffect, useTransition } from "react";
+import { publishDraft, savePlan } from "@/app/actions";
+import type { Viewer } from "@/lib/auth";
+import type { Plan } from "@partile/core";
 import { SettingsModal, type SettingsTab } from "./SettingsModal";
 import { ThemePanel } from "./ThemePanel";
 
@@ -36,16 +40,37 @@ const glassRow = "glass flex h-[52px] items-center gap-3 rounded-lg px-4 text-le
 const chip = "glass h-[38px] rounded-pill px-3.5 text-[15px] font-semibold";
 
 /** Plan editor — `Create` / `CreateMobile` artboards. Draft persists in the browser. */
-export function CreateEditor() {
-  const { draft, patch, savedAt } = useDraft();
+export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer: Viewer | null; existing?: Plan; autoPublish?: boolean }) {
+  const { draft, patch, reset, savedAt } = useDraft(existing);
+  const router = useRouter();
+  const [publishing, startPublish] = useTransition();
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [panel, setPanel] = useState<"theme" | null>("theme");
   const [sheet, setSheet] = useState<"theme" | null>(null);
   const [modal, setModal] = useState<"date" | "poll" | "location" | "poster" | "settings" | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
-  // Publishing lands on the sample plan's share step until the data layer exists; signed-out users verify first.
-  const { session } = useSession();
-  const shareTarget = `${routes.plan("ece30")}?paylas=1`;
-  const publishHref = session ? shareTarget : `${routes.login}?next=${encodeURIComponent(shareTarget)}`;
+  // Signed-out hosts verify their e-mail first; the draft stays in the browser and publishes on return (?yayinla=1).
+  const loginHref = `${routes.login}?next=${encodeURIComponent(`${routes.create}?yayinla=1`)}`;
+  const publish = () =>
+    startPublish(async () => {
+      if (existing) {
+        const r = await savePlan(existing.code, draft);
+        if (!r.ok) return setPublishError("Kaydedilemedi.");
+        router.push(routes.plan(existing.code));
+        router.refresh();
+        return;
+      }
+      const r = await publishDraft(draft);
+      if (!r.ok) return setPublishError(r.error);
+      reset();
+      router.push(`${routes.plan(r.code)}?paylas=1`);
+      router.refresh();
+    });
+  useEffect(() => {
+    if (autoPublish && viewer && !existing && draft.title !== "Planın adı") publish();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPublish, viewer, draft.title]);
+  const publishLabel = existing ? "Kaydet" : publishing ? "Yayınlanıyor…" : "Yayınla ve paylaş";
   const openSettings = (t: SettingsTab) => {
     setSettingsTab(t);
     setModal("settings");
@@ -279,13 +304,20 @@ export function CreateEditor() {
       <div className="fixed right-10 top-[126px] hidden md:block xl:hidden">{toolbar}</div>
 
       {/* desktop actions */}
-      <div className="fixed bottom-10 right-10 hidden gap-2.5 md:flex">
+      <div className="fixed bottom-10 right-10 hidden gap-2.5 md:flex relative">
         <Link href={routes.home} className="flex h-14 items-center rounded-pill border border-white/30 bg-bg/55 px-5.5 text-base font-bold text-text">
           Taslağı kaydet
         </Link>
-        <Link href={publishHref} className="flex h-14 items-center gap-2.5 rounded-pill bg-white px-6.5 text-base font-extrabold text-bg shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
-          Yayınla ve paylaş <ArrowRightIcon size={18} />
-        </Link>
+        {viewer ? (
+          <button type="button" onClick={publish} disabled={publishing} className="flex h-14 items-center gap-2.5 rounded-pill bg-white px-6.5 text-base font-extrabold text-bg shadow-[0_12px_30px_rgba(0,0,0,0.35)] disabled:opacity-60">
+            {publishLabel} <ArrowRightIcon size={18} />
+          </button>
+        ) : (
+          <Link href={loginHref} className="flex h-14 items-center gap-2.5 rounded-pill bg-white px-6.5 text-base font-extrabold text-bg shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+            Yayınla ve paylaş <ArrowRightIcon size={18} />
+          </Link>
+        )}
+        {publishError && <span className="absolute -top-8 right-0 text-sm font-bold text-[#FF8C6B]">{publishError}</span>}
       </div>
 
       {/* mobile bottom bar */}
@@ -306,9 +338,15 @@ export function CreateEditor() {
             <EyeIcon /> Önizle
           </button>
         </div>
-        <Link href={publishHref} className="flex h-[54px] items-center justify-center gap-2 rounded-pill bg-white text-base font-extrabold text-bg">
-          Yayınla ve paylaş <ArrowRightIcon size={18} />
-        </Link>
+        {viewer ? (
+          <button type="button" onClick={publish} disabled={publishing} className="flex h-[54px] items-center justify-center gap-2 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-60">
+            {publishLabel} <ArrowRightIcon size={18} />
+          </button>
+        ) : (
+          <Link href={loginHref} className="flex h-[54px] items-center justify-center gap-2 rounded-pill bg-white text-base font-extrabold text-bg">
+            Yayınla ve paylaş <ArrowRightIcon size={18} />
+          </Link>
+        )}
         {sheet === "theme" && (
           <div className="glass-menu -mx-4 -mb-6 rounded-t-[28px] px-5 pb-8 pt-3">
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-pill bg-white/25" />

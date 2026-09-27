@@ -8,7 +8,8 @@ import { Avatar } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
 import { TabBar } from "@/components/shell/TabBar";
 import { BellIcon, BellOffIcon, CalendarIcon, CopyIcon, MenuIcon, MoreIcon, PencilIcon, PlusIcon, SearchIcon, ShareIcon, UsersIcon } from "@/components/shell/icons";
-import { countByStatus, me, myPlans, type Plan, type PlanRole } from "@/lib/fixtures";
+import { countByStatus, type Plan, type PlanRole } from "@partile/core";
+import type { Viewer } from "@/lib/auth";
 import { loadDraft } from "@/lib/draft";
 import { routes } from "@/lib/routes";
 
@@ -24,13 +25,14 @@ const badge = (role: PlanRole) => (role === "host" ? "DÜZENLİYORSUN" : rsvpLab
 const chip = (on: boolean) => `flex h-11 shrink-0 items-center gap-2 rounded-pill px-4 text-[15px] ${on ? "border border-white/45 bg-white/14 font-bold text-white" : "bg-white/10 font-semibold text-text hover:bg-white/14"}`;
 
 /** `Home` / `HomeMobile`: greeting, filter chips, plan cards with a per-card menu, drafts, cards & mutuals. */
-export function HomeView() {
+export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[] }) {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [menu, setMenu] = useState<string | null>(null);
   const [draft, setDraft] = useState<(PlanDraft & { touched: boolean }) | null>(null);
   useEffect(() => setDraft(loadDraft()), []);
 
-  const all = myPlans();
+  const all = plans;
+  const me = { id: viewer.id, name: viewer.name.split(" ")[0] || "sen", initials: viewer.initials };
   const now = Date.now();
   const upcoming = all.filter((x) => !x.plan.startsAt || new Date(x.plan.startsAt).getTime() > now);
   const hosting = all.filter((x) => x.role === "host");
@@ -78,7 +80,7 @@ export function HomeView() {
         {tab !== "drafts" && (
           <div className="flex flex-col gap-5 md:flex-row md:flex-wrap md:gap-10">
             {list.map(({ plan, role }, i) => (
-              <PlanCard key={plan.code} plan={plan} role={role} compact={i > 0} menuOpen={menu === plan.code} onMenu={() => setMenu(menu === plan.code ? null : plan.code)} onClose={() => setMenu(null)} />
+              <PlanCard key={plan.code} plan={plan} role={role} viewerId={viewer.id} compact={i > 0} menuOpen={menu === plan.code} onMenu={() => setMenu(menu === plan.code ? null : plan.code)} onClose={() => setMenu(null)} />
             ))}
             {list.length === 0 && <p className="py-10 text-lg text-muted">Burada henüz bir şey yok.</p>}
             <Link href={routes.create} className="hidden h-[300px] w-[300px] flex-col items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-dashed border-white/35 text-base font-bold md:flex">
@@ -132,13 +134,13 @@ export function HomeView() {
   );
 }
 
-function PlanCard({ plan, role, compact, menuOpen, onMenu, onClose }: { plan: Plan; role: PlanRole; compact: boolean; menuOpen: boolean; onMenu: () => void; onClose: () => void }) {
+function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: { plan: Plan; role: PlanRole; viewerId: string; compact: boolean; menuOpen: boolean; onMenu: () => void; onClose: () => void }) {
   const href = routes.plan(plan.code);
   const c = countByStatus(plan.guests);
-  const hostLabel = plan.hosts.map((h) => (h.id === me.id ? "Sen" : h.name)).join(" & ");
+  const hostLabel = plan.hosts.map((h) => (h.id === viewerId ? "Sen" : h.name.split(" ")[0])).join(" & ");
   const menuItems = role === "host"
     ? [
-        { label: "Düzenle", href: routes.create, Icon: PencilIcon },
+        { label: "Düzenle", href: `${routes.create}?kod=${plan.code}`, Icon: PencilIcon },
         { label: "Paylaş", href: "#", Icon: ShareIcon },
         { label: "Katılımcılar", href: "#", Icon: UsersIcon },
         { label: "Takvime ekle", href: "#", Icon: CalendarIcon },

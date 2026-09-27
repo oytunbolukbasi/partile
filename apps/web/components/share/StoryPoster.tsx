@@ -7,7 +7,7 @@ import { Mark } from "@/components/brand/Mark";
 import { Poster } from "@/components/plan/Poster";
 import { DownloadIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
-import type { Plan } from "@/lib/fixtures";
+import type { Plan } from "@partile/core";
 import { titleFontStyle } from "@/lib/fonts";
 
 const dayNum = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", timeZone: "Europe/Istanbul" });

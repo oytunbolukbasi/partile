@@ -5,7 +5,7 @@ import { formatDayShort, formatTime } from "@partile/core";
 import { Mark } from "@/components/brand/Mark";
 import { ImageIcon, LinkIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
-import { me, type Blast, type Guest, type Plan } from "@/lib/fixtures";
+import type { Guest, Plan } from "@partile/core";
 
 const MAX_BLASTS = 10;
 const MAX_CHARS = 400;
@@ -19,18 +19,19 @@ const SEGS: { id: Seg; label: string; color?: string }[] = [
 ];
 
 /** `Blast` artboard: pick segments, write ≤400 chars, see the e-mail preview, send (in-app + e-mail). Not editable after sending. */
-export function BlastModal({ plan, guests, open, onClose, onSend }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onSend: (b: Blast) => void }) {
+export function BlastModal({ plan, guests, hostName, open, onClose, onSend }: { plan: Plan; guests: Guest[]; hostName: string; open: boolean; onClose: () => void; onSend: (b: { toLabel: string; guestIds: string[]; text: string }) => void }) {
   const [on, setOn] = useState<Record<Seg, boolean>>({ going: true, maybe: true, invited: false, pending: false, checkedIn: false });
   const [text, setText] = useState("");
   const inSeg = (g: Guest, s: Seg) => (s === "checkedIn" ? !!g.checkedIn : g.status === s);
   const n = (s: Seg) => guests.filter((g) => inSeg(g, s)).length;
-  const total = guests.filter((g) => SEGS.some((s) => on[s.id] && inSeg(g, s.id))).length;
+  const recipients = guests.filter((g) => SEGS.some((s) => on[s.id] && inSeg(g, s.id)));
+  const total = recipients.length;
   const left = MAX_BLASTS - plan.blasts.length;
   const when = plan.startsAt ? `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}` : "Tarih netleşmedi";
 
   const send = () => {
     if (!text.trim() || !total || left <= 0) return;
-    onSend({ id: `b${Date.now()}`, at: new Date().toISOString(), to: SEGS.filter((s) => on[s.id]).map((s) => s.label.split(" ·")[0]).join(" + "), count: total, text: text.trim() });
+    onSend({ toLabel: SEGS.filter((s) => on[s.id]).map((s) => s.label.split(" ·")[0]).join(" + "), guestIds: recipients.map((g) => g.id), text: text.trim() });
     setText("");
   };
 
@@ -71,7 +72,7 @@ export function BlastModal({ plan, guests, open, onClose, onSend }: { plan: Plan
           <div className="overflow-hidden rounded-xl bg-text text-bg">
             <div className="flex flex-col gap-0.5 border-b border-[#E2D7C5] px-3.5 py-3">
               <span className="text-[11px] text-[#5F584F]">Kimden: <strong className="text-bg">partile</strong> &lt;duyuru@getpartile.com&gt;</span>
-              <span className="text-[13px] font-extrabold">{plan.title} · {me.name}’dan duyuru</span>
+              <span className="text-[13px] font-extrabold">{plan.title} · {hostName.split(" ")[0]}’dan duyuru</span>
             </div>
             <div className="flex flex-col gap-3 p-3.5">
               <span className="flex items-center gap-2 text-sm font-extrabold"><Mark size={20} color="#0C0C0D" hole="#F5F2EC" solid /> partile</span>

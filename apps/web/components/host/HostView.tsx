@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
+import { blast as sendBlastAction, decideGuest, pickDay, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
 import { formatDayLong, formatDayShort, formatTime, formatTimeRange, formatTry, planUrl, rsvpLabel, type PlanDraft } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { SettingsModal, type SettingsTab } from "@/components/create/SettingsModal";
@@ -16,7 +17,7 @@ import { ThemeSurface } from "@/components/plan/ThemeSurface";
 import { ShareModal } from "@/components/share/ShareModal";
 import { Rail } from "@/components/shell/Rail";
 import { CrownIcon, EyeIcon, LockIcon, PencilIcon, ShareIcon } from "@/components/shell/icons";
-import { countByStatus, me, type Blast, type Guest, type Plan } from "@/lib/fixtures";
+import { countByStatus, type Plan } from "@partile/core";
 import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
 
@@ -28,9 +29,12 @@ const timeAgo = (iso: string) => {
 };
 
 /** `EventHost` artboard: the plan page as its host sees it — toolbar, counters, approvals, link box, reminders. */
-export function HostView({ plan: initial }: { plan: Plan }) {
-  const [plan, setPlan] = useState(initial);
-  const [guests, setGuests] = useState<Guest[]>(initial.guests);
+export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
+  const router = useRouter();
+  const [, start] = useTransition();
+  const guests = plan.guests;
+  const me = { id: viewerId };
+  const act = (fn: () => Promise<unknown>, close = false) => start(async () => { await fn(); if (close) setModal(null); router.refresh(); });
   const params = useSearchParams();
   const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | "poll" | null>(params.get("paylas") ? "share" : null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
@@ -52,11 +56,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
       /* clipboard blocked */
     }
   };
-  const sendBlast = (b: Blast) => {
-    setPlan({ ...plan, blasts: [...plan.blasts, b], feed: [{ id: b.id, guestId: me.id, kind: "blast", text: b.text, at: b.at }, ...plan.feed] });
-    setModal(null);
-  };
-  const paid = guests.filter((g) => g.status === "going" && g.checkedIn).length; // stand-in until "gönderdim" lands
+  const paid = guests.filter((g) => g.status === "going" && g.paid).length;
   const remindAt = plan.startsAt ? new Date(new Date(plan.startsAt).getTime() - 7 * 864e5) : null;
   const remind2h = plan.startsAt ? new Date(new Date(plan.startsAt).getTime() - 2 * 36e5) : null;
 
@@ -66,7 +66,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
       <div className="mx-auto flex max-w-[1040px] flex-col gap-6 px-4 pt-4 md:px-12 md:pt-[76px]">
         <div className="-mx-4 flex items-center gap-2.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
           <span className={`${tool} text-[13px] font-extrabold tracking-wide`}><CrownIcon size={16} /> SEN DÜZENLİYORSUN</span>
-          <Link href={routes.create} className={tool}><PencilIcon size={16} /> Düzenle</Link>
+          <Link href={`${routes.create}?kod=${plan.code}`} className={tool}><PencilIcon size={16} /> Düzenle</Link>
           <button type="button" onClick={() => setModal("guests")} className={tool}>
             Katılımcılar {pending.length > 0 && <span className="flex h-[22px] items-center rounded-pill bg-amber px-2 text-xs font-extrabold text-bg">{pending.length} onay</span>}
           </button>
@@ -80,7 +80,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
           <main className="flex min-w-0 flex-col gap-6.5 md:w-[430px] md:shrink-0">
             <h1 className="text-[52px] leading-none md:text-[76px] md:tracking-[-0.03em]" style={titleFontStyle(plan.titleFont)}>{plan.title}</h1>
             {plan.poll?.length && !plan.startsAt ? (
-              <PollResults themeId={plan.themeId} options={plan.poll} tally={plan.pollVotes ?? {}} onEdit={() => setModal("poll")} onPick={(o) => setPlan({ ...plan, startsAt: o.startsAt, endsAt: o.endsAt, dateTbd: false, poll: undefined })} />
+              <PollResults themeId={plan.themeId} options={plan.poll} tally={plan.pollVotes ?? {}} onEdit={() => setModal("poll")} onPick={(o) => act(() => pickDay(plan.code, o.id))} />
             ) : (
               <div className="flex flex-col gap-1">
                 <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
@@ -119,7 +119,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
             <div className="flex flex-col gap-0.5">
               <span className="text-lg font-bold">{plan.location?.name ?? "Konum eklenmedi"}</span>
               <span className="text-[15px] opacity-85">
-                {plan.location?.display === "district" ? <>Misafirlere “{plan.location.district}” görünür; tam adres katılınca açılır</> : <>Tam adres herkese görünür</>} · <Link href={routes.create} className="font-bold">Değiştir</Link>
+                {plan.location?.display === "district" ? <>Misafirlere “{plan.location.district}” görünür; tam adres katılınca açılır</> : <>Tam adres herkese görünür</>} · <Link href={`${routes.create}?kod=${plan.code}`} className="font-bold">Değiştir</Link>
               </span>
             </div>
 
@@ -161,7 +161,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
                       <span className="flex gap-3 text-sm font-bold opacity-85">
                         <button type="button">Yanıtla</button>
                         <button type="button">Sabitle</button>
-                        <button type="button" className="opacity-70" onClick={() => setPlan({ ...plan, feed: plan.feed.filter((x) => x.id !== f.id) })}>Sil</button>
+                        <button type="button" className="opacity-70" onClick={() => act(() => removeFeedItem(plan.code, f.id))}>Sil</button>
                       </span>
                     </div>
                   </div>
@@ -173,7 +173,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
           <aside className="flex w-full flex-col items-center gap-6 md:w-[346px] md:shrink-0">
             <div className="relative w-full">
               <Poster themeId={plan.themeId} text={plan.posterText ?? "30"} src={plan.posterUrl} topLeft="PARTİLE" bottomRight={plan.startsAt ? `${formatDayShort(plan.startsAt).split(", ")[1]?.toLocaleUpperCase("tr-TR")} · ${plan.location?.district?.split(",")[0]?.toLocaleUpperCase("tr-TR")}` : undefined} className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.4)]" />
-              <Link href={routes.create} className="absolute right-3 top-3 flex h-10 items-center gap-1.5 rounded-pill bg-bg/70 px-3.5 text-[13px] font-bold text-white"><PencilIcon size={14} /> Afişi değiştir</Link>
+              <Link href={`${routes.create}?kod=${plan.code}`} className="absolute right-3 top-3 flex h-10 items-center gap-1.5 rounded-pill bg-bg/70 px-3.5 text-[13px] font-bold text-white"><PencilIcon size={14} /> Afişi değiştir</Link>
             </div>
 
             <div className="flex w-full flex-col gap-3 rounded-xl border border-white/14 bg-white/8 p-4">
@@ -206,11 +206,11 @@ export function HostView({ plan: initial }: { plan: Plan }) {
         </div>
       </div>
 
-      <PollModal open={modal === "poll"} onClose={() => setModal(null)} draft={plan} onSave={(p) => { setPlan({ ...plan, ...p }); setModal(null); }} />
+      <PollModal open={modal === "poll"} onClose={() => setModal(null)} draft={plan} onSave={(p) => act(() => savePlan(plan.code, p), true)} />
       <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
-      <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onChange={setGuests} onBlast={() => setModal("blast")} />
-      <BlastModal plan={plan} guests={guests} open={modal === "blast"} onClose={() => setModal(null)} onSend={sendBlast} />
-      <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => { setPlan({ ...plan, ...p }); setModal(null); }} />
+      <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onDecide={(id, d) => act(() => decideGuest(plan.code, id, d))} onFlag={(id, flag, v) => act(() => setGuestFlag(plan.code, id, flag, v))} onBlast={() => setModal("blast")} />
+      <BlastModal plan={plan} guests={guests} hostName={plan.hosts.find((h) => h.id === viewerId)?.name ?? "Düzenleyen"} open={modal === "blast"} onClose={() => setModal(null)} onSend={(b) => act(() => sendBlastAction(plan.code, b.toLabel, b.guestIds, b.text), true)} />
+      <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => act(() => savePlan(plan.code, p), true)} />
     </ThemeSurface>
   );
 }

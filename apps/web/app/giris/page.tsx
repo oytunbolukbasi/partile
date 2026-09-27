@@ -1,9 +1,15 @@
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { getViewer } from "@/lib/auth";
+import { routes } from "@/lib/routes";
 
 export const metadata = { title: "Giriş" };
 
-/** Maps to `Login`: e-mail → 6-digit code / magic link via Resend (wired up last). `?next=` returns the user afterwards. */
+/** Maps to `Login`: e-mail → 6-digit code / magic link. `?next=` returns the user afterwards. */
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
-  return <LoginForm next={next && next.startsWith("/") ? next : undefined} />;
+  const safeNext = next && next.startsWith("/") ? next : undefined;
+  const viewer = await getViewer();
+  if (viewer) redirect(viewer.onboarded ? safeNext || routes.home : routes.onboarding);
+  return <LoginForm next={safeNext} />;
 }

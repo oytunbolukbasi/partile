@@ -6,7 +6,7 @@ import { Avatar } from "@/components/plan/Avatar";
 import { CheckIcon, CloseIcon, DownloadIcon, MoreIcon, SearchIcon } from "@/components/shell/icons";
 import { Modal } from "@/components/ui/Modal";
 import { Toggle } from "@/components/ui/Toggle";
-import type { Guest, Plan } from "@/lib/fixtures";
+import type { Guest, Plan } from "@partile/core";
 
 type Filter = "all" | RsvpStatus;
 const FILTERS: { id: Filter; label: string }[] = [
@@ -31,14 +31,13 @@ const timeAgo = (iso: string) => {
 };
 
 /** `GuestList` artboard: host-side guest table with filters, search, approvals, check-in and CSV. No e-mail column (KVKK). */
-export function GuestListModal({ plan, guests, open, onClose, onChange, onBlast }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onChange: (g: Guest[]) => void; onBlast: () => void }) {
+export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, onBlast }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onDecide: (guestId: string, decision: "approve" | "reject") => void; onFlag: (guestId: string, flag: "checkedIn" | "paid", value: boolean) => void; onBlast: () => void }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [checkin, setCheckin] = useState(false);
 
   const counts = FILTERS.reduce((acc, f) => ({ ...acc, [f.id]: f.id === "all" ? guests.length : guests.filter((g) => g.status === f.id).length }), {} as Record<Filter, number>);
   const rows = guests.filter((g) => (filter === "all" || g.status === filter) && g.name.toLocaleLowerCase("tr-TR").includes(q.toLocaleLowerCase("tr-TR")));
-  const set = (id: string, p: Partial<Guest>) => onChange(guests.map((g) => (g.id === id ? { ...g, ...p } : g)));
   const noteOf = (g: Guest) => g.answers?.q1 || g.note || "—";
 
   const csv = () => {
@@ -105,11 +104,11 @@ export function GuestListModal({ plan, guests, open, onClose, onChange, onBlast 
               <span className="flex justify-end">
                 {g.status === "pending" ? (
                   <span className="flex gap-1.5">
-                    <button type="button" onClick={() => set(g.id, { status: "going" })} className="h-8 rounded-pill bg-[#1EC9B0] px-3 text-xs font-extrabold text-bg">Onayla</button>
-                    <button type="button" aria-label="Reddet" onClick={() => onChange(guests.filter((x) => x.id !== g.id))} className="flex size-8 items-center justify-center rounded-pill border border-white/25"><CloseIcon size={14} /></button>
+                    <button type="button" onClick={() => onDecide(g.id, "approve")} className="h-8 rounded-pill bg-[#1EC9B0] px-3 text-xs font-extrabold text-bg">Onayla</button>
+                    <button type="button" aria-label="Reddet" onClick={() => onDecide(g.id, "reject")} className="flex size-8 items-center justify-center rounded-pill border border-white/25"><CloseIcon size={14} /></button>
                   </span>
                 ) : checkin && g.status === "going" ? (
-                  <Toggle checked={!!g.checkedIn} onChange={(v) => set(g.id, { checkedIn: v })} label={`${g.name} giriş yaptı`} />
+                  <Toggle checked={!!g.checkedIn} onChange={(v) => onFlag(g.id, "checkedIn", v)} label={`${g.name} giriş yaptı`} />
                 ) : (
                   <button type="button" aria-label="Daha fazla" className="flex size-8 items-center justify-center rounded-pill text-subtle"><MoreIcon size={16} /></button>
                 )}

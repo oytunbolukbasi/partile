@@ -6,7 +6,9 @@ import { formatTime } from "@partile/core";
 import { Avatar } from "@/components/plan/Avatar";
 import { TabBar } from "@/components/shell/TabBar";
 import { BellIcon, CameraIcon, ChatIcon, CheckIcon, CogIcon, CrownIcon, QuestionIcon } from "@/components/shell/icons";
-import { me, notifications as seed, type Notification } from "@/lib/fixtures";
+import type { Notification } from "@partile/core";
+import { markRead } from "@/app/actions";
+import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
 
 type Tab = "all" | "host" | "guest";
@@ -17,6 +19,7 @@ const BADGE: Record<Notification["kind"], { Icon: typeof CheckIcon; bg: string }
   reminder: { Icon: BellIcon, bg: "#F5F2EC" },
   cohost: { Icon: CrownIcon, bg: "#FFB020" },
   album: { Icon: CameraIcon, bg: "#F5F2EC" },
+  blast: { Icon: ChatIcon, bg: "#FFB020" },
 };
 
 const dayKey = (iso: string) => {
@@ -31,9 +34,9 @@ const timeAgo = (iso: string) => {
 };
 
 /** `Notifications` artboard: 460px drawer on desktop, full screen on mobile. Bugün / Dün groups, event badges, unread marks. */
-export function NotificationsPanel() {
+export function NotificationsPanel({ viewer, items: initial }: { viewer: Viewer; items: Notification[] }) {
   const [tab, setTab] = useState<Tab>("all");
-  const [items, setItems] = useState(seed);
+  const [items, setItems] = useState(initial);
   const list = items.filter((n) => tab === "all" || n.role === tab);
   const groups = ["BUGÜN", "DÜN", "DAHA ÖNCE"].map((k) => ({ k, rows: list.filter((n) => dayKey(n.at) === k) })).filter((g) => g.rows.length);
   const unread = items.filter((n) => n.unread).length;
@@ -43,7 +46,7 @@ export function NotificationsPanel() {
       <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line px-6">
         <h1 className="text-[22px] font-bold tracking-tight">Bildirimler{unread > 0 && <span className="ml-2 align-middle text-sm font-extrabold text-amber">{unread}</span>}</h1>
         <div className="flex gap-1.5">
-          <button type="button" onClick={() => setItems(items.map((n) => ({ ...n, unread: false })))} className="h-9 rounded-pill bg-white/8 px-3 text-xs font-bold tracking-wide text-muted">TÜMÜNÜ OKUNDU YAP</button>
+          <button type="button" onClick={() => { setItems(items.map((n) => ({ ...n, unread: false }))); markRead(); }} className="h-9 rounded-pill bg-white/8 px-3 text-xs font-bold tracking-wide text-muted">TÜMÜNÜ OKUNDU YAP</button>
           <Link href={routes.profile} aria-label="Bildirim ayarları" className="flex size-9 items-center justify-center rounded-pill bg-white/8 text-muted"><CogIcon size={18} /></Link>
         </div>
       </div>
@@ -59,12 +62,12 @@ export function NotificationsPanel() {
             {g.rows.map((n) => {
               const { Icon, bg } = BADGE[n.kind];
               return (
-                <Link key={n.id} href={routes.plan(n.code)} onClick={() => setItems(items.map((x) => (x.id === n.id ? { ...x, unread: false } : x)))} className={`flex items-start gap-3 px-6 py-3 ${n.unread ? "bg-white/5" : ""}`}>
+                <Link key={n.id} href={routes.plan(n.code)} onClick={() => { setItems(items.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); if (n.unread) markRead([n.id]); }} className={`flex items-start gap-3 px-6 py-3 ${n.unread ? "bg-white/5" : ""}`}>
                   <span className="relative shrink-0">
                     <Avatar initials={n.initials} gradient={n.gradient} size={44} />
                     <span className="absolute -bottom-1 -right-1 flex size-[22px] items-center justify-center rounded-pill border-2 border-panel text-bg" style={{ background: bg }}><Icon size={12} strokeWidth={2.4} /></span>
                   </span>
-                  <span className="flex grow flex-col gap-0.5"><span className={`text-[15px] leading-snug ${n.unread ? "" : "text-muted"}`}>{n.text}</span><span className="text-xs text-subtle">{timeAgo(n.at)} · {n.kind === "reminder" ? "Hatırlatma" : n.kind === "approval" ? "Onay bekliyor" : n.code === "ece30" ? "Ece 30 Oluyor" : "Caddebostan Sahil Koşusu"}</span></span>
+                  <span className="flex grow flex-col gap-0.5"><span className={`text-[15px] leading-snug ${n.unread ? "" : "text-muted"}`}>{n.text}</span><span className="text-xs text-subtle">{timeAgo(n.at)} · {n.kind === "reminder" ? "Hatırlatma" : n.kind === "approval" ? "Onay bekliyor" : n.planTitle}</span></span>
                   {n.unread && <span className="mt-2 size-2 shrink-0 rounded-pill bg-[#FF6A3D]" aria-label="Okunmadı" />}
                 </Link>
               );
@@ -74,7 +77,7 @@ export function NotificationsPanel() {
         {list.length === 0 && <p className="px-6 py-10 text-center text-muted">Bildirim yok.</p>}
       </div>
       <div className="mt-auto hidden items-center gap-2 border-t border-line px-6 py-3.5 text-[13px] text-subtle md:flex">Bir planı sessize almak için plan sayfasındaki zil simgesini kullan.</div>
-      <TabBar initials={me.initials} />
+      <TabBar initials={viewer.initials} />
     </div>
   );
 }

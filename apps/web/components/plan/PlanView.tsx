@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatDayLong, formatTimeRange, formatTry, rsvpLabel, type Rsvp, type RsvpStatus } from "@partile/core";
+import { formatDayLong, formatTimeRange, formatTry, rsvpLabel, type RsvpStatus } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
@@ -13,9 +13,10 @@ import { RsvpButtons } from "@/components/plan/RsvpButtons";
 import { RsvpFlow } from "@/components/plan/RsvpFlow";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
 import { BellIcon, CalendarIcon, CheckIcon, ChevronDownIcon, CrownIcon, LockIcon, PinIcon } from "@/components/shell/icons";
-import { countByStatus, type Plan } from "@/lib/fixtures";
+import { countByStatus, type Plan } from "@partile/core";
+import type { Viewer } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 import { titleFontStyle } from "@/lib/fonts";
-import { useGuestRsvp } from "@/lib/guest";
 import { routes } from "@/lib/routes";
 
 const SendIcon = ({ size = 18 }: { size?: number }) => (
@@ -31,12 +32,17 @@ const timeAgo = (iso: string) => {
 };
 
 /** `InviteDesktop` / `InviteMobile` (pre-RSVP) and `Event` / `EventMobile` (post-RSVP) in one component. */
-export function PlanView({ plan }: { plan: Plan }) {
-  const { rsvp, save, ready } = useGuestRsvp(plan.code);
+type ViewerGuest = { id: string; name: string; status: string; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
+
+export function PlanView({ plan, viewer, viewerGuest }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null }) {
+  const router = useRouter();
+  const rsvp = viewerGuest && viewerGuest.status !== "invited" ? viewerGuest : null;
+  const ready = true;
   const [flow, setFlow] = useState<"going" | "maybe" | "no" | null>(null);
   const t = themeById(plan.themeId);
   const counts = countByStatus(plan.guests);
-  const joined = !!rsvp && rsvp.status !== "no";
+  const joined = !!rsvp && rsvp.status !== "no" && rsvp.status !== "pending";
+  const pendingApproval = rsvp?.status === "pending";
   const polling = !!plan.poll?.length && !plan.startsAt;
   const hostNames = plan.hosts.map((h) => h.name).join(" & ");
   const poster = <Poster themeId={plan.themeId} text={plan.posterText ?? "30"} src={plan.posterUrl} topLeft="PARTİLE" bottomRight={plan.location?.district?.split(",")[0]?.toLocaleUpperCase("tr-TR")} className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.4)]" />;
@@ -54,11 +60,11 @@ export function PlanView({ plan }: { plan: Plan }) {
           <MarkTile size={30} />
           <Wordmark size={22} />
         </Link>
-        {joined ? (
-          <span className="flex items-center gap-2 text-sm font-bold">
-            <Avatar initials={rsvp!.name.slice(0, 1).toLocaleUpperCase("tr-TR")} gradient="linear-gradient(135deg, #FFD166, #FF6A3D)" size={32} />
-            {rsvp!.name}
-          </span>
+        {viewer ? (
+          <Link href={routes.home} className="flex items-center gap-2 text-sm font-bold">
+            <Avatar initials={viewer.initials} gradient="linear-gradient(135deg, #FFD166, #FF6A3D)" size={32} />
+            {viewer.name || "Hesabım"}
+          </Link>
         ) : (
           <Link href={routes.login} className="flex h-10 items-center rounded-pill bg-bg px-4.5 text-[15px] font-extrabold text-white">
             Giriş
@@ -73,7 +79,7 @@ export function PlanView({ plan }: { plan: Plan }) {
           </h1>
           <div className="md:hidden">{poster}</div>
           {polling ? (
-            <PollCard code={plan.code} themeId={plan.themeId} hostName={plan.hosts[0]?.name ?? "Düzenleyen"} options={plan.poll!} tally={plan.pollVotes ?? {}} />
+            <PollCard code={plan.code} themeId={plan.themeId} hostName={plan.hosts[0]?.name.split(" ")[0] ?? "Düzenleyen"} options={plan.poll!} tally={plan.pollVotes ?? {}} viewer={viewer} existing={viewerGuest && Object.keys(viewerGuest.votes).length ? viewerGuest.votes : null} />
           ) : (
             <div className="flex flex-col gap-1">
               <div className="display text-[32px] tracking-tight">{plan.dateTbd || !plan.startsAt ? "Tarih netleşmedi" : formatDayLong(plan.startsAt)}</div>
@@ -81,7 +87,10 @@ export function PlanView({ plan }: { plan: Plan }) {
             </div>
           )}
 
-          {!joined && !polling && ready && (
+          {pendingApproval && (
+            <div className="flex items-center gap-3 rounded-xl border border-[rgba(255,181,71,0.4)] bg-[rgba(255,181,71,0.14)] px-4 py-3.5 text-sm md:hidden"><span className="font-bold">Onay bekliyor.</span> Düzenleyen listeye alınca haber veririz.</div>
+          )}
+          {!joined && !polling && !pendingApproval && ready && (
             <div className="flex flex-col items-center gap-4 md:hidden">
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
               <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} />
@@ -174,7 +183,7 @@ export function PlanView({ plan }: { plan: Plan }) {
                 <div className="flex gap-3">
                   <Avatar initials={rsvp!.name.slice(0, 1).toLocaleUpperCase("tr-TR")} gradient="linear-gradient(135deg, #FFD166, #FF6A3D)" size={40} />
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-base"><strong>{rsvp!.name}</strong> katılımını bildirdi · <span className="font-bold" style={{ color: t.accent }}>{rsvpLabel[rsvp!.status]}</span> <span className="opacity-60">· az önce</span></span>
+                    <span className="text-base"><strong>{rsvp!.name}</strong> katılımını bildirdi · <span className="font-bold" style={{ color: t.accent }}>{rsvpLabel[rsvp!.status as RsvpStatus]}</span> <span className="opacity-60">· az önce</span></span>
                     {rsvp!.note && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{rsvp!.note}</span>}
                   </div>
                 </div>
@@ -207,6 +216,8 @@ export function PlanView({ plan }: { plan: Plan }) {
           {poster}
           {polling ? (
             <span className="max-w-[300px] text-center text-sm opacity-75">Tarih anketi açık: soldaki seçeneklere oy ver. Gün seçilince oyun katılıma dönüşür.</span>
+          ) : pendingApproval ? (
+            <div className="glass flex w-full flex-col gap-1.5 rounded-2xl p-4.5"><span className="font-bold">Onay bekliyor</span><span className="text-sm opacity-85">Katılımını bildirdin; düzenleyen listeye alınca haber veririz.</span><button type="button" onClick={() => setFlow("going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button></div>
           ) : !joined ? (
             <>
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
@@ -217,11 +228,11 @@ export function PlanView({ plan }: { plan: Plan }) {
             <div className="glass flex w-full flex-col gap-4 rounded-2xl p-4.5">
               <div className="flex items-center gap-4">
                 <span className="flex size-24 shrink-0 flex-col items-center justify-center gap-0.5 rounded-pill text-[13px] font-extrabold text-[#160804] shadow-[0_14px_34px_rgba(0,0,0,0.35)]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
-                  <CheckIcon size={30} /> {rsvpLabel[rsvp!.status]}
+                  <CheckIcon size={30} /> {rsvpLabel[rsvp!.status as RsvpStatus]}
                 </span>
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="text-xs font-extrabold tracking-wide opacity-75">KATILIMIN</span>
-                  <span className="display text-xl tracking-normal">{rsvpLabel[rsvp!.status]}</span>
+                  <span className="display text-xl tracking-normal">{rsvpLabel[rsvp!.status as RsvpStatus]}</span>
                   {rsvp!.plusOnes ? <span className="text-sm opacity-85">+1 misafir: {rsvp!.plusOneNames?.[0] || rsvp!.plusOnes}</span> : null}
                   <button type="button" onClick={() => setFlow(rsvp!.status as "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>
                 </div>
@@ -240,7 +251,7 @@ export function PlanView({ plan }: { plan: Plan }) {
       {joined && (
         <div className="fixed inset-x-4 bottom-6 flex h-[60px] items-center gap-1.5 rounded-pill bg-bg p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] md:hidden">
           <button type="button" onClick={() => setFlow(rsvp!.status as "going")} className="flex h-12 grow items-center justify-center gap-2 rounded-pill text-[15px] font-extrabold text-[#160804]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
-            <CheckIcon size={18} /> {rsvpLabel[rsvp!.status]} <ChevronDownIcon size={16} />
+            <CheckIcon size={18} /> {rsvpLabel[rsvp!.status as RsvpStatus]} <ChevronDownIcon size={16} />
           </button>
           <button type="button" className="flex h-12 items-center gap-2 rounded-pill bg-white/12 px-4 text-sm font-bold text-white"><SendIcon size={16} /> Davet et</button>
         </div>
@@ -248,13 +259,14 @@ export function PlanView({ plan }: { plan: Plan }) {
 
       <RsvpFlow
         plan={plan}
+        viewer={viewer}
         open={flow !== null}
         initial={flow ?? "going"}
         existing={rsvp}
         onClose={() => setFlow(null)}
-        onDone={(r: Rsvp) => {
-          save(r);
+        onDone={() => {
           setFlow(null);
+          router.refresh();
         }}
       />
     </ThemeSurface>

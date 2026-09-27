@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
@@ -31,10 +32,14 @@ async function open(): Promise<Db> {
     const { neon } = await import("@neondatabase/serverless");
     return drizzleNeon({ client: neon(url), schema });
   }
-  const { PGlite } = await import("@electric-sql/pglite");
   const { migrate } = await import("drizzle-orm/pglite/migrator");
   const dataDir = process.env.PGLITE_DATA_DIR ?? resolve(dirname(migrationsFolder()), "../../.data/partile");
   mkdirSync(dataDir, { recursive: true });
+  // Load PGlite's ESM build through Node's own loader (hidden from the bundler): the bundled/CJS path
+  // breaks its wasm loading inside the Next.js server runtime. pnpm links the package under packages/db.
+  const dist = process.env.PGLITE_DIST_DIR ?? join(dirname(migrationsFolder()), "node_modules", "@electric-sql", "pglite", "dist");
+  const nativeImport = new Function("p", "return import(p)") as (p: string) => Promise<typeof import("@electric-sql/pglite")>;
+  const { PGlite } = await nativeImport(pathToFileURL(join(dist, "index.js")).href);
   const client = new PGlite(dataDir);
   const db = drizzlePglite({ client, schema });
   await migrate(db, { migrationsFolder: migrationsFolder() });

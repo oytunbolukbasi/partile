@@ -2,7 +2,7 @@
 
 import { formatDayShort, formatTime, type PollOption } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
-import type { PollVotes } from "@/lib/fixtures";
+import type { PollVotes } from "@partile/core";
 
 /** Host side of the date poll: tallies per option and "pick this day" (votes → RSVPs). */
 export function PollResults({ themeId, options, tally, onPick, onEdit }: { themeId: string; options: PollOption[]; tally: PollVotes; onPick: (o: PollOption) => void; onEdit: () => void }) {

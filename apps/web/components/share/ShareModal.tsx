@@ -9,7 +9,7 @@ import { Poster } from "@/components/plan/Poster";
 import { StoryPoster } from "@/components/share/StoryPoster";
 import { CheckIcon, ImageIcon, ShareIcon, UsersIcon } from "@/components/shell/icons";
 import { Modal } from "@/components/ui/Modal";
-import type { Plan } from "@/lib/fixtures";
+import type { Plan } from "@partile/core";
 import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
 

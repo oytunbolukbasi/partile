@@ -1,39 +1,33 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { initials as toInitials } from "@partile/core";
+import { completeOnboarding } from "@/app/actions";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { CameraIcon } from "@/components/shell/icons";
 import { Toggle } from "@/components/ui/Toggle";
+import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
-import { useSession } from "@/lib/session";
 
 /** `Onboarding` artboard: first sign-in only — name, optional photo, optional birthday (day/month), notifications. */
-export function Onboarding({ next }: { next?: string }) {
+export function Onboarding({ viewer, next }: { viewer: Viewer; next?: string }) {
   const router = useRouter();
-  const { session, ready, update } = useSession();
-  const [name, setName] = useState("");
-  const [birthday, setBirthday] = useState("");
-  const [notif, setNotif] = useState(true);
+  const [pending, start] = useTransition();
+  const [name, setName] = useState(viewer.name);
+  const [birthday, setBirthday] = useState(viewer.birthday ?? "");
+  const [notif, setNotif] = useState(viewer.notifications);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!ready) return;
-    if (!session) router.replace(`${routes.login}?next=${encodeURIComponent(routes.onboarding)}`);
-    else if (session.onboarded) router.replace(next || routes.home);
-    else {
-      setName(session.name);
-      setBirthday(session.birthday ?? "");
-      setNotif(session.notifications);
-    }
-  }, [ready, session, router, next]);
-
-  const start = () => {
+  const begin = () => {
     if (name.trim().length < 2) return setErr("Adını yaz.");
     if (birthday && !/^(0[1-9]|[12]\d|3[01]) ?\/ ?(0[1-9]|1[0-2])$/.test(birthday.trim())) return setErr("Doğum günü GG / AA biçiminde olmalı.");
-    update({ name: name.trim(), birthday: birthday.trim() || undefined, notifications: notif, onboarded: true });
-    router.push(next || routes.home);
+    setErr(null);
+    start(async () => {
+      await completeOnboarding({ name, birthday: birthday.trim() || undefined, notifications: notif });
+      router.push(next || routes.home);
+      router.refresh();
+    });
   };
 
   const input = "h-14 w-full rounded-lg border border-white/20 bg-white/6 px-4 text-lg font-bold outline-none placeholder:text-subtle focus:border-white/40";
@@ -72,7 +66,7 @@ export function Onboarding({ next }: { next?: string }) {
           <Toggle checked={notif} onChange={setNotif} label="Bildirimler" />
         </div>
         {err && <p className="text-sm font-bold text-[#FF8C6B]">{err}</p>}
-        <button type="button" onClick={start} className="mt-auto h-14 rounded-pill bg-white text-base font-extrabold text-bg">Başlayalım</button>
+        <button type="button" onClick={begin} disabled={pending} className="mt-auto h-14 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-60">Başlayalım</button>
       </div>
     </main>
   );

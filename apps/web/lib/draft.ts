@@ -27,12 +27,13 @@ export const emptyDraft = (): PlanDraft => PlanDraft.parse({ title: "Planın ad�
  * Draft lives in localStorage until the host verifies their e-mail on publish
  * (see inventory: "Giriş yapmadan oluşturma"). Persistence is debounced.
  */
-export function useDraft() {
-  const [draft, setDraft] = useState<PlanDraft>(emptyDraft);
+export function useDraft(initial?: PlanDraft) {
+  const [draft, setDraft] = useState<PlanDraft>(initial ?? emptyDraft);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const loaded = useRef(false);
 
   useEffect(() => {
+    if (initial) return; // editing a published plan: nothing to load or persist locally
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
@@ -43,7 +44,7 @@ export function useDraft() {
       /* private mode or blocked storage: keep in-memory draft */
     }
     loaded.current = true;
-  }, []);
+  }, [initial]);
 
   useEffect(() => {
     if (!loaded.current) return;

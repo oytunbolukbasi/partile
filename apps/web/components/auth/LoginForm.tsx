@@ -2,24 +2,76 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { VerificationCode } from "@partile/core";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { requestCode, verifyCode } from "@/app/actions";
 import { MarkTile } from "@/components/brand/Mark";
 import { routes } from "@/lib/routes";
-import { maskEmail, useSession } from "@/lib/session";
 
 const RESEND_SECONDS = 45;
 
-/** `Login` artboard: e-mail → six code boxes. Any 6 digits pass until Resend is wired. */
+/** `o•••n@gmail.com` — what the code step shows. */
+export const maskEmail = (email: string) => {
+  const [user, domain] = email.split("@");
+  if (!user || !domain) return email;
+  return `${user[0]}•••${user.length > 1 ? user[user.length - 1] : ""}@${domain}`;
+};
+
+/** Six code boxes with auto-advance and paste support. Shared by login and the RSVP flow. */
+export function CodeBoxes({ value, onChange, onEnter, size = "md" }: { value: string[]; onChange: (v: string[]) => void; onEnter?: () => void; size?: "md" | "sm" }) {
+  const boxes = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => {
+    boxes.current[0]?.focus();
+  }, []);
+  const setDigit = (i: number, v: string) => {
+    const clean = v.replace(/\D/g, "");
+    const next = [...value];
+    if (clean.length > 1) {
+      clean.slice(0, 6 - i).split("").forEach((ch, k) => (next[i + k] = ch));
+      onChange(next);
+      boxes.current[Math.min(5, i + clean.length)]?.focus();
+      return;
+    }
+    next[i] = clean;
+    onChange(next);
+    if (clean && i < 5) boxes.current[i + 1]?.focus();
+  };
+  const dims = size === "md" ? "h-[72px] w-[48px] text-[32px] md:w-[60px]" : "h-14 w-[42px] text-2xl md:w-[52px]";
+  return (
+    <div role="group" aria-label="6 haneli kod" className="flex gap-2 md:gap-2.5">
+      {value.map((d, i) => (
+        <input
+          key={i}
+          ref={(el) => {
+            boxes.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          aria-label={`${i + 1}. hane`}
+          value={d}
+          onChange={(e) => setDigit(i, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" && !d && i > 0) boxes.current[i - 1]?.focus();
+            if (e.key === "Enter") onEnter?.();
+          }}
+          onFocus={(e) => e.target.select()}
+          className={`display rounded-lg border bg-white/8 text-center tracking-normal outline-none ${dims} ${d ? "border-white/35" : "border-white/18"} focus:border-2 focus:border-amber`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** `Login` artboard: e-mail → six code boxes. Until Resend is wired the code is shown on screen. */
 export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
-  const { signIn } = useSession();
+  const [pending, start] = useTransition();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [err, setErr] = useState<string | null>(null);
+  const [devCode, setDevCode] = useState<string | undefined>();
   const [left, setLeft] = useState(RESEND_SECONDS);
-  const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (step !== "code" || left <= 0) return;
@@ -27,37 +79,25 @@ export function LoginForm({ next }: { next?: string }) {
     return () => clearTimeout(t);
   }, [step, left]);
 
-  const sendCode = () => {
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setErr("Geçerli bir e-posta gir.");
-    setErr(null);
-    setLeft(RESEND_SECONDS);
-    setStep("code");
-    setTimeout(() => boxes.current[0]?.focus(), 50);
-  };
+  const sendCode = () =>
+    start(async () => {
+      const r = await requestCode(email, "login");
+      if (!r.ok) return setErr(r.error);
+      setErr(null);
+      setDevCode(r.devCode);
+      setDigits(Array(6).fill(""));
+      setLeft(RESEND_SECONDS);
+      setStep("code");
+    });
 
-  const setDigit = (i: number, v: string) => {
-    const clean = v.replace(/\D/g, "");
-    if (clean.length > 1) {
-      // paste: spread across the boxes
-      const next = [...digits];
-      clean.slice(0, 6).split("").forEach((ch, k) => (next[i + k] = ch));
-      setDigits(next.slice(0, 6));
-      boxes.current[Math.min(5, i + clean.length)]?.focus();
-      return;
-    }
-    const next = [...digits];
-    next[i] = clean;
-    setDigits(next);
-    if (clean && i < 5) boxes.current[i + 1]?.focus();
-  };
-
-  const verify = () => {
-    const code = digits.join("");
-    if (!VerificationCode.safeParse(code).success) return setErr("6 haneli kodu gir.");
-    setErr(null);
-    const s = signIn(email.trim().toLowerCase());
-    router.push(s.onboarded ? next || routes.home : `${routes.onboarding}${next ? `?next=${encodeURIComponent(next)}` : ""}`);
-  };
+  const verify = () =>
+    start(async () => {
+      const r = await verifyCode(email, digits.join(""));
+      if (!r.ok) return setErr(r.error);
+      setErr(null);
+      router.push(r.onboarded ? next || routes.home : `${routes.onboarding}${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+      router.refresh();
+    });
 
   const input = "h-14 w-full rounded-lg border border-white/18 bg-white/6 px-4 text-lg font-semibold outline-none placeholder:text-subtle focus:border-white/40";
 
@@ -82,10 +122,11 @@ export function LoginForm({ next }: { next?: string }) {
               <label htmlFor="email" className="sr-only">E-posta adresi</label>
               <input id="email" name="email" type="email" autoComplete="email" inputMode="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ad@ornek.com" className={input} />
               {err && <p className="text-sm font-bold text-[#FF8C6B]">{err}</p>}
-              <button type="submit" className="h-14 rounded-pill bg-white text-base font-extrabold text-bg">Kodu gönder</button>
+              <button type="submit" disabled={pending} className="h-14 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-60">{pending ? "Gönderiliyor…" : "Kodu gönder"}</button>
               <p className="text-center text-[13px] leading-relaxed text-subtle">
                 Devam ederek <Link href="#" className="font-bold text-muted">Kullanım Koşulları</Link>’nı ve <Link href="#" className="font-bold text-muted">KVKK Aydınlatma Metni</Link>’ni kabul etmiş olursun. E-postan düzenleyenlere gösterilmez.
               </p>
+              <p className="text-center text-xs text-subtle">Örnek planları düzenleyen olarak görmek için <strong className="text-muted">demo@getpartile.com</strong> ile gir.</p>
             </form>
           </>
         ) : (
@@ -97,41 +138,19 @@ export function LoginForm({ next }: { next?: string }) {
                 <button type="button" onClick={() => setStep("email")} className="font-bold text-amber">Değiştir</button>
               </p>
             </div>
-            <div role="group" aria-label="6 haneli kod" className="flex gap-2 md:gap-2.5">
-              {digits.map((d, i) => (
-                <input
-                  key={i}
-                  ref={(el) => {
-                    boxes.current[i] = el;
-                  }}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete={i === 0 ? "one-time-code" : "off"}
-                  aria-label={`${i + 1}. hane`}
-                  value={d}
-                  onChange={(e) => setDigit(i, e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Backspace" && !d && i > 0) boxes.current[i - 1]?.focus();
-                    if (e.key === "Enter") verify();
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className={`display h-[72px] w-[48px] rounded-lg border bg-white/8 text-center text-[32px] tracking-normal outline-none md:w-[60px] ${d ? "border-white/35" : "border-white/18"} focus:border-amber focus:border-2`}
-                />
-              ))}
-            </div>
+            <CodeBoxes value={digits} onChange={setDigits} onEnter={verify} />
             <div className="flex w-full flex-col gap-3">
               {err && <p className="text-center text-sm font-bold text-[#FF8C6B]">{err}</p>}
-              <button type="button" onClick={verify} className="h-14 rounded-pill bg-white text-base font-extrabold text-bg">Giriş yap</button>
+              <button type="button" onClick={verify} disabled={pending} className="h-14 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-60">Giriş yap</button>
               <p className="text-center text-sm text-subtle">
                 Kod gelmedi mi?{" "}
-                {left > 0 ? (
-                  <span className="text-muted">Yeniden gönder (0:{String(left).padStart(2, "0")})</span>
-                ) : (
-                  <button type="button" onClick={() => setLeft(RESEND_SECONDS)} className="font-bold text-muted">Yeniden gönder</button>
-                )}{" "}
-                · Spam klasörüne de bak
+                {left > 0 ? <span className="text-muted">Yeniden gönder (0:{String(left).padStart(2, "0")})</span> : <button type="button" onClick={sendCode} className="font-bold text-muted">Yeniden gönder</button>} · Spam klasörüne de bak
               </p>
-              <p className="text-center text-xs text-subtle">Geliştirme: e-posta bağlanana kadar herhangi bir 6 hane geçer.</p>
+              {devCode && (
+                <p className="rounded-lg border border-dashed border-amber/40 bg-amber/10 px-3.5 py-2.5 text-center text-sm">
+                  Geliştirme: e-posta henüz bağlı değil, kodun <strong className="display text-lg tracking-[0.2em]">{devCode}</strong>
+                </p>
+              )}
             </div>
           </>
         )}
