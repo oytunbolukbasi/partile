@@ -42,6 +42,10 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 
 - **Kabuk "Gece":** `#0C0C0D` zemin, `#121213` panel, `#F5F2EC` metin, `#A8A39B` ikincil, `#1EC9B0` onay. Beyaz pill birincil buton. Cam paneller: beyaz %6–10, çizgi %8–16.
 - **Aura:** Mercan `#FF6A3D` → Kehribar `#FFB020` → Deniz `#1EC9B0`. **Mor yasak.** **Emoji yasak**, ikonlar 24 px stroke SVG.
+- **Yalnız koyu tema.** Uygulama kabuğunda light mode yok (karar 27 Eyl 2026); açık zeminli olanlar yalnızca davetiye temalarıdır (Limonata, Pudra).
+- **Durum noktası (dot indicator) yok.** Durum, metnin rengiyle ya da rozetle anlatılır; okunmamış bildirim rozeti (zil üstü) istisna.
+- **Açılır menüler cam:** `rgba(28,28,31,0.72)` + `backdrop-filter: blur(24px)` + `1px rgba(255,255,255,0.16)` çizgi; ör. Ana sayfa kart menüsü.
+- **Afiş üzerinde süs halka yok**; afiş yalnız görsel + köşe etiketleri.
 - **Davetiye temaları** kendi zemin/metin/vurgu üçlüsünü taşır; kabuk temaya bürünür (Partiful modeli).
 - **Fontlar:** Schibsted Grotesk (kabuk başlık), Hanken Grotesk (gövde), Unbounded (afiş rakam). Davetiye başlık fontları: Klasik/Schibsted · Eklektik/Fraunces · Şık/Pinyon Script · Edebi/Libre Baskerville · Dijital/Space Mono · Zarif/Cormorant italik. Hepsi Google Fonts, TR glif destekli.
 - **Logo:** "cam p + onay" — p harfi, bowl deliğinde tik. ≥60 px cam, ürün içinde düz, <32 px dolu bowl, 16 px yalnız tik. Kullanıcı 3D render'ı kendi aracında üretecek (`#1EC9B0 → #FFB020 → #FF6A3D`, siyah zemin).

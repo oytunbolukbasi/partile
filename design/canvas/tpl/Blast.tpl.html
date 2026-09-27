@@ -34,7 +34,7 @@ __RAIL:home:960__
 <span style="font-weight: 700; font-size: 15px">Kime</span>
 <div style="display: flex; flex-wrap: wrap; gap: 8px">
 <sc-for list="{{segs}}" as="s" hint-placeholder-count="5">
-<button type="button" aria-pressed="{{s.sel}}" onClick="{{s.pick}}" style="height: 40px; padding: 0 14px; border-radius: 999px; border: {{s.border}}; background: {{s.bg}}; color: #F5F2EC; font: 700 14px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{s.dot}}"></span>{{s.label}} <span style="font-weight: 500; color: #A8A39B">{{s.n}}</span></button>
+<button type="button" aria-pressed="{{s.sel}}" onClick="{{s.pick}}" style="height: 40px; padding: 0 14px; border-radius: 999px; border: {{s.border}}; background: {{s.bg}}; color: #F5F2EC; font: 700 14px 'Hanken Grotesk', sans-serif; display: flex; align-items: center; gap: 8px"><span style="color: {{s.color}}">{{s.label}}</span> <span style="font-weight: 500; color: #A8A39B">{{s.n}}</span></button>
 </sc-for>
 </div>
 <span style="font-size: 13px; color: #A8A39B">{{total}} kişiye gidecek · yalnızca partile üzerinden davet edilen ya da katılım bildirenler</span>
@@ -88,7 +88,7 @@ class Component extends DCLogic {
     const on = this.state.on;
     const total = defs.reduce((a, d) => a + (on[d[0]] ? d[2] : 0), 0);
     return { total,
-      segs: defs.map(d => ({ label: d[1], n: d[2], dot: d[3], sel: on[d[0]] ? 'true' : 'false',
+      segs: defs.map(d => ({ label: d[1], n: d[2], color: d[3], sel: on[d[0]] ? 'true' : 'false',
         border: on[d[0]] ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(255,255,255,0.14)', bg: on[d[0]] ? 'rgba(255,255,255,0.14)' : 'transparent',
         pick: () => this.setState({ on: { ...on, [d[0]]: !on[d[0]] } }) })) };
   }

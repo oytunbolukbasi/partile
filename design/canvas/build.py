@@ -18,6 +18,7 @@ def tile(size, radius, svg, href="Home.dc.html", tag="a"):
 LOGO_RAIL = tile(36, 11, MARK.format(s=28, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF"))
 LOGO_MOBILE = tile(30, 9, MARK.format(s=24, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF"), tag="span")
 LOGO_BIG = tile(56, 16, MARK.format(s=44, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF"), tag="span")
+LOGO_TILE = tile(36, 11, MARK.format(s=28, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF"), tag="span")  # for use inside an <a>
 
 OLD_RAIL = re.compile(r'<a href="Home\.dc\.html" aria-label="partile" style="width: 36px;[^>]*>p</a>')
 OLD_MOBILE = re.compile(r'<span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient\(135deg, #FF6A3D, #FFB020\);[^>]*>p</span>')
@@ -81,7 +82,7 @@ def pubnav(active=None, tone="dark"):
     create = ('<a href="Create.dc.html" style="height: 44px; padding: 0 20px; border-radius: 999px; background: #FFFFFF; color: #0C0C0D; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 8px; text-decoration: none; border: 1px solid rgba(0,0,0,0.08)">'
               '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Oluştur</a>')
     return (f'<header style="position: absolute; left: 0; right: 0; top: 0; height: 76px; display: flex; align-items: center; padding: 0 48px; gap: 36px; color: {fg}">'
-            f'<a href="Landing.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: {fg}">{LOGO_RAIL}<span style="font: 800 26px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.8px">partile</span></a>'
+            f'<a href="Landing.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: {fg}">{LOGO_TILE}<span style="font: 800 26px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.8px">partile</span></a>'
             f'<nav aria-label="Ana menü" style="display: flex; gap: 24px; align-items: center">{links}</nav>'
             f'<div style="margin-left: auto; display: flex; gap: 10px">{login}{create}</div></header>')
 
@@ -90,7 +91,7 @@ def pubfooter(top, tone="dark"):
     line = "rgba(255,255,255,0.08)" if tone == "dark" else "rgba(0,0,0,0.08)"
     a = lambda t: f'<a href="#" style="color: {dim}; font-weight: 600; font-size: 15px; text-decoration: none">{t}</a>'
     return (f'<footer style="position: absolute; left: 0; right: 0; top: {top}px; padding: 40px 48px 32px; border-top: 1px solid {line}; display: flex; flex-direction: column; align-items: center; gap: 22px; color: {fg}">'
-            f'<div style="display: flex; align-items: center; gap: 10px">{LOGO_RAIL}<span style="font: 800 24px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.7px">partile</span></div>'
+            f'<div style="display: flex; align-items: center; gap: 10px">{LOGO_TILE}<span style="font: 800 24px \'Schibsted Grotesk\', sans-serif; letter-spacing: -0.7px">partile</span></div>'
             f'<div style="display: flex; gap: 10px"><a href="Create.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; background: {fg}; color: {"#0C0C0D" if tone == "dark" else "#F5F2EC"}; font-weight: 800; font-size: 14px; display: flex; align-items: center; text-decoration: none">Ücretsiz plan oluştur</a><a href="Occasion.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {line}; color: {fg}; font-weight: 700; font-size: 14px; display: flex; align-items: center; text-decoration: none">Davetiye şablonları</a></div>'
             f'<div style="display: flex; gap: 22px; flex-wrap: wrap; justify-content: center">{a("Türkçe ▾")}{a("Yardım")}{a("Blog")}{a("Hakkında")}{a("Gizlilik")}{a("KVKK")}{a("Kullanım koşulları")}{a("Uygulamayı indir ↗")}</div>'
             f'<div style="font-size: 12px; color: {dim}">© 2026 partile · İstanbul</div></footer>')
@@ -119,10 +120,11 @@ def expand_templates():
                 top, tone = (arg.split(":") + ["dark"])[:2]; return pubfooter(int(top), tone)
             if kind == "LOGO_BIG": return LOGO_BIG
             if kind == "LOGO_RAIL": return LOGO_RAIL
+            if kind == "LOGO_TILE": return LOGO_TILE
             if kind == "LOGO_MOBILE": return LOGO_MOBILE
             if kind == "MARK": return MARK.format(s=arg, fg="#FFFFFF", hole="#0C0C0D", tick="#FFFFFF")
             raise SystemExit("unknown " + kind)
-        out = re.sub(r"__(RAIL|TOPRIGHT|TABBAR|PUBNAV|PUBFOOTER|LOGO_BIG|LOGO_RAIL|LOGO_MOBILE|MARK)(?::([^_]+))?__", sub, s)
+        out = re.sub(r"__(RAIL|TOPRIGHT|TABBAR|PUBNAV|PUBFOOTER|LOGO_BIG|LOGO_RAIL|LOGO_TILE|LOGO_MOBILE|MARK)(?::([^_]+))?__", sub, s)
         (P / f.name.replace(".tpl.html", ".dc.html")).write_text(out); print("built ->", f.name)
 
 if __name__ == "__main__":
