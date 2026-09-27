@@ -57,6 +57,8 @@ export const PlanDraft = z.object({
   titleFont: z.string().default("klasik"),
   themeId: z.string().default("kor"),
   posterUrl: z.string().url().optional(),
+  /** Text rendered on the generated poster when there is no image (template pick). */
+  posterText: z.string().max(24).optional(),
   description: z.string().max(2000).optional(),
   startsAt: z.string().datetime().optional(),
   endsAt: z.string().datetime().optional(),

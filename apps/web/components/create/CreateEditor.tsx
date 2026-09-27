@@ -24,6 +24,9 @@ import {
 import { useDraft } from "@/lib/draft";
 import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
+import { DatePickerModal } from "./DatePickerModal";
+import { LocationModal } from "./LocationModal";
+import { PosterModal } from "./PosterModal";
 import { ThemePanel } from "./ThemePanel";
 
 const glassRow = "glass flex h-[52px] items-center gap-3 rounded-lg px-4 text-left";
@@ -34,8 +37,9 @@ export function CreateEditor() {
   const { draft, patch, savedAt } = useDraft();
   const [panel, setPanel] = useState<"theme" | null>("theme");
   const [sheet, setSheet] = useState<"theme" | null>(null);
+  const [modal, setModal] = useState<"date" | "location" | "poster" | null>(null);
   const theme = themeById(draft.themeId);
-  const posterText = draft.title.match(/\d+/)?.[0] ?? draft.title.slice(0, 1).toLocaleUpperCase("tr-TR");
+  const posterText = draft.posterText ?? draft.title.match(/\d+/)?.[0] ?? draft.title.slice(0, 1).toLocaleUpperCase("tr-TR");
 
   const dateLabel = draft.dateTbd ? "Tarih netleşmedi" : draft.startsAt ? formatDayLong(draft.startsAt) : "Tarih seç…";
   const timeLabel = draft.startsAt && !draft.dateTbd ? `${formatTimeRange(draft.startsAt, draft.endsAt)} · TSİ` : "Saat ve süre";
@@ -114,12 +118,12 @@ export function CreateEditor() {
             </div>
           </div>
 
-          <Poster themeId={draft.themeId} text={posterText} topLeft="PARTİLE" className="w-full md:hidden" numeralSize="50%" />
-          <button type="button" className="absolute right-7 top-[430px] flex h-11 items-center gap-1.5 rounded-pill bg-white px-4 text-sm font-bold text-bg shadow-[0_8px_24px_rgba(0,0,0,0.3)] md:hidden">
+          <Poster themeId={draft.themeId} text={posterText} src={draft.posterUrl} topLeft="PARTİLE" className="w-full md:hidden" numeralSize="50%" />
+          <button type="button" onClick={() => setModal("poster")} className="absolute right-7 top-[430px] flex h-11 items-center gap-1.5 rounded-pill bg-white px-4 text-sm font-bold text-bg shadow-[0_8px_24px_rgba(0,0,0,0.3)] md:hidden">
             <PencilIcon /> Düzenle
           </button>
 
-          <button type="button" className="glass flex h-[72px] items-center justify-between rounded-xl px-5 text-left">
+          <button type="button" onClick={() => setModal("date")} className="glass flex h-[72px] items-center justify-between rounded-xl px-5 text-left">
             <span className="flex flex-col gap-0.5">
               <span className="display text-[22px] tracking-tight">{dateLabel}</span>
               <span className="text-[15px] opacity-80">{timeLabel}</span>
@@ -149,7 +153,7 @@ export function CreateEditor() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <button type="button" className={glassRow}>
+            <button type="button" onClick={() => setModal("location")} className={glassRow}>
               <PinIcon />
               <span className={`grow text-[17px] font-semibold ${draft.location ? "" : "opacity-75"}`}>{locationLabel}</span>
               <span className="text-[13px] opacity-70">Adres katılınca</span>
@@ -213,8 +217,8 @@ export function CreateEditor() {
         {/* right column (desktop) */}
         <div className="hidden w-[358px] shrink-0 flex-col gap-4 md:flex">
           <div className="relative">
-            <Poster themeId={draft.themeId} text={posterText} topLeft="PARTİLE" bottomRight={draft.location?.district?.toLocaleUpperCase("tr-TR")} className="w-[358px] shadow-[0_30px_60px_rgba(0,0,0,0.35)]" numeralSize="50%" />
-            <button type="button" className="absolute bottom-[60px] right-3.5 flex h-11 items-center gap-2 rounded-pill bg-white px-4.5 text-[15px] font-bold text-bg shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+            <Poster themeId={draft.themeId} text={posterText} src={draft.posterUrl} topLeft="PARTİLE" bottomRight={draft.location?.district?.toLocaleUpperCase("tr-TR")} className="w-[358px] shadow-[0_30px_60px_rgba(0,0,0,0.35)]" numeralSize="50%" />
+            <button type="button" onClick={() => setModal("poster")} className="absolute bottom-[60px] right-3.5 flex h-11 items-center gap-2 rounded-pill bg-white px-4.5 text-[15px] font-bold text-bg shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
               <PencilIcon /> Düzenle
             </button>
           </div>
@@ -300,6 +304,33 @@ export function CreateEditor() {
           </div>
         )}
       </div>
+
+      <DatePickerModal
+        open={modal === "date"}
+        onClose={() => setModal(null)}
+        value={{ startsAt: draft.startsAt, endsAt: draft.endsAt, dateTbd: draft.dateTbd }}
+        onSave={(v) => {
+          patch(v);
+          setModal(null);
+        }}
+      />
+      <LocationModal
+        open={modal === "location"}
+        onClose={() => setModal(null)}
+        value={draft.location}
+        onSave={(v) => {
+          patch({ location: v });
+          setModal(null);
+        }}
+      />
+      <PosterModal
+        open={modal === "poster"}
+        onClose={() => setModal(null)}
+        onSave={(v) => {
+          patch({ posterUrl: v.posterUrl, posterText: v.posterText, ...(v.themeId ? { themeId: v.themeId } : {}) });
+          setModal(null);
+        }}
+      />
     </ThemeSurface>
   );
 }
