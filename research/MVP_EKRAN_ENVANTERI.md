@@ -19,7 +19,7 @@
 
 | # | Ekran | Artboard | Cihaz | Etkileşim | Not |
 |---|---|---|---|---|---|
-| 1 | Giriş: telefon → SMS kodu | `Login` | 1440 | adım geçişi | +90 varsayılan; WhatsApp'tan kod alternatifi |
+| 1 | Giriş: e-posta → kod / sihirli link | `Login` | 1440 | adım geçişi | Resend ile e-posta; e-postada hem 6 haneli kod hem giriş linki; "spam klasörüne bak" notu |
 | 2 | İlk giriş: ad + fotoğraf + doğum günü | `Onboarding` | 390 | — | Yalnızca yeni kullanıcı; fotoğraf yoksa baş harfler |
 | 3 | Ana sayfa | `Home`, `HomeMobile` | 1440 · 390 | — | Sekmeler: Yaklaşan · Düzenlediklerim · Katıldıklarım · **Taslaklar** (web'de de var) |
 | 4 | Plan oluştur (editör) | `Create`, `CreateMobile` | 1440 · 390 | tema seçimi canlı | Tema paneli sağda (masaüstü) / alt bar (mobil) |
@@ -36,9 +36,9 @@
 | 15 | Plan sayfası — düzenleyen | `EventHost` | 1440 | — | Üst araç çubuğu, sayaçlar, onay bekleyenler kartı, link kutusu, hatırlatma özeti, iptal |
 | 16 | Plan sayfası — katılım sonrası | `Event`, `EventMobile` | 1440 · 390 | — | 150 px "Geliyorum" küresi (masaüstü) / yapışkan hap (mobil); albüm; akış |
 | 17 | Davetiye — linkten gelen (katılım öncesi) | `InviteMobile` | 390 | — | Viral bant; adres kilitli; "Katılımcılara özel" kartı |
-| 18 | Katılım bildirme (3 adım) | `RsvpFlow` | 390 ×3 | — | Durum + ad + telefon → SMS kodu → +1, sorular, not, takip |
-| 19 | Katılımcılar — düzenleyen paneli | `GuestList` | modal | filtre + giriş kontrolü canlı | Onayla/reddet; CSV; telefon numarası gösterilmez |
-| 20 | Duyuru gönder | `Blast` | modal | hedef seçimi canlı | 10 duyuru/plan; kanal: push → WhatsApp → SMS; düzenlenemez |
+| 18 | Katılım bildirme (3 adım) | `RsvpFlow` | 390 ×3 | — | Durum + ad + e-posta → e-posta kodu / link → +1, sorular, not, takip |
+| 19 | Katılımcılar — düzenleyen paneli | `GuestList` | modal | filtre + giriş kontrolü canlı | Onayla/reddet; CSV; e-posta adresi gösterilmez |
+| 20 | Duyuru gönder | `Blast` | modal | hedef seçimi canlı | 10 duyuru/plan; kanal: uygulama içi bildirim + e-posta (Resend); e-posta önizlemesi; düzenlenemez |
 | 21 | Bildirim paneli | `Notifications` | 1440 | — | Bugün/Dün; olay rozetleri; okunmamış |
 | 22 | Profil (kendi) | `Profile` | 1440 | — | Yalnızca herkese açık planlar profilde |
 | 23 | Boş durumlar | `Empty` | 1440 | — | Ortak arkadaşlar / Mesajlar / Bildirimler → "ilk planını oluştur" |
@@ -53,7 +53,7 @@
 | 27 | Davetiye — giriş yapmamış misafir (masaüstü) | `InviteDesktop` | 1440 | Üstte viral bant + logo/Giriş; rail yok. Üç yuvarlak buton → `RsvpFlow`; "Katılımcılara özel" kartı; takvime ekleme katılım sonrası. Mobil karşılığı `InviteMobile`. |
 | 28 | Public nav / footer | `build.py` → `__PUBNAV__`, `__PUBFOOTER__` | — | Nav: logo · Doğum günü · Yemek & brunch · Ev partisi · Yılbaşı · Kına & nişan · Giriş · Oluştur. Footer: CTA çifti + Türkçe/Yardım/Blog/Hakkında/Gizlilik/KVKK/Koşullar/Uygulama. Keşfet Faz 2'de eklenir. |
 
-**Giriş yapmadan oluşturma (spec):** `/create` girişsiz açılır (`Create` ile aynı; "Düzenleyen" satırı "Giriş yapınca adın görünür"). "Yayınla ve paylaş" → `Login` (telefon + kod) → taslak hesaba bağlanır → `Share`. Taslak, doğrulanana kadar tarayıcıda (localStorage) tutulur.
+**Giriş yapmadan oluşturma (spec):** `/create` girişsiz açılır (`Create` ile aynı; "Düzenleyen" satırı "Giriş yapınca adın görünür"). "Yayınla ve paylaş" → `Login` (e-posta + kod/link) → taslak hesaba bağlanır → `Share`. Taslak, doğrulanana kadar tarayıcıda (localStorage) tutulur.
 
 ## Faz 1 — spesifikasyonla geçilecekler (çizim yok, aynı kalıplar)
 
@@ -63,7 +63,7 @@
 | Ayarlar: Görünürlük & gizlilik | `Settings` modalı | Anahtarlar: akış zaman damgaları, misafir adları, misafir sayısı, plan şifresi (Faz 2), "Gizli beğeni" (Faz 2). Not: liste ve akış katılım öncesi her zaman gizli. |
 | Ayarlar: Kitle | `Settings` modalı | Gizli (linke sahip olanlar) / Herkese açık (Faz 2'de açılır; MVP'de yalnız "Gizli"). |
 | Ayarlar: Fotoğraf albümü | `Settings` modalı | Filtre (Yok / Sıcak / Siyah-beyaz), "Misafirler yükleyebilsin", albüm linki. |
-| Ayarlar: Hatırlatmalar | `Settings` modalı | Tek anahtar. Sabit program: katılım hatırlatması 1 hafta önce (Davetli + Belki), etkinlik hatırlatması 2 saat önce (Geliyor). Kanal: push → WhatsApp → SMS. |
+| Ayarlar: Hatırlatmalar | `Settings` modalı | Tek anahtar. Sabit program: katılım hatırlatması 1 hafta önce (Davetli + Belki), etkinlik hatırlatması 2 saat önce (Geliyor). Kanal: uygulama içi bildirim + e-posta (Resend). |
 | Efekt paneli | `Create` tema panelinin 2. sekmesi | Yok · Konfeti · Kalpler · Kar (sezonluk) · Balon. Ekran üstü CSS/Canvas animasyonu; "Hareketi azalt" tercihine uyar. |
 | Masrafı böl — misafir tarafı | `EventMobile` kartı + sheet | "IBAN'ı kopyala" / "Papara'yı aç" → "Gönderdim" onayı → düzenleyen panelinde beyan olarak görünür. Doğrulama yok. |
 | Yorum / fotoğraf yükleme | `Event` akışı | Metin + GIF (GIPHY) + görsel; yanıt tek seviye; düzenleyen sabitler/siler. |
@@ -75,14 +75,14 @@
 
 ## Fazlar
 
-- **Faz 1 (MVP):** giriş, oluştur (tema/afiş/tarih/konum/anket/sorular/masraf), yayınla+WhatsApp paylaşımı, davetiye, katılım (OTP), plan sayfası (akış, albüm), düzenleyen paneli (liste, onay, duyuru, giriş kontrolü), bildirimler, profil. Gizli planlar yalnızca.
+- **Faz 1 (MVP):** giriş (e-posta kodu/link, Resend), oluştur (tema/afiş/tarih/konum/anket/sorular/masraf), yayınla+WhatsApp paylaşımı, davetiye, katılım (e-posta doğrulama), plan sayfası (akış, albüm), düzenleyen paneli (liste, onay, duyuru, giriş kontrolü), bildirimler, profil. Gizli planlar yalnızca.
 - **Faz 2:** herkese açık planlar + Keşfet, organizasyon profili, kartlar, mesajlar, plan şifresi, gizli beğeni, premium temalar/efektler.
 - **Faz 3:** gerçek tahsilat (iyzico/PayTR), bilet satışı, bekleme listesi otomasyonu.
 
 ## Açık sorular
 
 1. Domain ve kısa link formatı (`/e/{kod}`) — tüm ekranlarda `[alan-adı]` yer tutucu.
-2. SMS/OTP sağlayıcısı (Netgsm / İleti Merkezi / Twilio Verify) ve WhatsApp Business API onay süresi — duyuru kanalı sırasını etkiler.
+2. ~~SMS/OTP sağlayıcısı~~ Karar: MVP'de e-posta + Resend; SMS/WhatsApp doğrulama ürün tutarsa. WhatsApp Business API duyuru kanalı Faz 2.
 3. Google Places lisansı vs. Yandex/Apple Maps linkleri — konum seçicide sağlayıcı.
 4. GIPHY anahtarı (afiş ve yorum GIF'leri) — MVP'de kapalı tutulabilir.
 5. Logo 3D render'ı: kullanıcı kendi aracında `#1EC9B0 → #FFB020 → #FF6A3D` ile üretecek; app ikonu ve landing hero'ya girecek.

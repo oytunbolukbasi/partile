@@ -27,10 +27,10 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Konu | Karar |
 |---|---|
 | Platform | Önce **Next.js web (mobile-first)**, sonra Expo RN. Monorepo (Turborepo): `apps/web`, `apps/mobile`, `packages/ui-tokens`, `packages/core` (tipler, validasyon, API client). |
-| Auth | **Telefon + SMS OTP**, şifre yok. Misafir katılım bildirirken ad + telefon verir, kodla doğrular; giriş duvarı yok. Sağlayıcı: Netgsm / İleti Merkezi, alternatif Twilio Verify (karar bekliyor). |
-| Dağıtım | **WhatsApp birincil** (OG kartı: afiş + tarih + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru kanalı sırası: push → WhatsApp Business API → SMS. |
+| Auth | **E-posta + tek seferlik kod / sihirli link (Resend)**, şifre yok. Misafir katılım bildirirken ad + e-posta verir, e-postadaki 6 haneli kodu girer ya da linke tıklar; giriş duvarı yok. Karar (27 Eyl 2026): SMS/Twilio maliyeti MVP'de üstlenilmiyor; ürün tutarsa telefon + SMS OTP ikinci doğrulama yöntemi olarak eklenir. Resend hesabı hazır. |
+| Dağıtım | **WhatsApp birincil** (OG kartı: afiş + tarih + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru ve hatırlatma kanalı (MVP): **uygulama içi bildirim + e-posta (Resend)**. WhatsApp Business API ve SMS ileride. |
 | Görünürlük | MVP'de yalnız **Gizli** (linke sahip olanlar). Herkese açık + Keşfet Faz 2. Katılımcı listesi, akış, albüm ve tam adres yalnız katılım bildirenlere. |
-| Gizlilik / mevzuat | Düzenleyen misafirin telefonunu **göremez**. KVKK aydınlatma + açık rıza (telefon), İYS/ETK (hatırlatma SMS'i işlem mesajıdır). |
+| Gizlilik / mevzuat | Düzenleyen misafirin e-postasını **göremez**. KVKK aydınlatma + açık rıza (e-posta), İYS/ETK (hatırlatma e-postası işlem mesajıdır; pazarlama e-postası ayrı izin). |
 | Ödeme | **Masrafı böl** = IBAN / Papara gösterimi + misafir "gönderdim" beyanı; doğrulama yok. Gerçek tahsilat (iyzico/PayTR) ve bilet Faz 3. |
 | Tarih anketi | MVP'de var; masrafı böl ve katılım onayıyla aynı anda kapalı. Gün seçilince oylar katılıma dönüşür. |
 | Hatırlatmalar | Sabit program: katılım hatırlatması 1 hafta önce (davetli + belki), etkinlik hatırlatması 2 saat önce (geliyor). |
@@ -62,12 +62,12 @@ Ton: samimi "sen" dili, kısa cümle. Emoji yok.
 ## Format kuralları
 
 - Tarih `Cumartesi, 17 Ekim` · saat 24 s `20:00` · hafta Pazartesi başlar · saat dilimi sabit TSİ (Europe/Istanbul), seçici yok.
-- Telefon varsayılan +90, maske `5XX XXX XX XX`. Para `₺450`.
+- Telefon MVP'de toplanmaz. (İleride eklenirse: varsayılan +90, maske `5XX XXX XX XX`.) Para `₺450`.
 - Konum: semt gösterimi ("Moda, Kadıköy") varsayılan; tam adres + harita linki katılımdan sonra. Google Places + Yandex/Apple Maps linkleri (sağlayıcı kararı bekliyor).
 
 ## Fazlar
 
-- **Faz 1 (MVP):** giriş/OTP, ilk giriş, ana sayfa, oluştur (tema, afiş, tarih, konum, anket, sorular, masraf), yayınla + WhatsApp paylaşımı, davetiye, katılım, plan sayfası (akış, albüm), düzenleyen paneli (liste, onay, duyuru, giriş kontrolü), bildirimler, profil, hatırlatmalar.
+- **Faz 1 (MVP):** giriş (e-posta kodu/link), ilk giriş, ana sayfa, oluştur (tema, afiş, tarih, konum, anket, sorular, masraf), yayınla + WhatsApp paylaşımı, davetiye, katılım, plan sayfası (akış, albüm), düzenleyen paneli (liste, onay, duyuru, giriş kontrolü), bildirimler, profil, hatırlatmalar.
 - **Faz 2:** herkese açık planlar + Keşfet, organizasyon profili, kartlar, mesajlar, plan şifresi, premium ödeme, AI öneri.
 - **Faz 3:** iyzico/PayTR tahsilat, bilet satışı, bekleme listesi otomasyonu, Expo mobil uygulama.
 
