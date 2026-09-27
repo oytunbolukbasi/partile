@@ -110,7 +110,7 @@ export function HomeView({ viewer, plans, mutedIds = [], people = [] }: { viewer
         <div className="grid gap-6 pt-2 md:grid-cols-2 md:gap-10">
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-bold md:text-2xl md:tracking-tight">Kartların</h2>
-            <div className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
+            <div className="flex grow items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
               <div className="flex size-[72px] shrink-0 -rotate-6 items-center justify-center rounded-xl text-center font-poster text-[11px] font-extrabold leading-[1.3] tracking-wider text-bg md:size-24 md:text-xs" style={{ background: "linear-gradient(160deg, #FFB020, #FF6A3D)" }}>İYİ Kİ<br />DOĞDUN</div>
               <div className="flex grow flex-col gap-1.5"><div className="text-[17px] font-bold md:text-lg">Dijital kart gönder</div><div className="text-sm text-muted md:text-[15px]">Doğum günü, kutlama, teşekkür — davetiye gerektirmeyen her şey için.</div></div>
               <span className="hidden h-10 shrink-0 items-center rounded-pill border border-white/20 px-4 text-sm font-bold text-subtle md:flex">Yakında</span>
@@ -118,7 +118,7 @@ export function HomeView({ viewer, plans, mutedIds = [], people = [] }: { viewer
           </section>
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-bold md:text-2xl md:tracking-tight">Ortak arkadaşlar</h2>
-            <Link href={`${routes.profile}#ortak-arkadaslar`} className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
+            <Link href={`${routes.profile}#ortak-arkadaslar`} className="flex grow items-center gap-4 rounded-2xl border border-white/8 bg-white/6 p-4 md:p-5">
               {people.length > 0 ? (
                 <div className="flex shrink-0">
                   {people.slice(0, 3).map((p, i) => (
