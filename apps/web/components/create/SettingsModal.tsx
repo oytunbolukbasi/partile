@@ -239,14 +239,14 @@ export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSav
               <H title="Kitle" hint="Planı davetli tut ya da ortak arkadaşlarına ve partile topluluğuna aç." />
               <Group>
                 <SettingRow title="Bu planı kim görebilir?">
-                  <Select label="Kitle" value={d.visibility} onChange={(v) => set({ visibility: v as PlanDraft["visibility"] })} options={[["private", "Gizli · linke sahip olanlar"], ["public", "Herkese açık (yakında)"]]} />
+                  <Select label="Kitle" value={d.visibility} onChange={(v) => set({ visibility: v as PlanDraft["visibility"] })} options={[["private", "Gizli · linke sahip olanlar"], ["public", "Herkese açık · Keşfet’te listelenir"]]} />
                 </SettingRow>
               </Group>
               <div className="flex items-center gap-3 rounded-lg bg-white/5 p-4">
                 <LockIcon />
                 <span className="flex flex-col">
                   <span className="font-bold">{d.visibility === "private" ? "Yalnızca davetliler" : "Herkese açık"}</span>
-                  <span className="text-sm text-subtle">{d.visibility === "private" ? "Misafirler davet edilmeli ya da linke sahip olmalı" : "Keşfet’te listelenir; MVP’de kapalı, plan gizli kalır"}</span>
+                  <span className="text-sm text-subtle">{d.visibility === "private" ? "Misafirler davet edilmeli ya da linke sahip olmalı" : "Keşfet’te ve profilinde listelenir; katılımcı listesi yine katılanlara özel"}</span>
                 </span>
               </div>
             </>

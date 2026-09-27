@@ -172,3 +172,17 @@ export async function listGuestEmails(planId: string, guestIds: string[]): Promi
   const rows = await db.select({ email: guests.email }).from(guests).where(and(eq(guests.planId, planId), inArray(guests.id, guestIds)));
   return [...new Set(rows.map((r) => r.email).filter((e): e is string => !!e))];
 }
+
+/** Published, public, upcoming plans for Keşfet, soonest first. */
+export async function listPublicPlans(limit = 40): Promise<Plan[]> {
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(plans)
+    .where(and(eq(plans.status, "published"), eq(plans.visibility, "public")))
+    .orderBy(asc(plans.startsAt))
+    .limit(limit);
+  const now = Date.now();
+  const upcoming = rows.filter((r) => !r.startsAt || r.startsAt.getTime() > now - 6 * 3600 * 1000);
+  return Promise.all(upcoming.map(assemble));
+}

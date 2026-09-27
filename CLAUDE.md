@@ -9,14 +9,14 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
 - **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
 - Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
-- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), Keşfet (Faz 2). Prod için: Neon `DATABASE_URL` + `AUTH_SECRET` + Resend domain doğrulaması (`getpartile.com`) ve `pnpm --filter @partile/db exec drizzle-kit migrate`.
+- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron). Tasarımı hazır, kodu bekleyen: Mesajlar, Efekt paneli, katılım butonu stili. Prod için: Neon `DATABASE_URL` + `AUTH_SECRET` + Resend domain doğrulaması (`getpartile.com`) ve `pnpm --filter @partile/db exec drizzle-kit migrate`.
 
 ## Kod
 
 ```
 apps/web
   app/                page.tsx (landing) · giris · ilk-giris · [occasion] (5 SEO sayfası, SSG) · e/[kod] (misafir/düzenleyen; ?goruntule=misafir, ?paylas=1)
-                      (app)/ planlar · olustur · profil · bildirimler   (rail + mobil alt menü)
+                      (app)/ planlar · kesfet · olustur · profil · bildirimler   (rail + mobil alt menü)
   components/         brand · shell (Rail, TabBar, PublicNav/Footer, icons) · landing · create (editör + pickers, Settings, Poll)
                       plan (PlanView, RsvpFlow, PollCard, Poster, ThemeSurface, Avatar) · host (HostView, GuestList, Blast, PollResults)
                       share (ShareModal, StoryPoster) · home · notifications · profile · auth (LoginForm, Onboarding) · ui (Modal, Toggle)
@@ -32,7 +32,7 @@ packages/core         src/domain.ts (zod: PlanDraft, PollOption, Rsvp, Question,
 - Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` · `pnpm typecheck` · `pnpm --filter @partile/core test`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`. `next build` çalışan dev sunucusuyla `.next`'i paylaşır: build'den önce dev'i durdur, sonra `rm -rf apps/web/.next`.
 - Stil: Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility oluyor (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez, token'dan gelir.
 - Fontlar `next/font/google` ile (Schibsted Grotesk, Hanken Grotesk, Unbounded); davetiye başlık fontları plan sayfasında ihtiyaç anında yüklenir.
-- Rotalar Türkçe: `/`, `/giris`, `/ilk-giris`, `/planlar`, `/olustur`, `/profil`, `/bildirimler`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil → Hesap ayarları.
+- Rotalar Türkçe: `/`, `/giris`, `/ilk-giris`, `/planlar`, `/kesfet`, `/olustur`, `/profil`, `/bildirimler`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil → Hesap ayarları.
 - Doğrulama: 6 haneli kod 10 dk geçerli, tek kullanımlık; e-postada kod + link. Oturum `partile_session` httpOnly çerezi (`AUTH_SECRET` ile HMAC). Misafir katılımı = aynı doğrulama; sonra hesap oluşur.
 - PGlite Next içinde `serverExternalPackages` ile bile bozuluyor (wasm yükleme URL hatası); `packages/db/src/client.ts` paketi Node'un kendi ESM yükleyicisiyle (`new Function("p","return import(p)")`) açar. Şema değişince `pnpm --filter @partile/db generate`; `pnpm --filter @partile/db smoke` uçtan uca test.
 - Bağımlılıklar: `qrcode` (QR), `html-to-image` (hikâye afişi PNG), `resend`, `drizzle-orm` + `@electric-sql/pglite` + `@neondatabase/serverless`. Harita/adres: Photon.
@@ -58,7 +58,7 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Platform | Önce **Next.js web (mobile-first)**, sonra Expo RN. Monorepo (Turborepo): `apps/web`, `apps/mobile`, `packages/ui-tokens`, `packages/core` (tipler, validasyon, API client). |
 | Auth | **E-posta + tek seferlik kod / sihirli link (Resend)**, şifre yok. Misafir katılım bildirirken ad + e-posta verir, e-postadaki 6 haneli kodu girer ya da linke tıklar; giriş duvarı yok. Karar (27 Eyl 2026): SMS/Twilio maliyeti MVP'de üstlenilmiyor; ürün tutarsa telefon + SMS OTP ikinci doğrulama yöntemi olarak eklenir. Resend hesabı hazır. |
 | Dağıtım | **WhatsApp birincil** (OG kartı: afiş + tarih + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru ve hatırlatma kanalı (MVP): **uygulama içi bildirim + e-posta (Resend)**. WhatsApp Business API ve SMS ileride. |
-| Görünürlük | MVP'de yalnız **Gizli** (linke sahip olanlar). Herkese açık + Keşfet Faz 2. Katılımcı listesi, akış, albüm ve tam adres yalnız katılım bildirenlere. |
+| Görünürlük | Varsayılan **Gizli** (linke sahip olanlar). Karar (27 Eyl 2026): **Herkese açık + Keşfet MVP'ye alındı** — `/kesfet` herkese açık planları semte göre listeler. Katılımcı listesi, akış, albüm ve tam adres her durumda yalnız katılım bildirenlere. |
 | Gizlilik / mevzuat | Düzenleyen misafirin e-postasını **göremez**. KVKK aydınlatma + açık rıza (e-posta), İYS/ETK (hatırlatma e-postası işlem mesajıdır; pazarlama e-postası ayrı izin). |
 | Ödeme | **Masrafı böl** = IBAN / Papara gösterimi + misafir "gönderdim" beyanı; doğrulama yok. Gerçek tahsilat (iyzico/PayTR) ve bilet Faz 3. |
 | Tarih anketi | MVP'de var; masrafı böl ve katılım onayıyla aynı anda kapalı. Gün seçilince oylar katılıma dönüşür. |

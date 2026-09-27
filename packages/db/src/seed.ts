@@ -16,6 +16,10 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     { id: "u_demo", email: DEMO_EMAIL, name: "Oytun Bölükbaşı", bio: "Kadıköy’de yaşıyor, planları iyi yapar, tatlıyı unutur.", onboarded: true, createdAt: iso("2026-09-20T08:00:00Z") },
     { id: "u_deniz", email: "deniz@example.com", name: "Deniz Aydın", onboarded: true },
     { id: "u_kk", email: "kosu@example.com", name: "Kadıköy Koşu Kulübü", onboarded: true },
+    { id: "u_mp", email: "plak@example.com", name: "Moda Plak Günleri", onboarded: true },
+    { id: "u_ba", email: "mikrofon@example.com", name: "Bostancı Açık Mikrofon", onboarded: true },
+    { id: "u_sk", email: "sofra@example.com", name: "Sofra Kolektifi", onboarded: true },
+    { id: "u_ks", email: "kitap@example.com", name: "Cihangir Kitap Kulübü", onboarded: true },
   ]);
 
   await db.insert(plans).values([
@@ -56,6 +60,7 @@ export async function seedIfEmpty(db: Db): Promise<void> {
       startsAt: iso("2026-10-11T03:30:00.000Z"),
       endsAt: iso("2026-10-11T05:00:00.000Z"),
       location: { name: "Caddebostan Sahil Parkı", address: "Caddebostan Sahil Yolu, Kadıköy", district: "Caddebostan, Kadıköy", display: "full", lat: 40.9636, lng: 29.0662 },
+      visibility: "public",
       views: 480,
       publishedAt: iso("2026-09-20T08:00:00Z"),
     },
@@ -77,6 +82,25 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     },
   ]);
 
+  // Public plans for Keşfet (mirrors the Explore artboard).
+  const pub = (id: string, code: string, ownerId: string, title: string, themeId: string, posterText: string, startsAt: string, endsAt: string, name: string, district: string, description: string, titleFont = "klasik") => ({
+    id, code, ownerId, status: "published", title, titleFont, themeId, posterText, description, startsAt: iso(startsAt), endsAt: iso(endsAt),
+    location: { name, address: `${name}, ${district}`, district, display: "full" as const }, visibility: "public", views: 300, publishedAt: iso("2026-09-22T08:00:00Z"),
+  });
+  await db.insert(plans).values([
+    pub("p_plak", "plak-takas", "u_mp", "Plak Takas Pazarı & DJ Set", "kor", "PLAK", "2026-10-17T11:00:00Z", "2026-10-17T17:00:00Z", "Yeldeğirmeni Sanat", "Yeldeğirmeni, Kadıköy", "Plaklarını getir, takas et, akşama doğru DJ set. Giriş serbest."),
+    pub("p_mik", "acik-mikrofon", "u_ba", "Açık mikrofon: herkes 3 dakika", "zeytinlik", "SES", "2026-10-16T17:30:00Z", "2026-10-16T20:00:00Z", "Bostancı Sahne", "Bostancı, Kadıköy", "Şiir, stand-up, şarkı; kayıt kapıda. Herkese 3 dakika.", "eklektik"),
+    pub("p_sofra", "ortak-sofra", "u_sk", "Ortak Sofra: herkes bir meze getiriyor", "kiraz", "MEZE", "2026-10-18T16:00:00Z", "2026-10-18T20:00:00Z", "Moda Sahil Çay Bahçesi", "Moda, Kadıköy", "Uzun masa, herkes bir meze. Tabak ve çatal getirmeyi unutma.", "edebi"),
+    pub("p_kitap", "kitap-kulubu", "u_ks", "Kitap Kulübü: Tutunamayanlar", "gece", "KİTAP", "2026-10-15T16:00:00Z", "2026-10-15T18:00:00Z", "Cihangir Kahve", "Cihangir, Beyoğlu", "Bu ay Oğuz Atay. Kitabı bitirmemiş olanlar da gelsin, spoiler serbest.", "edebi"),
+    pub("p_yoga", "sabah-yogasi", "u_ks", "Sabah yogası · Maçka Parkı", "limonata", "YOGA", "2026-10-19T05:30:00Z", "2026-10-19T06:30:00Z", "Maçka Demokrasi Parkı", "Maçka, Beyoğlu", "Matını getir, 60 dakika, her seviye. Yağmurda iptal.", "zarif"),
+  ]);
+  await db.insert(planHosts).values([
+    { planId: "p_plak", userId: "u_mp", role: "owner", position: 0 },
+    { planId: "p_mik", userId: "u_ba", role: "owner", position: 0 },
+    { planId: "p_sofra", userId: "u_sk", role: "owner", position: 0 },
+    { planId: "p_kitap", userId: "u_ks", role: "owner", position: 0 },
+    { planId: "p_yoga", userId: "u_ks", role: "owner", position: 0 },
+  ]);
   await db.insert(planHosts).values([
     { planId: "p_ece30", userId: "u_demo", role: "owner", position: 0 },
     { planId: "p_ece30", userId: "u_deniz", role: "cohost", position: 1 },
@@ -100,6 +124,7 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     G("s_me", "p_sahil", "Oytun Bölükbaşı", "going", "2026-09-26T10:00:00Z", { userId: "u_demo", email: DEMO_EMAIL }),
     ...Array.from({ length: 23 }, (_, i) => G(`r${i}`, "p_sahil", `Koşucu ${i + 1}`, "going", "2026-09-24T09:00:00Z")),
     ...Array.from({ length: 13 }, (_, i) => G(`m${i}`, "p_mangal", `Davetli ${i + 1}`, "invited", "2026-09-25T09:00:00Z")),
+    ...([["p_plak", 62], ["p_mik", 218], ["p_sofra", 377], ["p_kitap", 24], ["p_yoga", 41]] as [string, number][]).flatMap(([pid, n]) => Array.from({ length: n }, (_, i) => G(`${pid}_${i}`, pid, `Katılımcı ${i + 1}`, i % 5 === 0 ? "maybe" : "going", "2026-09-24T09:00:00Z"))),
   ]);
 
   await db.insert(pollOptions).values([

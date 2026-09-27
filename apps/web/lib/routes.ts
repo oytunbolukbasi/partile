@@ -7,7 +7,7 @@ export const routes = {
   create: "/olustur",
   profile: "/profil",
   notifications: "/bildirimler",
-  explore: "/kesfet", // Faz 2
+  explore: "/kesfet",
   plan: (code: string) => `/e/${code}`,
   occasion: (slug: string) => `/${slug}`, // e.g. /dogum-gunu-davetiyesi
 } as const;
