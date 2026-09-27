@@ -11,6 +11,8 @@ Tek servis (web) + Postgres + kalıcı volume + saatlik cron. Görsel dosyalar v
 
 Sık görülen hata: **“The executable `pnpm` could not be found”** — Railway servis ayarında bir *Custom Start Command* (ör. `pnpm start`) kalmıştır. Settings → Deploy → Custom Start Command alanını boşalt; `railway.toml` zaten `node apps/web/server.js` ile başlatır. Servis “Unexposed” görünüyorsa Settings → Networking → **Generate Domain** (ya da custom domain) ile dışa aç.
 
+**502 “Application failed to respond”**: domain’in hedef portu ile uygulamanın dinlediği port farklıdır. Railway kendi `PORT`’unu (çoğunlukla 8080) enjekte eder; domain’i 3000’e bağladıysan Variables’a **`PORT=3000`** ekle (ya da domain’in portunu log’daki “listening on …:PORT” değerine çevir).
+
 ## 2. Ortam değişkenleri (web servisi)
 
 | Değişken | Değer |
@@ -18,6 +20,7 @@ Sık görülen hata: **“The executable `pnpm` could not be found”** — Rail
 | `DATABASE_URL` | Neon bağlantı dizesi (pooler, `sslmode=require`) — ya da Railway Postgres için `${{Postgres.DATABASE_URL}}` |
 | `AUTH_SECRET` | `openssl rand -hex 32` çıktısı — zorunlu, değişirse herkes çıkış yapar |
 | `CRON_SECRET` | `openssl rand -hex 24` — cron servisiyle aynı değer |
+| `PORT` | `3000` — domain’in hedef portuyla aynı olmalı |
 | `NEXT_PUBLIC_SITE_URL` | `https://getpartile.com` (paylaşım linkleri, e-posta linkleri, OG görseli) |
 | `RESEND_API_KEY` | Resend panelinden |
 | `RESEND_FROM` | `partile <merhaba@getpartile.com>` |

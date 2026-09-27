@@ -38,7 +38,8 @@ COPY --from=build --chown=partile:partile /app/apps/web/.next/static ./apps/web/
 COPY --from=build --chown=partile:partile /app/apps/web/public ./apps/web/public
 # SQL migrations applied at boot (drizzle-orm migrator reads the folder)
 COPY --from=build --chown=partile:partile /app/packages/db/drizzle ./packages/db/drizzle
+COPY --chown=partile:partile --chmod=755 start.sh ./start.sh
 USER partile
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- http://127.0.0.1:${PORT}/api/saglik || exit 1
-CMD ["node", "apps/web/server.js"]
+CMD ["/app/start.sh"]

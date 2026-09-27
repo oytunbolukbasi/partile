@@ -4,8 +4,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# The runtime image has no pnpm; always start the standalone server directly.
-startCommand = "node apps/web/server.js"
+# The runtime image has no pnpm; start.sh binds 0.0.0.0 and honours Railway's PORT.
+startCommand = "/app/start.sh"
 healthcheckPath = "/api/saglik"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
