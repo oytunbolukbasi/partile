@@ -83,6 +83,13 @@ export const PlanDraft = z.object({
   allowMaybe: z.boolean().default(true),
   guestsCanInviteMutuals: z.boolean().default(true),
   remindersEnabled: z.boolean().default(true),
+  /** Display & privacy — guest list and feed are always hidden pre-RSVP. */
+  showGuestNames: z.boolean().default(true),
+  showGuestCount: z.boolean().default(true),
+  showTimestamps: z.boolean().default(true),
+  /** Photo album. */
+  albumGuestsCanUpload: z.boolean().default(true),
+  albumFilter: z.enum(["none", "warm", "mono"]).default("none"),
   questions: z.array(Question).max(10).default([]),
   cost: CostSettings.default({ mode: "off" }),
   extras: z

@@ -27,6 +27,7 @@ import { routes } from "@/lib/routes";
 import { DatePickerModal } from "./DatePickerModal";
 import { LocationModal } from "./LocationModal";
 import { PosterModal } from "./PosterModal";
+import { SettingsModal, type SettingsTab } from "./SettingsModal";
 import { ThemePanel } from "./ThemePanel";
 
 const glassRow = "glass flex h-[52px] items-center gap-3 rounded-lg px-4 text-left";
@@ -37,7 +38,12 @@ export function CreateEditor() {
   const { draft, patch, savedAt } = useDraft();
   const [panel, setPanel] = useState<"theme" | null>("theme");
   const [sheet, setSheet] = useState<"theme" | null>(null);
-  const [modal, setModal] = useState<"date" | "location" | "poster" | null>(null);
+  const [modal, setModal] = useState<"date" | "location" | "poster" | "settings" | null>(null);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
+  const openSettings = (t: SettingsTab) => {
+    setSettingsTab(t);
+    setModal("settings");
+  };
   const theme = themeById(draft.themeId);
   const posterText = draft.posterText ?? draft.title.match(/\d+/)?.[0] ?? draft.title.slice(0, 1).toLocaleUpperCase("tr-TR");
 
@@ -57,7 +63,7 @@ export function CreateEditor() {
           </span>
           Efekt
         </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
+        <button type="button" onClick={() => openSettings("rsvp")} className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
           <span className="flex size-10 items-center justify-center"><SettingsIcon /></span>
           Ayarlar
         </button>
@@ -146,7 +152,7 @@ export function CreateEditor() {
                 OB
               </span>
               <span className="grow text-[17px] font-bold">Oytun Bölükbaşı</span>
-              <button type="button" className="flex h-9 items-center gap-1.5 rounded-pill border border-current px-3.5 text-sm font-bold">
+              <button type="button" onClick={() => openSettings("hosts")} className="flex h-9 items-center gap-1.5 rounded-pill border border-current px-3.5 text-sm font-bold">
                 + Ortak düzenleyen
               </button>
             </div>
@@ -158,11 +164,11 @@ export function CreateEditor() {
               <span className={`grow text-[17px] font-semibold ${draft.location ? "" : "opacity-75"}`}>{locationLabel}</span>
               <span className="text-[13px] opacity-70">Adres katılınca</span>
             </button>
-            <button type="button" className={glassRow}>
+            <button type="button" onClick={() => openSettings("rsvp")} className={glassRow}>
               <UsersIcon />
               <span className="grow text-[17px] opacity-75">{draft.capacity ? `${draft.capacity} kişilik kontenjan` : "Kontenjan yok"}</span>
             </button>
-            <button type="button" className={glassRow}>
+            <button type="button" onClick={() => openSettings("cost")} className={glassRow}>
               <TagIcon />
               <span className="grow text-[17px] font-semibold">{draft.cost.mode === "off" ? <span className="opacity-75">Kişi başı tutar</span> : draft.cost.amountTry ? `Kişi başı ${formatTry(draft.cost.amountTry)}` : "Gönlünden ne koparsa"}</span>
               {draft.cost.mode !== "off" && (
@@ -199,13 +205,13 @@ export function CreateEditor() {
           <div className="flex flex-col gap-2.5 pt-2">
             <div className="text-[13px] font-bold uppercase tracking-wide opacity-70">Düzenleyen için hızlı ayarlar</div>
             <div className="grid grid-cols-2 gap-2.5">
-              {[
-                ["Misafirlere sor", draft.questions.length ? `${draft.questions.length} soru` : "Kapalı"],
-                ["Hatırlatmalar", draft.remindersEnabled ? "Açık" : "Kapalı"],
-                ["Katılım onayı", draft.requireApproval ? "Açık" : "Kapalı"],
-                ["+1 misafir", draft.plusOnesMax ? `En fazla ${draft.plusOnesMax}` : "Kapalı"],
-              ].map(([l, s]) => (
-                <button key={l} type="button" className="glass flex h-14 items-center justify-between gap-2 rounded-lg px-4 text-left">
+              {([
+                ["Misafirlere sor", draft.questions.length ? `${draft.questions.length} soru` : "Kapalı", "questions"],
+                ["Hatırlatmalar", draft.remindersEnabled ? "Açık" : "Kapalı", "reminders"],
+                ["Katılım onayı", draft.requireApproval ? "Açık" : "Kapalı", "rsvp"],
+                ["+1 misafir", draft.plusOnesMax ? `En fazla ${draft.plusOnesMax}` : "Kapalı", "rsvp"],
+              ] as const).map(([l, s, t]) => (
+                <button key={l} type="button" onClick={() => openSettings(t)} className="glass flex h-14 items-center justify-between gap-2 rounded-lg px-4 text-left">
                   <span className="text-[15px] font-bold">{l}</span>
                   <span className="shrink-0 text-[13px] opacity-70">{s}</span>
                 </button>
@@ -227,8 +233,8 @@ export function CreateEditor() {
           <div className="glass flex h-[60px] items-center gap-3 rounded-lg px-4">
             <SparklesIcon />
             <span className="grow text-[17px] font-semibold">Bu planı kim görebilir?</span>
-            <button type="button" className="glass flex h-10 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold">
-              <LockIcon size={14} /> Gizli <ChevronDownIcon size={14} />
+            <button type="button" onClick={() => openSettings("audience")} className="glass flex h-10 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold">
+              <LockIcon size={14} /> {draft.visibility === "private" ? "Gizli" : "Herkese açık"} <ChevronDownIcon size={14} />
             </button>
           </div>
 
@@ -236,7 +242,7 @@ export function CreateEditor() {
             <div className="flex items-center gap-3">
               <SettingsIcon size={20} />
               <span className="grow text-[17px] font-semibold">Katılım seçenekleri</span>
-              <button type="button" className="glass flex h-10 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold">
+              <button type="button" onClick={() => openSettings("rsvp")} className="glass flex h-10 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold">
                 Simgeler <ChevronDownIcon size={14} />
               </button>
             </div>
@@ -287,7 +293,7 @@ export function CreateEditor() {
             <span className="size-8 rounded-pill" style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }} />
             Efekt
           </button>
-          <button type="button" className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
+          <button type="button" onClick={() => openSettings("rsvp")} className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
             <SettingsIcon /> Ayarlar
           </button>
           <button type="button" className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
@@ -323,6 +329,7 @@ export function CreateEditor() {
           setModal(null);
         }}
       />
+      <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={draft} onSave={patch} />
       <PosterModal
         open={modal === "poster"}
         onClose={() => setModal(null)}

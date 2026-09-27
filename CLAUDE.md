@@ -78,7 +78,7 @@ Ton: samimi "sen" dili, kısa cümle. Emoji yok.
 
 - Tarih `Cumartesi, 17 Ekim` · saat 24 s `20:00` · hafta Pazartesi başlar · saat dilimi sabit TSİ (Europe/Istanbul), seçici yok.
 - Telefon MVP'de toplanmaz. (İleride eklenirse: varsayılan +90, maske `5XX XXX XX XX`.) Para `₺450`.
-- Konum: semt gösterimi ("Moda, Kadıköy") varsayılan; tam adres + harita linki katılımdan sonra. Google Places + Yandex/Apple Maps linkleri (sağlayıcı kararı bekliyor).
+- Konum: semt gösterimi ("Moda, Kadıköy") varsayılan; tam adres + harita linki katılımdan sonra. **Adres autocomplete ücretsiz bir API'den gelecek** (Google Places ücretli): ilk aday Photon (komoot, OSM, anahtarsız), alternatif Geoapify / LocationIQ. Şu an `LocationModal` örnek listeyle çalışıyor; bağlanınca `SAMPLE` kalkar.
 
 ## Fazlar
 
