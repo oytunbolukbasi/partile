@@ -64,7 +64,7 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Tarih anketi | MVP'de var; masrafı böl ve katılım onayıyla aynı anda kapalı. Gün seçilince oylar katılıma dönüşür. |
 | Hatırlatmalar | Sabit program: katılım hatırlatması 1 hafta önce (davetli + belki), etkinlik hatırlatması 2 saat önce (geliyor). |
 | AI | Oluştur ekranında serbest metin → başlık/tarih/tema önerisi (Claude API). Sonuç her zaman düzenlenebilir form alanına dolar. Faz 1 sonu. |
-| Premium | Bazı tema/efekt/afiş şablonları taçlı = Premium. MVP'de rozet var, ödeme yok. |
+| Premium | Karar (27 Eyl 2026): **şablon ve temalar Premium değil**, taç rozeti yok. Premium ileride başka özelliklere (ör. gelişmiş araçlar) ayrılacak; MVP'de ödeme yok. |
 | Domain | **getpartile.com**. Paylaşım linki `getpartile.com/e/{kod}`. Gönderici e-postası `merhaba@getpartile.com` (Resend domain doğrulaması bekliyor). |
 
 ## Tasarım dili (kısa)

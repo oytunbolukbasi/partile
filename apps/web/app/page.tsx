@@ -40,13 +40,6 @@ export default function LandingPage() {
                 Nasıl çalışır?
               </a>
             </div>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
-              <span>Giriş duvarı yok</span>
-              <span aria-hidden>·</span>
-              <span>Misafirin e-postası sende kalmaz</span>
-              <span aria-hidden>·</span>
-              <span>KVKK uyumlu</span>
-            </div>
           </div>
           <HeroVisual />
         </section>

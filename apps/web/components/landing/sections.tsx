@@ -99,24 +99,12 @@ export const templates = [
 ];
 
 export function TemplateStrip() {
-  const chips = ["Doğum günü", "Yemek", "Ev partisi", "Kına", "Yılbaşı"];
   return (
     <Section>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
           <H2>Her plana, her havaya</H2>
           <Lead>Şablonla başla, tek dokunuşla senin olsun.</Lead>
-        </div>
-        <div className="flex gap-2 overflow-x-auto">
-          {chips.map((c, i) => (
-            <Link
-              key={c}
-              href={i === 0 ? routes.occasion("dogum-gunu-davetiyesi") : "#"}
-              className={`flex h-10 shrink-0 items-center rounded-pill px-4 text-sm ${i === 0 ? "border border-white/40 bg-white/14 font-bold" : "bg-white/8 font-semibold"}`}
-            >
-              {c}
-            </Link>
-          ))}
         </div>
       </div>
       <div className="-mx-4 flex gap-4 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-6 md:overflow-visible md:px-0">

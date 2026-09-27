@@ -4,16 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MarkTile } from "@/components/brand/Mark";
 import { routes } from "@/lib/routes";
-import { BellIcon, CardIcon, CreateIcon, ExploreIcon, HomeIcon, MessagesIcon } from "./icons";
+import { BellIcon, CardIcon, CreateIcon, ExploreIcon, HomeIcon } from "./icons";
 
-export type RailKey = "home" | "explore" | "create" | "card" | "messages" | "bell";
+export type RailKey = "home" | "explore" | "create" | "messages" | "bell";
 
 const items: { key: RailKey; href: string; label: string; Icon: typeof HomeIcon }[] = [
   { key: "home", href: routes.home, label: "Ana sayfa", Icon: HomeIcon },
   { key: "explore", href: routes.explore, label: "Keşfet", Icon: ExploreIcon },
   { key: "create", href: routes.create, label: "Plan oluştur", Icon: CreateIcon },
-  { key: "card", href: "#", label: "Kart gönder", Icon: CardIcon },
-  { key: "messages", href: "#", label: "Mesajlar", Icon: MessagesIcon },
+  { key: "messages", href: "#", label: "Mesajlar", Icon: CardIcon },
   { key: "bell", href: routes.notifications, label: "Bildirimler", Icon: BellIcon },
 ];
 

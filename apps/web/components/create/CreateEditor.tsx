@@ -26,6 +26,7 @@ import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
 import { DatePickerModal } from "./DatePickerModal";
 import { PollModal } from "./PollModal";
+import { PreviewOverlay } from "./PreviewOverlay";
 import { LocationModal } from "./LocationModal";
 import { PosterModal } from "./PosterModal";
 import { useRouter } from "next/navigation";
@@ -45,6 +46,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
   const router = useRouter();
   const [publishing, startPublish] = useTransition();
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
   const [panel, setPanel] = useState<"theme" | null>("theme");
   const [sheet, setSheet] = useState<"theme" | null>(null);
   const [modal, setModal] = useState<"date" | "poll" | "location" | "poster" | "settings" | null>(null);
@@ -98,7 +100,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
           <span className="flex size-10 items-center justify-center"><SettingsIcon /></span>
           Ayarlar
         </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
+        <button type="button" onClick={() => setPreview(true)} className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
           <span className="flex size-10 items-center justify-center"><EyeIcon /></span>
           Önizle
         </button>
@@ -334,7 +336,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
           <button type="button" onClick={() => openSettings("rsvp")} className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
             <SettingsIcon /> Ayarlar
           </button>
-          <button type="button" className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
+          <button type="button" onClick={() => setPreview(true)} className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
             <EyeIcon /> Önizle
           </button>
         </div>
@@ -365,6 +367,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
         }}
         onPoll={() => setModal("poll")}
       />
+      {preview && <PreviewOverlay draft={draft} viewer={viewer} code={existing?.code} onClose={() => setPreview(false)} />}
       <PollModal
         open={modal === "poll"}
         onClose={() => setModal(null)}

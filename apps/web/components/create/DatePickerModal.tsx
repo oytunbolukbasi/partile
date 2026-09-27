@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatDayLong } from "@partile/core";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
 import { SettingRow, Toggle } from "@/components/ui/Toggle";
+import { TimeField } from "@/components/ui/TimeField";
 
 const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 const DOW = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
@@ -96,10 +97,10 @@ export function DatePickerModal({ open, onClose, value, onSave, onPoll }: { open
             <span className="display text-[22px] tracking-normal">{sel ? `${formatDayLong(toIso(sel.y, sel.m, sel.d, start))} · ${start}` : "Takvimden gün seç"}</span>
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="start" className="text-[13px] font-bold">
+            <label className="text-[13px] font-bold">
               Saat
             </label>
-            <input id="start" type="time" value={start} onChange={(e) => setStart(e.target.value)} className="h-[52px] rounded-md border border-white/18 bg-white/6 px-4 text-xl font-extrabold text-text outline-none" step={300} />
+            <TimeField value={start} onChange={setStart} label="Başlangıç saati" />
             <div className="flex flex-wrap gap-1.5">
               {QUICK.map((q) => (
                 <button key={q} type="button" onClick={() => setStart(q)} className={`h-8 rounded-pill px-3 text-[13px] font-bold ${start === q ? "bg-white/20" : "bg-white/8"}`}>
@@ -114,7 +115,7 @@ export function DatePickerModal({ open, onClose, value, onSave, onPoll }: { open
             </SettingRow>
             {hasEnd && (
               <div className="px-4.5 pb-3">
-                <input type="time" aria-label="Bitiş saati" value={end} onChange={(e) => setEnd(e.target.value)} className="h-11 w-full rounded-md border border-white/18 bg-white/6 px-4 text-base font-bold text-text outline-none" step={300} />
+                <TimeField value={end} onChange={setEnd} label="Bitiş saati" size="sm" />
               </div>
             )}
           </div>

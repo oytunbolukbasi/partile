@@ -1,7 +1,7 @@
 "use client";
 
 import { invitationThemes } from "@partile/ui-tokens";
-import { CrownFilledIcon, DiceIcon, PencilIcon } from "@/components/shell/icons";
+import { DiceIcon, PencilIcon } from "@/components/shell/icons";
 
 const categories = ["Tümü", "Popüler", "Açık", "Koyu", "Sezon"];
 
@@ -60,17 +60,12 @@ export function ThemePanel({ value, onChange, onClose }: { value: string; onChan
               className="relative size-[52px] rounded-pill"
               style={{ background: t.poster, border: sel ? "3px solid #FFFFFF" : "1px solid rgba(255,255,255,0.2)" }}
             >
-              {t.premium && (
-                <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-pill border border-white/20 bg-bg text-amber">
-                  <CrownFilledIcon size={11} />
-                </span>
-              )}
             </button>
           );
         })}
       </div>
       <div className="text-xs leading-snug text-subtle">
-        Seçili: <strong className="text-text">{current.name}</strong> · taçlı temalar Premium
+        Seçili: <strong className="text-text">{current.name}</strong>
       </div>
     </div>
   );

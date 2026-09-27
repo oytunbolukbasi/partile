@@ -34,11 +34,13 @@ const timeAgo = (iso: string) => {
 /** `InviteDesktop` / `InviteMobile` (pre-RSVP) and `Event` / `EventMobile` (post-RSVP) in one component. */
 type ViewerGuest = { id: string; name: string; status: string; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
 
-export function PlanView({ plan, viewer, viewerGuest }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null }) {
+export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean }) {
   const router = useRouter();
   const rsvp = viewerGuest && viewerGuest.status !== "invited" ? viewerGuest : null;
   const ready = true;
-  const [flow, setFlow] = useState<"going" | "maybe" | "no" | null>(null);
+  const [flowState, setFlowState] = useState<"going" | "maybe" | "no" | null>(null);
+  const flow = flowState;
+  const setFlow = (v: "going" | "maybe" | "no" | null) => !preview && setFlowState(v);
   const t = themeById(plan.themeId);
   const counts = countByStatus(plan.guests);
   const joined = !!rsvp && rsvp.status !== "no" && rsvp.status !== "pending";

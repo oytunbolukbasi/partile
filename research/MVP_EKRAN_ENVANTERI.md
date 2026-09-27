@@ -11,7 +11,7 @@
 |---|---|
 | Kabuk | "Gece": `#0C0C0D` zemin, `#121213` panel, `#F5F2EC` metin, `#A8A39B` ikincil. Beyaz pill birincil buton. Cam paneller beyaz %6–10, çizgi %8–16. |
 | Aura | Mercan `#FF6A3D` → Kehribar `#FFB020` → Deniz `#1EC9B0`. **Mor kullanılmaz.** |
-| Davetiye temaları | Kor, Derin deniz, Limonata, Gece, Zeytinlik★, Pudra, Kobalt★, Kiraz★ (★ Premium). Her tema: zemin gradyanı + metin + vurgu; açık temalarda cam koyu, koyu temalarda cam açık. |
+| Davetiye temaları | Kor, Derin deniz, Limonata, Gece, Zeytinlik, Pudra, Kobalt, Kiraz (hepsi ücretsiz; 27 Eyl 2026 kararı: şablon/tema Premium değil). Her tema: zemin gradyanı + metin + vurgu; açık temalarda cam koyu, koyu temalarda cam açık. |
 | Fontlar | Schibsted Grotesk (kabuk başlıkları), Hanken Grotesk (gövde), Unbounded (afiş rakamları), Space Mono (kod). Davetiye başlık fontları: Klasik/Schibsted · Eklektik/Fraunces · Şık/Pinyon Script · Edebi/Libre Baskerville · Dijital/Space Mono · Zarif/Cormorant italik. Hepsi Google Fonts, TR glif destekli. |
 | Logo | "Cam p + onay": p harfi, bowl deliğinde tik. Cam hâl ≥ 60 px (ikon, splash, landing); düz hâl ürün içi; 32 px altında dolu bowl; 16 px favicon = kehribar kare + tik. |
 | Ölçüler | Masaüstü 1440 (rail 72 px, içerik x=128/216, afiş kolonu 346–358 px), mobil 390. Köşe 12/14/16/20/pill. Dokunma hedefi ≥ 44 px. |

@@ -8,7 +8,7 @@ import { searchPlaces, type Place } from "@/lib/geocode";
 
 type Location = NonNullable<PlanDraft["location"]>;
 
-/** `LocationPicker` artboard: Photon autocomplete, results, map placeholder, district-only vs full address. */
+/** `LocationPicker` artboard: Photon autocomplete, results, district-only vs full address. No map (decision 27 Sep 2026). */
 export function LocationModal({ open, onClose, value, onSave }: { open: boolean; onClose: () => void; value?: Location; onSave: (v: Location) => void }) {
   const [q, setQ] = useState(value?.name ?? "");
   const [results, setResults] = useState<Place[]>([]);
@@ -48,8 +48,8 @@ export function LocationModal({ open, onClose, value, onSave }: { open: boolean;
 
   return (
     <Modal open={open} onClose={onClose} title="Nerede?" width={920}>
-      <div className="flex flex-col md:flex-row">
-        <section className="flex flex-col gap-3.5 p-5 md:w-[440px] md:border-r md:border-line">
+      <div className="flex flex-col">
+        <section className="flex flex-col gap-3.5 p-5">
           <label htmlFor="loc" className="sr-only">
             Mekân ara
           </label>
@@ -99,28 +99,10 @@ export function LocationModal({ open, onClose, value, onSave }: { open: boolean;
           </div>
         </section>
 
-        <section className="relative min-h-[320px] grow overflow-hidden bg-[#1A1B1E] md:min-h-[520px]">
-          <div className="absolute inset-0" style={{ background: "repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 48px), radial-gradient(60% 40% at 30% 70%, #12313A 0%, rgba(18,49,58,0) 70%)" }} />
-          <div className="absolute inset-x-0 bottom-0 h-[220px]" style={{ background: "linear-gradient(180deg, rgba(18,49,58,0) 0%, #12313A 60%)" }} />
-          <div className="absolute left-1/2 top-[45%] flex -translate-x-1/2 flex-col items-center">
-            <span className="mb-1.5 flex h-9 max-w-[260px] items-center truncate rounded-pill bg-white px-3 text-[13px] font-extrabold text-bg shadow-[0_8px_20px_rgba(0,0,0,0.4)]">{display === "district" ? districtLabel : (picked?.name ?? "Konum")}</span>
-            <PinIcon size={40} className="text-coral" />
-          </div>
-          {display === "district" && <div className="absolute left-1/2 top-[40%] h-[180px] w-[220px] -translate-x-1/2 rounded-pill border-2 border-dashed border-white/40 bg-coral/12" />}
-          <div className="absolute bottom-4 left-4 text-xs tracking-wider text-white/45">{picked?.lat ? `${picked.lat.toFixed(4)}, ${picked.lng?.toFixed(4)} · harita sonra` : "HARİTA · sonra"}</div>
-          <div className="absolute inset-x-4 bottom-4 hidden items-center gap-2.5 rounded-xl border border-white/12 bg-bg/85 px-4 py-3.5 md:flex">
-            <span className="flex min-w-0 grow flex-col">
-              <span className="truncate font-bold">{picked?.name ?? "Bir mekân seç"}</span>
-              <span className="truncate text-[13px] text-subtle">{picked?.address ?? ""}</span>
-            </span>
-            <button type="button" disabled={!picked} onClick={commit} className={`${btnPrimary} h-11 disabled:opacity-40`}>
-              Konumu seç
-            </button>
-          </div>
-        </section>
       </div>
-      <div className="flex border-t border-line px-5 py-4 md:hidden">
-        <button type="button" disabled={!picked} onClick={commit} className={`${btnPrimary} w-full justify-center disabled:opacity-40`}>
+      <div className="sticky bottom-0 z-10 flex items-center gap-3 border-t border-line bg-panel px-5 py-4">
+        <span className="flex min-w-0 grow flex-col"><span className="truncate font-bold">{picked?.name ?? "Bir mekân seç"}</span><span className="truncate text-[13px] text-subtle">{picked?.address ?? ""}</span></span>
+        <button type="button" disabled={!picked} onClick={commit} className={`${btnPrimary} shrink-0 disabled:opacity-40`}>
           Konumu seç
         </button>
       </div>

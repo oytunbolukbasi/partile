@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { invitationThemes } from "@partile/ui-tokens";
-import { CrownFilledIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
 import { titleFontStyle } from "@/lib/fonts";
 
@@ -16,10 +15,10 @@ const TEMPLATES = [
   { id: "30", name: "30 kor", text: "30", theme: "kor", font: "poster" },
   { id: "aksam", name: "Akşam yemeği", text: "akşam\nyemeği", theme: "limonata", font: "eklektik" },
   { id: "ev", name: "Ev partisi", text: "EV\nPARTİSİ", theme: "gece", font: "klasik" },
-  { id: "kina", name: "Kına gecesi", text: "kına\ngecesi", theme: "kiraz", font: "sik", premium: true },
+  { id: "kina", name: "Kına gecesi", text: "kına\ngecesi", theme: "kiraz", font: "sik" },
   { id: "brunch", name: "Brunch", text: "BRUNCH", theme: "pudra", font: "dijital" },
   { id: "mac", name: "Maç gecesi", text: "MAÇ\nGECESİ", theme: "zeytinlik", font: "klasik" },
-  { id: "yilbasi", name: "Yılbaşı", text: "2027", theme: "kobalt", font: "poster", premium: true },
+  { id: "yilbasi", name: "Yılbaşı", text: "2027", theme: "kobalt", font: "poster" },
   { id: "mangal", name: "Mangal", text: "mangal", theme: "derin-deniz", font: "eklektik" },
 ];
 
@@ -93,16 +92,11 @@ export function PosterModal({ open, onClose, onSave }: { open: boolean; onClose:
                     }}
                   >
                     {t.text}
-                    {t.premium && (
-                      <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-pill bg-bg text-amber">
-                        <CrownFilledIcon />
-                      </span>
-                    )}
                   </button>
                 );
               })}
             </div>
-            <span className="text-[13px] text-subtle">Şablonlar başlığını ve tarihini otomatik alır; metni afişte düzenleyebilirsin. Taçlı olanlar Premium.</span>
+            <span className="text-[13px] text-subtle">Şablonlar başlığını ve tarihini otomatik alır; metni afişte düzenleyebilirsin.</span>
           </>
         )}
 

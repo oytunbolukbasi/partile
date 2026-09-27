@@ -61,7 +61,7 @@ export function Modal({
   );
 }
 
-export const modalFooter = "flex justify-end gap-2.5 border-t border-line px-6 py-4";
+export const modalFooter = "sticky bottom-0 z-10 flex justify-end gap-2.5 border-t border-line bg-panel px-6 py-4";
 export const btnGhost = "flex h-12 items-center rounded-pill border border-white/25 px-5 text-[15px] font-bold";
 export const btnPrimary = "flex h-12 items-center rounded-pill bg-white px-6 text-[15px] font-extrabold text-bg";
 export const field = "h-12 w-full rounded-md border border-white/18 bg-white/6 px-4 text-base font-semibold text-text outline-none placeholder:text-subtle focus:border-white/40";

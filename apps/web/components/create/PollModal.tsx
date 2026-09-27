@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatDayLong, formatTime, type PlanDraft, type PollOption } from "@partile/core";
 import { CloseIcon, PlusIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, modalFooter } from "@/components/ui/Modal";
+import { TimeField } from "@/components/ui/TimeField";
 
 const MAX = 6;
 // Istanbul is fixed UTC+3.
@@ -56,7 +57,7 @@ export function PollModal({ open, onClose, draft, onSave }: { open: boolean; onC
                 <span className="text-sm text-subtle">{r.date && r.time ? formatTime(toIso(r.date, r.time)) : "Saat"}</span>
               </span>
               <input type="date" aria-label={`${i + 1}. seçenek tarihi`} value={r.date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => set(r.id, { date: e.target.value })} className={input} />
-              <input type="time" aria-label={`${i + 1}. seçenek saati`} value={r.time} step={300} onChange={(e) => set(r.id, { time: e.target.value })} className={`${input} w-[110px]`} />
+              <TimeField value={r.time} onChange={(v) => set(r.id, { time: v })} label={`${i + 1}. seçenek saati`} size="sm" />
               <button type="button" aria-label="Kaldır" disabled={rows.length === 1} onClick={() => setRows(rows.filter((x) => x.id !== r.id))} className="flex size-10 items-center justify-center rounded-pill text-subtle disabled:opacity-30"><CloseIcon size={16} /></button>
             </div>
           ))}

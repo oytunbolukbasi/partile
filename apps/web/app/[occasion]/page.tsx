@@ -5,7 +5,7 @@ import { themeById } from "@partile/ui-tokens";
 import { Poster } from "@/components/plan/Poster";
 import { PublicFooter } from "@/components/shell/PublicFooter";
 import { PublicNav } from "@/components/shell/PublicNav";
-import { CrownFilledIcon, MessagesIcon, ShareIcon, SparklesIcon } from "@/components/shell/icons";
+import { MessagesIcon, ShareIcon, SparklesIcon } from "@/components/shell/icons";
 import { titleFontStyle } from "@/lib/fonts";
 import { getOccasion, occasions } from "@/lib/occasions";
 import { routes } from "@/lib/routes";
@@ -55,17 +55,13 @@ export default async function OccasionPage({ params }: Props) {
 
         <section id="sablonlar" className="flex flex-col gap-6 px-4 md:px-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="flex flex-col gap-1.5"><h2 className="display text-[32px] tracking-tight md:text-[40px]">Sonsuz tasarım seçeneği</h2><p className="text-[17px] text-muted">Şablonla başla ya da kendininkini yap. Taçlılar Premium.</p></div>
-            <div className="flex gap-2 overflow-x-auto">
-              {o.chips.map((c, i) => <span key={c} className={`flex h-9 shrink-0 items-center rounded-pill px-3.5 text-[13px] ${i === 0 ? "border border-white/40 bg-white/14 font-bold" : "bg-white/8 font-semibold"}`}>{c}</span>)}
-            </div>
+            <div className="flex flex-col gap-1.5"><h2 className="display text-[32px] tracking-tight md:text-[40px]">Sonsuz tasarım seçeneği</h2><p className="text-[17px] text-muted">Şablonla başla ya da kendininkini yap.</p></div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
             {o.templates.map((t) => (
               <Link key={t.name} href={routes.create} className="relative flex flex-col gap-2">
                 <TemplateTile t={t} className="w-full" />
                 <span className="text-sm font-bold">{t.name}</span>
-                {t.premium && <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-pill bg-bg text-amber"><CrownFilledIcon size={13} /></span>}
               </Link>
             ))}
           </div>

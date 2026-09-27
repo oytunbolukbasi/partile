@@ -7,7 +7,7 @@ import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
 import { TabBar } from "@/components/shell/TabBar";
-import { BellIcon, BellOffIcon, CalendarIcon, CopyIcon, MenuIcon, MoreIcon, PencilIcon, PlusIcon, SearchIcon, ShareIcon, UsersIcon } from "@/components/shell/icons";
+import { BellIcon, BellOffIcon, CalendarIcon, CopyIcon, MoreIcon, PencilIcon, PlusIcon, SearchIcon, ShareIcon, UsersIcon } from "@/components/shell/icons";
 import { countByStatus, type Plan, type PlanRole } from "@partile/core";
 import type { Viewer } from "@/lib/auth";
 import { loadDraft } from "@/lib/draft";
@@ -55,9 +55,8 @@ export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Pla
         </div>
       </header>
       {/* Desktop top-right */}
-      <div className="absolute right-10 top-[18px] hidden items-center gap-2.5 md:flex">
+      <div className="absolute right-10 top-[18px] z-10 hidden items-center gap-2.5 md:flex">
         <Link href={routes.create} className="flex h-11 items-center gap-2 rounded-pill bg-white px-5 text-[15px] font-bold text-bg"><PlusIcon size={16} strokeWidth={2.6} /> Oluştur</Link>
-        <button type="button" aria-label="Menü" className="flex size-11 items-center justify-center text-text"><MenuIcon /></button>
       </div>
 
       <div className="relative flex flex-col gap-5 px-4 pt-6 md:gap-8 md:px-14 md:pt-28">
