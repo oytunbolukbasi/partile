@@ -5,6 +5,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const KEY = "partile:draft:v1";
 
+/** Read the stored draft without touching it. `null` when there is none or it was never edited. */
+export function loadDraft(): (PlanDraft & { touched: boolean }) | null {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return null;
+    const parsed = PlanDraft.safeParse(JSON.parse(raw));
+    if (!parsed.success) return null;
+    const d = parsed.data;
+    const touched = d.title !== "Planın adı" || !!d.startsAt || !!d.description || !!d.location;
+    return { ...d, touched };
+  } catch {
+    return null;
+  }
+}
+
 /** A fresh draft. Title is empty on purpose — the editor shows "Planın adı" as placeholder. */
 export const emptyDraft = (): PlanDraft => PlanDraft.parse({ title: "Planın adı" });
 

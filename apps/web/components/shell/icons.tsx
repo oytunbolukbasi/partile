@@ -89,3 +89,18 @@ export const DiceIcon = ({ size = 18, ...p }: P) => (
 export const CloseIcon = ({ size = 22, ...p }: P) => (
   <svg {...base(size, { strokeWidth: 2.2, ...p })}><path d="M7 7l10 10M17 7L7 17" /></svg>
 );
+export const SearchIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+);
+export const MoreIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)} fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+);
+export const ShareIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" /></svg>
+);
+export const CopyIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 0 1 2-2h9" /></svg>
+);
+export const BellOffIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M6 8a6 6 0 0 1 11.3-2.8M18 8v5l2 3H8M6 8v5l-2 3h3M10 20a2 2 0 0 0 4 0M3 3l18 18" /></svg>
+);

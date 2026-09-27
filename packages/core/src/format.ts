@@ -5,6 +5,7 @@ export const PUBLIC_HOST = "getpartile.com";
 
 const dayLong = new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE });
 const dayShort = new Intl.DateTimeFormat("tr-TR", { weekday: "short", day: "numeric", month: "short", timeZone: TIME_ZONE });
+const dayPill = new Intl.DateTimeFormat("tr-TR", { weekday: "short", day: "2-digit", month: "2-digit", timeZone: TIME_ZONE });
 const time24 = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TIME_ZONE });
 
 /** "Cumartesi, 17 Ekim" */
@@ -19,6 +20,13 @@ export const formatDayShort = (d: Date | string): string => {
   const parts = dayShort.formatToParts(new Date(d));
   const get = (t: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === t)?.value ?? "";
   return `${get("weekday")}, ${get("day")} ${get("month")}`;
+};
+
+/** "Cmt 17.10 · 20:00" — the pill on plan cards. */
+export const formatPill = (d: Date | string): string => {
+  const parts = dayPill.formatToParts(new Date(d));
+  const get = (t: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("weekday")} ${get("day")}.${get("month")} · ${formatTime(d)}`;
 };
 
 /** "20:00" */

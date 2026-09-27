@@ -69,7 +69,57 @@ export const plans: Record<string, Plan> = {
     ],
     publishedAt: "2026-09-24T08:00:00Z",
   },
+  sahil: {
+    code: "sahil",
+    title: "Caddebostan Sahil Koşusu",
+    titleFont: "klasik",
+    themeId: "derin-deniz",
+    posterText: "Sahil\nKoşusu\n6:30",
+    description: "Pazar sabahı 5K, tempo serbest. Koşu sonrası Caddebostan’da kahvaltı.",
+    startsAt: "2026-10-11T03:30:00.000Z",
+    endsAt: "2026-10-11T05:00:00.000Z",
+    dateTbd: false,
+    location: { name: "Caddebostan Sahil Parkı", address: "Caddebostan Sahil Yolu, Kadıköy", district: "Caddebostan, Kadıköy", display: "full", lat: 40.9636, lng: 29.0662 },
+    visibility: "private",
+    plusOnesMax: 0,
+    requirePlusOneNames: false,
+    requireApproval: false,
+    allowMaybe: true,
+    guestsCanInviteMutuals: true,
+    remindersEnabled: true,
+    showGuestNames: true,
+    showGuestCount: true,
+    showTimestamps: true,
+    albumGuestsCanUpload: true,
+    albumFilter: "none",
+    questions: [],
+    cost: { mode: "off" },
+    hosts: [{ id: "kk", name: "Kadıköy Koşu Kulübü", initials: "KK", gradient: g("#FF6A3D", "#FFD166") }],
+    guests: [
+      { id: "me", name: "Oytun Bölükbaşı", initials: "OB", gradient: g("#1EC9B0", "#FFB020"), status: "going", at: "2026-09-26T10:00:00Z" },
+      ...Array.from({ length: 23 }, (_, i) => ({ id: `r${i}`, name: `Koşucu ${i + 1}`, initials: "K", gradient: g("#CFC9C0", "#7A756D"), status: "going" as RsvpStatus, at: "2026-09-24T09:00:00Z" })),
+    ],
+    feed: [],
+    publishedAt: "2026-09-20T08:00:00Z",
+  },
 };
+
+/** The signed-in viewer until accounts land. */
+export const me = { id: "h1", name: "Oytun", initials: "OB", gradient: g("#1EC9B0", "#FFB020") };
+
+export type PlanRole = "host" | RsvpStatus;
+/** How the viewer relates to a plan: hosting it, or their RSVP. */
+export const roleFor = (plan: Plan): PlanRole | null => {
+  if (plan.hosts.some((h) => h.id === me.id)) return "host";
+  return plan.guests.find((g) => g.id === "me")?.status ?? null;
+};
+
+/** Plans on the viewer's home, newest date first. */
+export const myPlans = (): { plan: Plan; role: PlanRole }[] =>
+  Object.values(plans)
+    .map((plan) => ({ plan, role: roleFor(plan) }))
+    .filter((x): x is { plan: Plan; role: PlanRole } => x.role !== null)
+    .sort((a, b) => (a.plan.startsAt ?? "").localeCompare(b.plan.startsAt ?? ""));
 
 export const getPlan = (code: string): Plan | undefined => plans[code];
 

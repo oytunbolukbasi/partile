@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { MarkTile } from "@/components/brand/Mark";
 import { routes } from "@/lib/routes";
 import { BellIcon, CardIcon, CreateIcon, ExploreIcon, HomeIcon, MessagesIcon } from "./icons";
@@ -16,6 +19,8 @@ const items: { key: RailKey; href: string; label: string; Icon: typeof HomeIcon 
 
 /** 72 px icon rail for signed-in desktop screens. Settings live under the avatar, not here. */
 export function Rail({ active, initials = "OB" }: { active?: RailKey; initials?: string }) {
+  const path = usePathname();
+  const current = active ?? items.find((i) => i.href !== "#" && path.startsWith(i.href))?.key;
   return (
     <nav
       aria-label="Ana menü"
@@ -26,7 +31,7 @@ export function Rail({ active, initials = "OB" }: { active?: RailKey; initials?:
       </Link>
       <div className="mt-[88px] flex flex-col items-center gap-[22px]">
         {items.map(({ key, href, label, Icon }) => {
-          const on = key === active;
+          const on = key === current;
           return (
             <Link
               key={key}

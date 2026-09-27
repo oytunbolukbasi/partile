@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDayLong, formatTime, formatTry, initials, planUrl } from "./format";
+import { formatDayLong, formatPill, formatTime, formatTry, initials, planUrl } from "./format";
 
 describe("format", () => {
   it("formats a Turkish long day", () => {
@@ -18,5 +18,9 @@ describe("format", () => {
   });
   it("builds the share url", () => {
     expect(planUrl("ece30")).toBe("https://getpartile.com/e/ece30");
+  });
+
+  it("formats the card pill", () => {
+    expect(formatPill("2026-10-17T17:00:00.000Z")).toBe("Cmt 17.10 · 20:00");
   });
 });
