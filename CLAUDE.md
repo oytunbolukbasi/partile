@@ -145,6 +145,7 @@ Ton: samimi "sen" dili, kısa cümle. Emoji yok. UI metinleri Türkçe ve mümk�
 
 - Dil: dokümanlar ve UI Türkçe; kod, commit mesajları ve tanımlayıcılar İngilizce.
 - Git: geliştirme dalı `claude/compassionate-fermi-3a9llp`; **`main` = Railway'in deploy ettiği dal**. İş bitince fast-forward: `git push origin HEAD` ve `git push origin HEAD:main`; doğrudan `main`'e commit yok. `PLAN_*.docx`, `.DS_Store`, `.env` commit'lenmez.
+- **`main`'e göndermeden önce üretim derlemesi:** `corepack pnpm --filter @partile/web build`. `next build` ESLint kurallarını da (ör. JSX metninde `'` yasak, `’` ya da `{"…"}` kullan) çalıştırır; `tsc` ve dev sunucusu çalıştırmaz. Railway'de derleme düşerse site eski sürümde kalır.
 - Canlı veriyle test: yerel `.env` Neon'a bağlı. Deneme için geçici/boş plan oluştur, bitince sil. demo@getpartile.com ve örnek adreslere (mert@example.com vb.) e-posta gönderme.
 - Gizli değerleri (Neon, Resend, CRON_SECRET, AUTH_SECRET) commit'leme, çıktıda tekrarlama.
 - Partiful hesabıyla inceleme: gerçek etkinlik oluşturulmaz, kimseye mesaj/duyuru gönderilmez, ayar kaydedilmez.
