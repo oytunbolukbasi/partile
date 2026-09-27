@@ -81,7 +81,7 @@
 
 ## Açık sorular
 
-1. Domain ve kısa link formatı (`/e/{kod}`) — tüm ekranlarda `[alan-adı]` yer tutucu.
+1. ~~Domain~~ Karar: **getpartile.com**, link formatı `/e/{kod}`.
 2. ~~SMS/OTP sağlayıcısı~~ Karar: MVP'de e-posta + Resend; SMS/WhatsApp doğrulama ürün tutarsa. WhatsApp Business API duyuru kanalı Faz 2.
 3. Google Places lisansı vs. Yandex/Apple Maps linkleri — konum seçicide sağlayıcı.
 4. GIPHY anahtarı (afiş ve yorum GIF'leri) — MVP'de kapalı tutulabilir.

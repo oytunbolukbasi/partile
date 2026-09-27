@@ -1,0 +1,48 @@
+/* partile tokens as CSS custom properties. Keep in sync with index.ts. Dark only. */
+:root {
+  color-scheme: dark;
+
+  --bg: #0c0c0d;
+  --panel: #121213;
+  --panel-raised: #161618;
+  --text: #f5f2ec;
+  --text-muted: #cfc9c0;
+  --text-subtle: #a8a39b;
+  --white: #ffffff;
+
+  --coral: #ff6a3d;
+  --amber: #ffb020;
+  --amber-soft: #ffb547;
+  --teal: #1ec9b0;
+  --danger: #ff8c6b;
+  --whatsapp: #25d366;
+
+  --glass-fill: rgba(255, 255, 255, 0.08);
+  --glass-fill-strong: rgba(255, 255, 255, 0.14);
+  --glass-line: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.08);
+  --menu-fill: rgba(28, 28, 31, 0.72);
+  --menu-line: rgba(255, 255, 255, 0.16);
+  --menu-blur: 24px;
+
+  --aura:
+    radial-gradient(42% 60% at 18% 0%, rgba(255, 106, 61, 0.55) 0%, rgba(255, 106, 61, 0) 70%),
+    radial-gradient(38% 55% at 55% 0%, rgba(255, 176, 32, 0.45) 0%, rgba(255, 176, 32, 0) 70%),
+    radial-gradient(40% 60% at 92% 0%, rgba(30, 201, 176, 0.4) 0%, rgba(30, 201, 176, 0) 70%);
+
+  --font-display: "Schibsted Grotesk", sans-serif;
+  --font-body: "Hanken Grotesk", sans-serif;
+  --font-poster: "Unbounded", sans-serif;
+  --font-mono: "Space Mono", monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-modal: 24px;
+  --radius-pill: 999px;
+
+  --rail-w: 72px;
+  --touch: 44px;
+}

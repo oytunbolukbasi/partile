@@ -6,9 +6,24 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 
 ## Durum (26 Eylül 2026)
 
-- Araştırma bitti, tasarım v1 bitti (35 artboard; giriş yapmamış yüzeyler dahil), MVP ekran envanteri yazıldı.
-- Sıradaki iş: **kod iskeleti** (Turborepo + Next.js + tasarım token'ları). Kullanıcı tasarımı inceliyor; düzeltmeler toplu gelecek.
-- Kod henüz yok. `apps/`, `packages/` klasörleri açılmadı.
+- Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı; kullanıcı tuvalde yorumla inceliyor.
+- **Kod iskeleti kuruldu (27 Eyl 2026):** Turborepo + pnpm, `apps/web` (Next.js 15, App Router, Tailwind v4), `packages/ui-tokens`, `packages/core`. Build ve typecheck temiz; landing hero ilk gerçek ekran.
+- Sıradaki iş: ekranları envanter sırasıyla koda dökmek (landing'in kalanı → oluştur → davetiye → katılım). **Resend en son** bağlanacak (tüm sayfalar bitince). Veritabanı seçimi bekliyor (öneri: Postgres/Neon + Drizzle).
+
+## Kod
+
+```
+apps/web            Next.js 15 · app/ (page.tsx landing, giris, (app)/planlar|olustur|profil, e/[kod]) · components/{brand,shell} · lib/routes.ts
+packages/ui-tokens  src/index.ts (renkler, 8 davetiye teması, fontlar, köşe) + src/tokens.css (CSS değişkenleri)
+packages/core       src/domain.ts (zod: PlanDraft, Rsvp, Question, CostSettings, RsvpStatus) · src/format.ts (TR tarih/saat/₺, planUrl, initials)
+```
+
+- Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` · `pnpm typecheck` · `pnpm --filter @partile/core test`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`.
+- Stil: Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility oluyor (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez, token'dan gelir.
+- Fontlar `next/font/google` ile (Schibsted Grotesk, Hanken Grotesk, Unbounded); davetiye başlık fontları plan sayfasında ihtiyaç anında yüklenir.
+- Rotalar Türkçe: `/`, `/giris`, `/planlar`, `/olustur`, `/profil`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil.
+- Env: `apps/web/.env.example` (NEXT_PUBLIC_SITE_URL, RESEND_API_KEY, RESEND_FROM, DATABASE_URL).
+- Kod, commit mesajları, tanımlayıcılar İngilizce; UI metinleri Türkçe ve `core`'daki `rsvpLabel` gibi sözlüklerden gelir.
 
 ## Kaynaklar
 
@@ -36,7 +51,7 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Hatırlatmalar | Sabit program: katılım hatırlatması 1 hafta önce (davetli + belki), etkinlik hatırlatması 2 saat önce (geliyor). |
 | AI | Oluştur ekranında serbest metin → başlık/tarih/tema önerisi (Claude API). Sonuç her zaman düzenlenebilir form alanına dolar. Faz 1 sonu. |
 | Premium | Bazı tema/efekt/afiş şablonları taçlı = Premium. MVP'de rozet var, ödeme yok. |
-| Domain | Belirsiz. Her yerde `[alan-adı]/e/{kod}` yer tutucu. |
+| Domain | **getpartile.com**. Paylaşım linki `getpartile.com/e/{kod}`. Gönderici e-postası `merhaba@getpartile.com` (Resend domain doğrulaması bekliyor). |
 
 ## Tasarım dili (kısa)
 

@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "@partile/ui-tokens/tokens.css";
+
+/* Expose tokens to Tailwind utilities (bg-panel, text-subtle, rounded-pill …). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-coral: var(--coral);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-teal: var(--teal);
+  --color-danger: var(--danger);
+  --color-whatsapp: var(--whatsapp);
+  --color-line: var(--line);
+  --color-glass: var(--glass-fill);
+  --color-glass-strong: var(--glass-fill-strong);
+  --color-glass-line: var(--glass-line);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-poster: var(--font-poster);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-modal: var(--radius-modal);
+  --radius-pill: var(--radius-pill);
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+/* Utilities that map straight to the design language. */
+@utility glass {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-line);
+}
+@utility glass-menu {
+  background: var(--menu-fill);
+  border: 1px solid var(--menu-line);
+  backdrop-filter: blur(var(--menu-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--menu-blur)) saturate(140%);
+}
+@utility aura-top {
+  background-image: var(--aura), linear-gradient(180deg, rgba(12, 12, 13, 0) 0%, var(--bg) 100%);
+}
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
