@@ -12,6 +12,8 @@ import { GuestListModal } from "@/components/host/GuestListModal";
 import { PollResults } from "@/components/host/PollResults";
 import { PollModal } from "@/components/create/PollModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
+import { CommentBox } from "@/components/plan/CommentBox";
+import { gradientFor } from "@partile/core";
 import { Poster } from "@/components/plan/Poster";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
 import { ShareModal } from "@/components/share/ShareModal";
@@ -145,7 +147,8 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
             </section>
 
             <section className="flex flex-col gap-4">
-              <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length} güncelleme · düzenleyen olarak yorumları sabitleyebilir, silebilirsin</span></div>
+              <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length} güncelleme · düzenleyen olarak yorum silebilirsin</span></div>
+              <CommentBox code={plan.code} initials={plan.hosts.find((h) => h.id === viewerId)?.initials ?? "?"} gradient={gradientFor(viewerId)} placeholder="+ Misafirlere not yaz" />
               {plan.feed.map((f) => {
                 const guest = guests.find((g) => g.id === f.guestId);
                 const who = guest ?? plan.hosts.find((h) => h.id === f.guestId);
@@ -155,12 +158,10 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
                     <Avatar initials={who.initials} gradient={who.gradient} size={40} />
                     <div className="flex flex-col gap-1.5">
                       <span className="text-base">
-                        <strong>{who.id === me.id ? "Sen" : who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "duyuru gönderdi" : <>katılımını bildirdi · <span className="font-bold" style={{ color: guest?.status === "going" ? t.accent : undefined }}>{guest ? rsvpLabel[guest.status] : ""}</span></>} <span className="opacity-60">· {timeAgo(f.at)}</span>
+                        <strong>{who.id === me.id ? "Sen" : who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "duyuru gönderdi" : f.kind === "comment" ? "yorum yazdı" : <>katılımını bildirdi · <span className="font-bold" style={{ color: guest?.status === "going" ? t.accent : undefined }}>{guest ? rsvpLabel[guest.status] : ""}</span></>} <span className="opacity-60">· {timeAgo(f.at)}</span>
                       </span>
                       {f.text && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{f.text}</span>}
                       <span className="flex gap-3 text-sm font-bold opacity-85">
-                        <button type="button">Yanıtla</button>
-                        <button type="button">Sabitle</button>
                         <button type="button" className="opacity-70" onClick={() => act(() => removeFeedItem(plan.code, f.id))}>Sil</button>
                       </span>
                     </div>

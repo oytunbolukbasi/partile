@@ -180,8 +180,9 @@ export async function comment(code: string, text: string) {
   if (!v || !plan || !text.trim()) return { ok: false as const };
   const { getViewerGuest } = await import("@partile/db");
   const g = await getViewerGuest(plan.id, v.id);
-  if (!g) return { ok: false as const };
-  await addComment(plan.id, g.id, text.trim().slice(0, 500));
+  const actorId = g ? g.id : (await isHost(plan.id, v.id)) ? v.id : null;
+  if (!actorId) return { ok: false as const };
+  await addComment(plan.id, actorId, text.trim().slice(0, 500));
   revalidatePath(routes.plan(code));
   return { ok: true as const };
 }

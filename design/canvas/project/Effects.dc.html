@@ -121,15 +121,27 @@ a{color:#F5F2EC}a:hover{color:#FFFFFF}
 <div style="position: absolute; left: 152px; right: 40px; top: 760px; display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; align-items: baseline; gap: 12px"><span style="font: 700 22px 'Schibsted Grotesk', sans-serif">Misafirde nasıl görünür</span><span style="font-size: 14px; opacity: .75">Mobil davetiye, üst kısım · efekt tam sayfada, afişle sınırlı değil</span></div>
 <div style="display: flex; gap: 20px">
-<sc-for list="{{previews}}" as="p" hint-placeholder-count="3">
-<div style="position: relative; width: 300px; height: 340px; border-radius: 22px; overflow: hidden; background: {{p.bg}}; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4)">
+<div style="position: relative; width: 300px; height: 340px; border-radius: 22px; overflow: hidden; background: radial-gradient(48% 42% at 18% 8%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(40% 36% at 82% 22%, #F59E0B 0%, rgba(245,158,11,0) 70%), radial-gradient(70% 55% at 50% 105%, #3F0D06 0%, rgba(63,13,6,0) 70%), #160804; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4)">
 <div style="position: absolute; left: 0; right: 0; top: 0; height: 40px; background: #0C0C0D; color: #F5F2EC; display: flex; align-items: center; justify-content: center; font-size: 11px; gap: 8px">Plan yapmak bu kadar kolay <span style="height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid #FFB020; display: flex; align-items: center; font-weight: 700">Sen de oluştur</span></div>
-<div style="position: absolute; left: 20px; top: 62px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -1px; color: {{p.fg}}">Ece 30<br>Oluyor</div>
-<div style="position: absolute; left: 20px; right: 20px; top: 172px; height: 150px; border-radius: 12px; background: {{p.poster}}; display: flex; align-items: center; justify-content: center; font: 800 90px 'Unbounded', sans-serif; letter-spacing: -5px; color: {{p.fg}}; text-shadow: 0 0 40px {{p.glow}}">30</div>
-<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">{{p.layer}}</div>
-<span style="position: absolute; right: 10px; top: 50px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 11px 'Hanken Grotesk', sans-serif; display: flex; align-items: center">{{p.name}} · kapat</span>
+<div style="position: absolute; left: 20px; top: 62px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -1px; color: #FFF1E3">Ece 30<br>Oluyor</div>
+<div style="position: absolute; left: 20px; right: 20px; top: 172px; height: 150px; border-radius: 12px; background: radial-gradient(70% 60% at 25% 20%, #C2410C 0%, rgba(194,65,12,0) 70%), radial-gradient(60% 55% at 85% 35%, #F59E0B 0%, rgba(245,158,11,0) 70%), #160804; display: flex; align-items: center; justify-content: center; font: 800 90px 'Unbounded', sans-serif; letter-spacing: -5px; color: #FFF1E3; text-shadow: 0 0 40px rgba(255,177,71,0.7)">30</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none"><span class="fx-piece" style="left: 10%; background: #FFB020"></span><span class="fx-piece" style="left: 30%; background: #FF6A3D; animation-delay: -1.5s"></span><span class="fx-piece" style="left: 50%; background: #1EC9B0; animation-delay: -3s"></span><span class="fx-piece" style="left: 70%; background: #FFD166; animation-delay: -2.2s"></span><span class="fx-piece" style="left: 88%; background: #FFF1E3; animation-delay: -4s"></span></div>
+<span style="position: absolute; right: 10px; top: 50px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 11px 'Hanken Grotesk', sans-serif; display: flex; align-items: center">Konfeti · kapat</span>
 </div>
-</sc-for>
+<div style="position: relative; width: 300px; height: 340px; border-radius: 22px; overflow: hidden; background: radial-gradient(48% 42% at 15% 10%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(40% 36% at 85% 25%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4)">
+<div style="position: absolute; left: 0; right: 0; top: 0; height: 40px; background: #0C0C0D; color: #F5F2EC; display: flex; align-items: center; justify-content: center; font-size: 11px; gap: 8px">Plan yapmak bu kadar kolay <span style="height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid #FFB020; display: flex; align-items: center; font-weight: 700">Sen de oluştur</span></div>
+<div style="position: absolute; left: 20px; top: 62px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -1px; color: #EAFBF8">Ece 30<br>Oluyor</div>
+<div style="position: absolute; left: 20px; right: 20px; top: 172px; height: 150px; border-radius: 12px; background: radial-gradient(70% 60% at 20% 15%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(55% 50% at 85% 35%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C; display: flex; align-items: center; justify-content: center; font: 800 90px 'Unbounded', sans-serif; letter-spacing: -5px; color: #EAFBF8; text-shadow: 0 0 40px rgba(31,182,166,0.7)">30</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none"><span class="fx-star" style="left: 14%; top: 22%"></span><span class="fx-star" style="left: 80%; top: 18%; animation-delay: -.7s"></span><span class="fx-star" style="left: 60%; top: 78%; animation-delay: -1.4s"></span><span class="fx-star" style="left: 26%; top: 88%; animation-delay: -1.9s"></span></div>
+<span style="position: absolute; right: 10px; top: 50px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 11px 'Hanken Grotesk', sans-serif; display: flex; align-items: center">Işıltı · kapat</span>
+</div>
+<div style="position: relative; width: 300px; height: 340px; border-radius: 22px; overflow: hidden; background: radial-gradient(48% 42% at 18% 8%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(40% 36% at 82% 22%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 20px 50px rgba(0,0,0,0.4)">
+<div style="position: absolute; left: 0; right: 0; top: 0; height: 40px; background: #0C0C0D; color: #F5F2EC; display: flex; align-items: center; justify-content: center; font-size: 11px; gap: 8px">Plan yapmak bu kadar kolay <span style="height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid #FFB020; display: flex; align-items: center; font-weight: 700">Sen de oluştur</span></div>
+<div style="position: absolute; left: 20px; top: 62px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -1px; color: #EAF2FF">Ece 30<br>Oluyor</div>
+<div style="position: absolute; left: 20px; right: 20px; top: 172px; height: 150px; border-radius: 12px; background: radial-gradient(70% 60% at 25% 20%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(60% 55% at 85% 40%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233; display: flex; align-items: center; justify-content: center; font: 800 90px 'Unbounded', sans-serif; letter-spacing: -5px; color: #EAF2FF; text-shadow: 0 0 40px rgba(56,189,248,0.7)">30</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none"><span class="fx-flake" style="left: 8%"></span><span class="fx-flake" style="left: 28%; animation-delay: -2s"></span><span class="fx-flake" style="left: 48%; animation-delay: -4s"></span><span class="fx-flake" style="left: 68%; animation-delay: -1s"></span><span class="fx-flake" style="left: 88%; animation-delay: -5s"></span></div>
+<span style="position: absolute; right: 10px; top: 50px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(12,12,13,0.6); color: #FFFFFF; font: 700 11px 'Hanken Grotesk', sans-serif; display: flex; align-items: center">Kar · kapat</span>
+</div>
 <div style="flex-grow: 1; border-radius: 16px; border: 1px dashed rgba(255,255,255,0.3); padding: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.5">
 <span style="font: 700 15px 'Schibsted Grotesk', sans-serif">Efekt kataloğu (MVP)</span>
 <span><strong>Konfeti</strong> · doğum günü, kutlama — tema vurgu renkleri</span>
@@ -165,23 +177,13 @@ class Component extends DCLogic {
     const MODES = ['Açılışta bir kez (4 sn)', 'Sürekli, hafif'];
     const { fx, level, mode } = this.state;
     const sel = (on) => on ? 'true' : 'false';
-    const confetti = (c) => `<span class="fx-piece" style="left: 10%; background: #FFB020"></span><span class="fx-piece" style="left: 30%; background: #FF6A3D; animation-delay: -1.5s"></span><span class="fx-piece" style="left: 50%; background: #1EC9B0; animation-delay: -3s"></span><span class="fx-piece" style="left: 70%; background: #FFD166; animation-delay: -2.2s"></span><span class="fx-piece" style="left: 88%; background: #FFF1E3; animation-delay: -4s"></span>`;
-    const snow = `<span class="fx-flake" style="left: 8%"></span><span class="fx-flake" style="left: 28%; animation-delay: -2s"></span><span class="fx-flake" style="left: 48%; animation-delay: -4s"></span><span class="fx-flake" style="left: 68%; animation-delay: -1s"></span><span class="fx-flake" style="left: 88%; animation-delay: -5s"></span>`;
-    const sparkle = `<span class="fx-star" style="left: 14%; top: 22%"></span><span class="fx-star" style="left: 80%; top: 18%; animation-delay: -.7s"></span><span class="fx-star" style="left: 60%; top: 78%; animation-delay: -1.4s"></span><span class="fx-star" style="left: 26%; top: 88%; animation-delay: -1.9s"></span>`;
-    const kor = t, deniz = { fg: '#EAFBF8', glow: 'rgba(31,182,166,0.7)', bg: 'radial-gradient(48% 42% at 15% 10%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(40% 36% at 85% 25%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C', poster: 'radial-gradient(70% 60% at 20% 15%, #0E7C86 0%, rgba(14,124,134,0) 70%), radial-gradient(55% 50% at 85% 35%, #1FB6A6 0%, rgba(31,182,166,0) 70%), #04151C' };
-    const kobalt = { fg: '#EAF2FF', glow: 'rgba(56,189,248,0.7)', bg: 'radial-gradient(48% 42% at 18% 8%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(40% 36% at 82% 22%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233', poster: 'radial-gradient(70% 60% at 25% 20%, #1D4ED8 0%, rgba(29,78,216,0) 70%), radial-gradient(60% 55% at 85% 40%, #38BDF8 0%, rgba(56,189,248,0) 70%), #071233' };
     return {
       t,
       fxName: FX[fx].name, levelName: LEVELS[level], modeName: MODES[mode],
       isConfetti: fx === 1, isSparkle: fx === 2, isSnow: fx === 3, isBalloon: fx === 4,
       fx: FX.map((f, i) => ({ ...f, sel: sel(i === fx), ring: i === fx ? '#FFFFFF' : 'rgba(255,255,255,0.18)', halo: i === fx ? 'rgba(255,255,255,0.15)' : 'transparent', pick: () => this.setState({ fx: i }) })),
       levels: LEVELS.map((n, i) => ({ name: n, sel: sel(i === level), line: i === level ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.14)', bg: i === level ? 'rgba(255,255,255,0.14)' : 'transparent', pick: () => this.setState({ level: i }) })),
-      modes: MODES.map((n, i) => ({ name: n, sel: sel(i === mode), line: i === mode ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.14)', bg: i === mode ? 'rgba(255,255,255,0.14)' : 'transparent', pick: () => this.setState({ mode: i }) })),
-      previews: [
-        { name: 'Konfeti', ...kor, layer: confetti() },
-        { name: 'Işıltı', ...deniz, layer: sparkle },
-        { name: 'Kar', ...kobalt, layer: snow }
-      ]
+      modes: MODES.map((n, i) => ({ name: n, sel: sel(i === mode), line: i === mode ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.14)', bg: i === mode ? 'rgba(255,255,255,0.14)' : 'transparent', pick: () => this.setState({ mode: i }) }))
     };
   }
 }

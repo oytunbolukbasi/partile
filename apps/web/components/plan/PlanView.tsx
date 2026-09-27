@@ -7,6 +7,8 @@ import { themeById } from "@partile/ui-tokens";
 import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
+import { CommentBox } from "@/components/plan/CommentBox";
+import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
 import { RsvpButtons } from "@/components/plan/RsvpButtons";
@@ -177,18 +179,8 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
                 </div>
               </section>
               <section className="flex flex-col gap-4">
-                <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length + 1} güncelleme</span></div>
-                <div className="flex items-center gap-3 rounded-xl border border-white/14 bg-white/10 px-3 py-2.5">
-                  <Avatar initials={rsvp!.name.slice(0, 1).toLocaleUpperCase("tr-TR")} gradient="linear-gradient(135deg, #FFD166, #FF6A3D)" size={40} />
-                  <input placeholder="+ Yorum yaz" className="min-w-0 grow bg-transparent text-[17px] outline-none placeholder:opacity-60" />
-                </div>
-                <div className="flex gap-3">
-                  <Avatar initials={rsvp!.name.slice(0, 1).toLocaleUpperCase("tr-TR")} gradient="linear-gradient(135deg, #FFD166, #FF6A3D)" size={40} />
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-base"><strong>{rsvp!.name}</strong> katılımını bildirdi · <span className="font-bold" style={{ color: t.accent }}>{rsvpLabel[rsvp!.status as RsvpStatus]}</span> <span className="opacity-60">· az önce</span></span>
-                    {rsvp!.note && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{rsvp!.note}</span>}
-                  </div>
-                </div>
+                <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length} güncelleme</span></div>
+                {!preview && <CommentBox code={plan.code} initials={viewer?.initials ?? "?"} gradient={gradientFor(viewer?.id ?? "me")} />}
                 {plan.feed.map((f) => {
                   const guest = plan.guests.find((g) => g.id === f.guestId);
                   const who = guest ?? plan.hosts.find((h) => h.id === f.guestId);
@@ -199,10 +191,9 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
                       <Avatar initials={who.initials} gradient={who.gradient} size={40} />
                       <div className="flex flex-col gap-1.5">
                         <span className="text-base">
-                          <strong>{who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "bir duyuru gönderdi" : <>katılımını bildirdi · <span className="font-bold" style={{ color: status === "going" ? t.accent : undefined }}>{status ? rsvpLabel[status] : ""}</span></>} {plan.showTimestamps && <span className="opacity-60">· {timeAgo(f.at)}</span>}
+                          <strong>{who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "bir duyuru gönderdi" : f.kind === "comment" ? "yorum yazdı" : <>katılımını bildirdi · <span className="font-bold" style={{ color: status === "going" ? t.accent : undefined }}>{status ? rsvpLabel[status] : ""}</span></>} {plan.showTimestamps && <span className="opacity-60">· {timeAgo(f.at)}</span>}
                         </span>
                         {f.text && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{f.text}</span>}
-                        <button type="button" className="w-fit text-sm font-bold opacity-85">Yanıtla</button>
                       </div>
                     </div>
                   );
