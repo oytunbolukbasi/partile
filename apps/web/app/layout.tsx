@@ -1,26 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Cormorant_Garamond,
-  Fraunces,
-  Hanken_Grotesk,
-  Libre_Baskerville,
-  Pinyon_Script,
-  Schibsted_Grotesk,
-  Space_Mono,
-  Unbounded,
-} from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const display = Schibsted_Grotesk({ subsets: ["latin", "latin-ext"], variable: "--font-display", weight: ["400", "700", "800", "900"] });
-const body = Hanken_Grotesk({ subsets: ["latin", "latin-ext"], variable: "--font-body", weight: ["400", "500", "600", "700", "800"] });
-const poster = Unbounded({ subsets: ["latin", "latin-ext"], variable: "--font-poster", weight: ["800"] });
-
-/* Invitation title fonts (Klasik = display). Loaded lazily by the browser; no preload. */
-const fraunces = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-fraunces", weight: ["800"], style: ["normal", "italic"], preload: false });
-const pinyon = Pinyon_Script({ subsets: ["latin", "latin-ext"], variable: "--font-pinyon", weight: "400", preload: false });
-const baskerville = Libre_Baskerville({ subsets: ["latin", "latin-ext"], variable: "--font-baskerville", weight: ["700"], preload: false });
-const mono = Space_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono", weight: ["700"], preload: false });
-const cormorant = Cormorant_Garamond({ subsets: ["latin", "latin-ext"], variable: "--font-cormorant", weight: ["400"], style: ["italic"], preload: false });
+// Self-hosted (app/fonts, fetched by scripts/fetch-fonts.mjs): builds never depend on Google Fonts.
+const display = localFont({
+  variable: "--font-display",
+  src: [
+    { path: "./fonts/schibsted-grotesk-400.woff", weight: "400" },
+    { path: "./fonts/schibsted-grotesk-700.woff", weight: "700" },
+    { path: "./fonts/schibsted-grotesk-800.woff", weight: "800" },
+    { path: "./fonts/schibsted-grotesk-900.woff", weight: "900" },
+  ],
+});
+const body = localFont({
+  variable: "--font-body",
+  src: [
+    { path: "./fonts/hanken-grotesk-400.woff", weight: "400" },
+    { path: "./fonts/hanken-grotesk-500.woff", weight: "500" },
+    { path: "./fonts/hanken-grotesk-600.woff", weight: "600" },
+    { path: "./fonts/hanken-grotesk-700.woff", weight: "700" },
+    { path: "./fonts/hanken-grotesk-800.woff", weight: "800" },
+  ],
+});
+const poster = localFont({ variable: "--font-poster", src: [{ path: "./fonts/unbounded-800.woff", weight: "800" }] });
+// Invitation title fonts: loaded on demand where a plan uses them.
+const fraunces = localFont({ variable: "--font-fraunces", preload: false, src: [{ path: "./fonts/fraunces-800.woff", weight: "800", style: "normal" }, { path: "./fonts/fraunces-800-italic.woff", weight: "800", style: "italic" }] });
+const pinyon = localFont({ variable: "--font-pinyon", preload: false, src: [{ path: "./fonts/pinyon-script-400.woff", weight: "400" }] });
+const baskerville = localFont({ variable: "--font-baskerville", preload: false, src: [{ path: "./fonts/libre-baskerville-700.woff", weight: "700" }] });
+const mono = localFont({ variable: "--font-mono", preload: false, src: [{ path: "./fonts/space-mono-700.woff", weight: "700" }] });
+const cormorant = localFont({ variable: "--font-cormorant", preload: false, src: [{ path: "./fonts/cormorant-garamond-400-italic.woff", weight: "400", style: "italic" }] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getpartile.com";
 
