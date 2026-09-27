@@ -25,28 +25,52 @@ async function send(to: string | string[], subject: string, html: string, text: 
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-/** Light card on a dark-free background: mail clients ignore most CSS, so everything is inline and simple. */
-function shell(body: string, footer: string) {
-  return `<!doctype html><html lang="tr"><body style="margin:0;background:#F5F2EC;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0C0C0D">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F5F2EC;padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#FFFFFF;border:1px solid #E2D7C5;border-radius:16px">
-<tr><td style="padding:16px 20px;border-bottom:1px solid #E2D7C5;font-weight:800;font-size:15px">partile</td></tr>
-<tr><td style="padding:20px">${body}</td></tr>
-<tr><td style="padding:14px 20px;border-top:1px solid #E2D7C5;font-size:11px;color:#5F584F">${footer}</td></tr>
-</table></td></tr></table></body></html>`;
+const DOMAIN = SITE.replace(/^https?:\/\//, "");
+const LOGO = `${SITE}/api/marka`;
+
+/**
+ * Brand shell for every mail: dark header with the mark + wordmark, light card body, domain footer.
+ * Tables and inline styles only (Gmail/Outlook ignore most CSS); logo is a PNG because mail clients drop SVG.
+ * `preheader` is the grey preview line inboxes show next to the subject.
+ */
+function shell(body: string, footer: string, preheader = "") {
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><title>partile</title></head>
+<body style="margin:0;padding:0;background:#F5F2EC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0C0C0D">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F5F2EC">${esc(preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F5F2EC"><tr><td align="center" style="padding:28px 12px">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;overflow:hidden;border:1px solid #E2D7C5">
+<tr><td style="background:#0C0C0D;padding:18px 24px">
+<a href="${SITE}" style="text-decoration:none;color:#F5F2EC">
+<table role="presentation" cellspacing="0" cellpadding="0"><tr>
+<td style="vertical-align:middle"><img src="${LOGO}" width="36" height="36" alt="partile" style="display:block;border:0;border-radius:11px"></td>
+<td style="vertical-align:middle;padding-left:10px;font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#F5F2EC">partile</td>
+</tr></table></a>
+</td></tr>
+<tr><td style="padding:28px 24px 24px">${body}</td></tr>
+<tr><td style="padding:16px 24px;border-top:1px solid #EFE7DA;font-size:12px;line-height:1.5;color:#5F584F">${footer}<br><a href="${SITE}" style="color:#0C0C0D;font-weight:700;text-decoration:none">${esc(DOMAIN)}</a> · Plan yap, linki at, kim geliyor gör.</td></tr>
+</table>
+</td></tr></table></body></html>`;
 }
-const button = (href: string, label: string) => `<a href="${href}" style="display:inline-block;background:#0C0C0D;color:#FFFFFF;text-decoration:none;font-weight:800;font-size:14px;padding:12px 18px;border-radius:999px">${esc(label)}</a>`;
+const button = (href: string, label: string) => `<a href="${href}" style="display:inline-block;background:#0C0C0D;color:#FFFFFF;text-decoration:none;font-weight:800;font-size:15px;padding:14px 24px;border-radius:999px">${esc(label)}</a>`;
 
 /** Login / RSVP verification: six-digit code plus a magic link. */
 export async function sendVerificationMail(to: string, code: string, purpose: "login" | "rsvp", next?: string) {
+  const m = verificationMail(to, code, purpose, next);
+  return send(to, m.subject, m.html, m.text);
+}
+
+/** Rendered verification mail (also used by the development preview at /api/eposta-onizleme). */
+export function verificationMail(to: string, code: string, purpose: "login" | "rsvp", next?: string) {
   const link = `${SITE}/giris/dogrula?e=${encodeURIComponent(to)}&kod=${code}${next ? `&next=${encodeURIComponent(next)}` : ""}`;
   const title = purpose === "rsvp" ? "Katılımını doğrula" : "partile’a giriş";
-  const body = `<p style="margin:0 0 12px;font-size:18px;font-weight:800">${title}</p>
-<p style="margin:0 0 16px;font-size:14px;line-height:1.5">Kodu gir ya da aşağıdaki linke dokun. Kod 10 dakika geçerli.</p>
-<p style="margin:0 0 18px;font-size:32px;font-weight:800;letter-spacing:0.3em">${code}</p>
+  const lead = purpose === "rsvp" ? "Katılımını tamamlamak için kodu gir ya da düğmeye dokun." : "Giriş yapmak için kodu gir ya da düğmeye dokun.";
+  const body = `<p style="margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-0.4px">${title}</p>
+<p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#3D3832">${lead} Kod 10 dakika geçerli.</p>
+<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 22px"><tr><td style="background:#F5F2EC;border:1px solid #E2D7C5;border-radius:14px;padding:14px 22px;font-size:34px;font-weight:800;letter-spacing:10px;font-family:'SF Mono',Menlo,Consolas,monospace;color:#0C0C0D">${code}</td></tr></table>
 ${button(link, purpose === "rsvp" ? "Katılımı tamamla" : "Giriş yap")}
-<p style="margin:16px 0 0;font-size:12px;color:#5F584F">Bu isteği sen yapmadıysan bu e-postayı görmezden gel.</p>`;
-  return send(to, `${code} · ${title}`, shell(body, "Şifre yok; kod tek seferlik. E-postan düzenleyenlere gösterilmez."), `${title}\n\nKodun: ${code}\n${link}\n\nKod 10 dakika geçerli.`);
+<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#5F584F">Düğme çalışmazsa bu linki tarayıcına yapıştır:<br><a href="${link}" style="color:#5F584F;word-break:break-all">${esc(link)}</a></p>
+<p style="margin:14px 0 0;font-size:12px;color:#5F584F">Bu isteği sen yapmadıysan e-postayı görmezden gelebilirsin; hesabında bir değişiklik olmaz.</p>`;
+  return { subject: `${code} · ${title}`, html: shell(body, "Şifre yok; kod tek seferlik. E-postan düzenleyenlere gösterilmez.", `Kodun: ${code} · 10 dakika geçerli`), text: `${title}\n\nKodun: ${code}\n${link}\n\nKod 10 dakika geçerli.\n\n${DOMAIN}` };
 }
 
 /** Host announcement to guests (in-app notification is created separately). */
