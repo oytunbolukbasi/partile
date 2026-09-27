@@ -7,7 +7,7 @@ import { formatDayShort, formatTime, type Conversation, type Message } from "@pa
 import { postMessage } from "@/app/actions";
 import { Avatar } from "@/components/plan/Avatar";
 import { TabBar } from "@/components/shell/TabBar";
-import { BellOffIcon, ImageIcon, PlusIcon, SearchIcon, ShareIcon } from "@/components/shell/icons";
+import { BellOffIcon, ImageIcon, SearchIcon, ShareIcon } from "@/components/shell/icons";
 import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
 
@@ -49,13 +49,10 @@ export function MessagesView({ viewer, conversations, thread }: { viewer: Viewer
 
   let lastDay = "";
   return (
-    <main className="relative min-h-dvh pb-24 md:pb-10">
+    <main className="relative min-h-dvh pb-24 md:pb-0">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] aura-top opacity-70" aria-hidden />
-      <div className="absolute right-4 top-[18px] z-10 hidden md:right-10 md:block">
-        <Link href={routes.create} className="flex h-11 items-center gap-2 rounded-pill bg-white px-5 text-[15px] font-bold text-bg"><PlusIcon size={16} strokeWidth={2.6} /> Oluştur</Link>
-      </div>
 
-      <div className="relative mx-4 mt-4 flex h-[calc(100dvh-140px)] overflow-hidden rounded-2xl border border-white/10 bg-panel shadow-[0_30px_80px_rgba(0,0,0,0.45)] md:mx-10 md:mt-[90px] md:h-[830px]">
+      <div className="relative mx-4 mt-4 flex h-[calc(100dvh-140px)] min-h-[420px] overflow-hidden rounded-2xl border border-white/10 bg-panel shadow-[0_30px_80px_rgba(0,0,0,0.45)] md:mx-10 md:mt-8 md:h-[calc(100dvh-104px)]">
         {/* list */}
         <aside className={`flex w-full shrink-0 flex-col border-r border-line md:w-[380px] ${thread ? "hidden md:flex" : "flex"}`}>
           <div className="flex h-[72px] items-center justify-between border-b border-line px-5">
