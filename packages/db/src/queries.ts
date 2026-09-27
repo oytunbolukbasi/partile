@@ -128,7 +128,7 @@ export async function listPlansForUser(userId: string): Promise<{ plan: Plan; ro
   const answered = await db.select({ id: guests.planId, status: guests.status }).from(guests).where(eq(guests.userId, userId));
   const ids = [...new Set([...hosted.map((h) => h.id), ...answered.map((a) => a.id)])];
   if (!ids.length) return [];
-  const rows = await db.select().from(plans).where(and(inArray(plans.id, ids), or(eq(plans.status, "published"), eq(plans.status, "draft"))));
+  const rows = await db.select().from(plans).where(and(inArray(plans.id, ids), or(eq(plans.status, "published"), eq(plans.status, "draft"), eq(plans.status, "cancelled"))));
   const hostedSet = new Set(hosted.map((h) => h.id));
   const statusById = new Map(answered.map((a) => [a.id, a.status as RsvpStatus]));
   const out = await Promise.all(rows.map(async (r) => ({ plan: await assemble(r), role: (hostedSet.has(r.id) ? "host" : statusById.get(r.id) ?? "invited") as PlanRole })));

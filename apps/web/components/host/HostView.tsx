@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { addGuests, blast as sendBlastAction, decideGuest, inviteCohost, openConversation, pickDay, removeCohost, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
+import { addGuests, cancelPlan, restorePlan, blast as sendBlastAction, decideGuest, inviteCohost, openConversation, pickDay, removeCohost, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
 import { formatDayLong, formatDayShort, formatTime, formatTimeRange, formatTry, planUrl, rsvpLabel, type PlanDraft } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { SettingsModal, type SettingsTab } from "@/components/create/SettingsModal";
@@ -14,6 +14,7 @@ import { PollModal } from "@/components/create/PollModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
+import { CancelModal } from "@/components/host/CancelModal";
 import { CalendarMenu } from "@/components/plan/CalendarMenu";
 import { gradientFor } from "@partile/core";
 import { Poster } from "@/components/plan/Poster";
@@ -40,7 +41,8 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
   const me = { id: viewerId };
   const act = (fn: () => Promise<unknown>, close = false) => start(async () => { await fn(); if (close) setModal(null); router.refresh(); });
   const params = useSearchParams();
-  const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | "poll" | null>(params.get("paylas") ? "share" : null);
+  const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | "poll" | "cancel" | null>(params.get("paylas") ? "share" : params.get("iptal") ? "cancel" : null);
+  const cancelled = plan.status === "cancelled";
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   const [copied, setCopied] = useState(false);
   const t = themeById(plan.themeId);
@@ -68,6 +70,12 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
     <ThemeSurface themeId={plan.themeId} className="min-h-dvh pb-16 md:pl-[var(--rail-w)]">
       <Rail active="home" />
       <div className="mx-auto flex max-w-[1040px] flex-col gap-6 px-4 pt-4 md:px-12 md:pt-[76px]">
+        {cancelled && (
+          <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-[rgba(255,106,61,0.5)] bg-[rgba(255,106,61,0.14)] px-4 py-3.5">
+            <span className="grow"><strong>Bu plan iptal edildi.</strong> <span className="opacity-85">Misafirler davetiyede iptal notunu görüyor; katılım ve hatırlatmalar kapalı.</span></span>
+            <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="h-10 shrink-0 rounded-pill bg-white px-4 text-sm font-extrabold text-bg">Geri al</button>
+          </div>
+        )}
         <div className="-mx-4 flex items-center gap-2.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
           <span className={`${tool} text-[13px] font-extrabold tracking-wide`}><CrownIcon size={16} /> SEN DÜZENLİYORSUN</span>
           <Link href={`${routes.create}?kod=${plan.code}`} className={tool}><PencilIcon size={16} /> Düzenle</Link>
@@ -206,12 +214,17 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
 
             <div className="flex w-full gap-2">
               <Link href={routes.create} className="flex h-11 grow items-center justify-center rounded-pill border border-white/25 text-sm font-bold opacity-85">Kopyala (yeni plan)</Link>
-              <button type="button" className="flex h-11 grow items-center justify-center rounded-pill border border-[rgba(255,106,61,0.5)] text-sm font-bold text-[#FF8C6B]">İptal et</button>
+              {cancelled ? (
+                <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="flex h-11 grow items-center justify-center rounded-pill border border-white/25 text-sm font-bold">Geri al</button>
+              ) : (
+                <button type="button" onClick={() => setModal("cancel")} className="flex h-11 grow items-center justify-center rounded-pill border border-[rgba(255,106,61,0.5)] text-sm font-bold text-[#FF8C6B]">İptal et</button>
+              )}
             </div>
           </aside>
         </div>
       </div>
 
+      <CancelModal open={modal === "cancel"} onClose={() => setModal(null)} title={plan.title} guestCount={guests.filter((g) => g.status !== "no").length} onConfirm={async (note) => { await cancelPlan(plan.code, note); setModal(null); router.refresh(); }} />
       <PollModal open={modal === "poll"} onClose={() => setModal(null)} draft={plan} onSave={(p) => act(() => savePlan(plan.code, p), true)} />
       <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
       <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onDecide={(id, d) => act(() => decideGuest(plan.code, id, d))} onFlag={(id, flag, v) => act(() => setGuestFlag(plan.code, id, flag, v))} onAdd={async (text) => { const r = await addGuests(plan.code, text); router.refresh(); return r; }} onBlast={() => setModal("blast")} onMessage={async (uid) => { const r = await openConversation(plan.code, uid); if (r.ok) router.push(`${routes.messages}?s=${r.id}`); }} />

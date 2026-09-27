@@ -51,13 +51,15 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
   const counts = countByStatus(plan.guests);
   const joined = !!rsvp && rsvp.status !== "no" && rsvp.status !== "pending";
   const pendingApproval = rsvp?.status === "pending";
-  const polling = !!plan.poll?.length && !plan.startsAt;
+  const cancelled = plan.status === "cancelled";
+  const polling = !cancelled && !!plan.poll?.length && !plan.startsAt;
+  const cancelNote = plan.feed.find((f) => f.kind === "blast" && f.text?.startsWith("Plan iptal edildi"))?.text?.replace(/^Plan iptal edildi\.\s*/, "");
   const hostNames = plan.hosts.map((h) => h.name).join(" & ");
   const poster = <Poster themeId={plan.themeId} text={plan.posterText ?? "30"} src={plan.posterUrl} topLeft="PARTİLE" bottomRight={plan.location?.district?.split(",")[0]?.toLocaleUpperCase("tr-TR")} className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.4)]" />;
 
   return (
     <ThemeSurface themeId={plan.themeId} className="min-h-dvh pb-28 md:pb-16">
-      {!joined && <EffectLayer effect={plan.effect} themeId={plan.themeId} seed={plan.code.length} />}
+      {!joined && !cancelled && <EffectLayer effect={plan.effect} themeId={plan.themeId} seed={plan.code.length} />}
       {!joined && (
         <Link href={routes.landing} className="flex h-13 items-center justify-between bg-bg px-4 text-[15px] text-text md:justify-center md:gap-4">
           <span>Plan yapmak bu kadar kolay</span>
@@ -109,7 +111,13 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
           {pendingApproval && (
             <div className="flex items-center gap-3 rounded-xl border border-[rgba(255,181,71,0.4)] bg-[rgba(255,181,71,0.14)] px-4 py-3.5 text-sm md:hidden"><span className="font-bold">Onay bekliyor.</span> Düzenleyen listeye alınca haber veririz.</div>
           )}
-          {!joined && !polling && !pendingApproval && ready && (
+          {cancelled && (
+            <div role="status" className="flex flex-col gap-1.5 rounded-xl border border-[rgba(255,106,61,0.5)] bg-[rgba(255,106,61,0.14)] px-4 py-4">
+              <span className="text-lg font-bold">Bu plan iptal edildi</span>
+              {cancelNote && <span className="text-[15px] opacity-90">“{cancelNote}” — {plan.hosts.find((h) => h.owner)?.name.split(" ")[0] ?? "Düzenleyen"}</span>}
+            </div>
+          )}
+          {!cancelled && !joined && !polling && !pendingApproval && ready && (
             <div className="flex flex-col items-center gap-4 md:hidden">
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
               <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} variant={plan.rsvpStyle} allowMaybe={plan.allowMaybe} />
@@ -237,6 +245,8 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             <span className="max-w-[300px] text-center text-sm opacity-75">Tarih anketi açık: soldaki seçeneklere oy ver. Gün seçilince oyun katılıma dönüşür.</span>
           ) : pendingApproval ? (
             <div className="glass flex w-full flex-col gap-1.5 rounded-2xl p-4.5"><span className="font-bold">Onay bekliyor</span><span className="text-sm opacity-85">Katılımını bildirdin; düzenleyen listeye alınca haber veririz.</span><button type="button" onClick={() => setFlow("going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button></div>
+          ) : cancelled ? (
+            <span className="max-w-[300px] text-center text-sm opacity-75">Plan iptal edildiği için katılım kapalı.</span>
           ) : !joined ? (
             <>
               <span className="display text-xl tracking-normal">Geliyor musun?</span>

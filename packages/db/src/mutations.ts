@@ -421,3 +421,29 @@ export async function logReminder(planId: string, kind: "rsvp" | "event", recipi
   const rows = recipients.filter((r) => r.userId).map((r) => ({ id: id(), userId: r.userId!, planId, kind: "reminder", actorName: "partile", text, role: "guest" }));
   if (rows.length) await db.insert(notifications).values(rows);
 }
+
+/* ---------- cancel / restore ---------- */
+
+/**
+ * Host cancels: status → cancelled, the note goes to the feed, everyone who answered or was invited gets an
+ * in-app notification. Returns recipients with e-mail so the caller can mail them. Reminders stop (status filter).
+ */
+export async function cancelPlan(planId: string, hostId: string, note?: string) {
+  const db = await getDb();
+  const [plan] = await db.select({ title: plans.title, code: plans.code, startsAt: plans.startsAt, status: plans.status }).from(plans).where(eq(plans.id, planId)).limit(1);
+  if (!plan || plan.status === "cancelled") return null;
+  await db.update(plans).set({ status: "cancelled", updatedAt: new Date() }).where(eq(plans.id, planId));
+  await db.insert(feedItems).values({ id: id(), planId, actorId: hostId, kind: "blast", text: note?.trim() ? `Plan iptal edildi. ${note.trim()}` : "Plan iptal edildi." });
+  const gs = await db.select({ userId: guests.userId, email: guests.email, name: guests.name, status: guests.status }).from(guests).where(eq(guests.planId, planId));
+  const recipients = gs.filter((g) => g.status !== "no");
+  const [host] = await db.select({ name: users.name }).from(users).where(eq(users.id, hostId)).limit(1);
+  const rows = recipients.filter((r) => r.userId).map((r) => ({ id: id(), userId: r.userId!, planId, kind: "blast", actorName: host?.name ?? "", text: `${plan.title} iptal edildi.${note?.trim() ? ` “${note.trim().slice(0, 80)}”` : ""}`, role: "guest" }));
+  if (rows.length) await db.insert(notifications).values(rows);
+  return { plan: { title: plan.title, code: plan.code, startsAt: plan.startsAt?.toISOString() }, hostName: host?.name ?? "", emails: [...new Set(recipients.map((r) => r.email).filter((e): e is string => !!e))] };
+}
+
+export async function restorePlan(planId: string, hostId: string) {
+  const db = await getDb();
+  await db.update(plans).set({ status: "published", updatedAt: new Date() }).where(and(eq(plans.id, planId), eq(plans.status, "cancelled")));
+  await db.insert(feedItems).values({ id: id(), planId, actorId: hostId, kind: "blast", text: "Plan yeniden aktif." });
+}

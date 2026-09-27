@@ -119,3 +119,15 @@ export async function sendReminderMail(to: string, kind: "rsvp" | "event", plan:
     : `<p style="margin:0 0 12px;font-size:18px;font-weight:800">2 saat kaldı: ${esc(plan.title)}</p><p style="margin:0 0 16px;font-size:14px;line-height:1.5">${esc(when)}${plan.address ? `<br>${esc(plan.address)}` : ""}</p>${button(url, "Planı aç")}`;
   return send(to, title, shell(body, "Bu hatırlatma, katılım bildirdiğin ya da davet edildiğin plan için gönderildi. Planı sessize almak için plan sayfasındaki zili kullan."), `${title}\n${when}\n\n${url}`);
 }
+
+/** Plan cancelled: one message per guest so addresses stay private. */
+export async function sendCancelMail(to: string[], plan: { title: string; code: string; startsAt?: string }, hostName: string, note?: string) {
+  if (!to.length) return { sent: false as const };
+  const when = plan.startsAt ? `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}` : "";
+  const body = `<p style="margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-0.4px">${esc(plan.title)} iptal edildi</p>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#3D3832">${esc(hostName)} bu planı iptal etti${when ? ` (${esc(when)})` : ""}. Takvimine eklediysen kaldırabilirsin.</p>
+${note?.trim() ? `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;width:100%"><tr><td style="background:#F5F2EC;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5;white-space:pre-line">${esc(note.trim())}</td></tr></table>` : ""}
+${button(planUrl(plan.code), "Plan sayfasını aç")}`;
+  const results = await Promise.all(to.map((addr) => send(addr, `İptal: ${plan.title}`, shell(body, "Bu e-posta, katıldığın ya da davet edildiğin plan iptal edildiği için gönderildi.", `${hostName} planı iptal etti`), `${plan.title} iptal edildi.\n${note ?? ""}\n\n${planUrl(plan.code)}`)));
+  return { sent: results.some((r) => r.sent) };
+}

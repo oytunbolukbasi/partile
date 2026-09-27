@@ -21,7 +21,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "drafts", label: "Taslaklar" },
 ];
 
-const badge = (role: PlanRole) => (role === "host" ? "DÜZENLİYORSUN" : rsvpLabel[role].toLocaleUpperCase("tr-TR"));
+const badge = (role: PlanRole, cancelled = false) => (cancelled ? "İPTAL EDİLDİ" : role === "host" ? "DÜZENLİYORSUN" : rsvpLabel[role].toLocaleUpperCase("tr-TR"));
 const chip = (on: boolean) => `flex h-11 shrink-0 items-center gap-2 rounded-pill px-4 text-[15px] ${on ? "border border-white/45 bg-white/14 font-bold text-white" : "bg-white/10 font-semibold text-text hover:bg-white/14"}`;
 
 /** `Home` / `HomeMobile`: greeting, filter chips, plan cards with a per-card menu, drafts, cards & mutuals. */
@@ -34,7 +34,7 @@ export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Pla
   const all = plans;
   const me = { id: viewer.id, name: viewer.name.split(" ")[0] || "sen", initials: viewer.initials };
   const now = Date.now();
-  const upcoming = all.filter((x) => !x.plan.startsAt || new Date(x.plan.startsAt).getTime() > now);
+  const upcoming = all.filter((x) => x.plan.status !== "cancelled" && (!x.plan.startsAt || new Date(x.plan.startsAt).getTime() > now));
   const hosting = all.filter((x) => x.role === "host");
   const attending = all.filter((x) => x.role !== "host" && x.role !== "no");
   const drafts = draft?.touched ? [draft] : [];
@@ -163,7 +163,7 @@ function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: 
         {role === "host" && (
           <>
             <span className="mx-2 my-1 h-px bg-white/12" />
-            <button type="button" role="menuitem" onClick={onClose} className="flex h-11 items-center gap-3 rounded-[10px] px-3 text-left text-[15px] font-bold text-[#FF8C6B] hover:bg-white/10">Planı iptal et</button>
+            <Link href={`${routes.plan(plan.code)}?iptal=1`} role="menuitem" onClick={onClose} className="flex h-11 items-center gap-3 rounded-[10px] px-3 text-left text-[15px] font-bold text-[#FF8C6B] hover:bg-white/10">{plan.status === "cancelled" ? "İptal edildi · geri al" : "Planı iptal et"}</Link>
           </>
         )}
       </div>
@@ -177,7 +177,7 @@ function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: 
         <Link href={href} className="flex items-center gap-3.5 rounded-xl border border-white/8 bg-white/5 p-3 md:hidden">
           <Poster themeId={plan.themeId} text={plan.posterText ?? ""} src={plan.posterUrl} className="w-[84px] shrink-0 rounded-[12px]" />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-xs font-bold text-[#1EC9B0]">{badge(role)}{plan.startsAt && ` · ${formatPill(plan.startsAt)}`}</span>
+            <span className="text-xs font-bold text-[#1EC9B0]">{badge(role, plan.status === "cancelled")}{plan.startsAt && ` · ${formatPill(plan.startsAt)}`}</span>
             <span className="truncate text-[17px] font-bold tracking-tight">{plan.title}</span>
             <span className="text-[13px] text-subtle">{hostLabel}</span>
           </span>
@@ -190,7 +190,7 @@ function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: 
           </Link>
           {plan.startsAt && <span className="pointer-events-none absolute left-2.5 top-2.5 flex h-[30px] items-center rounded-pill bg-bg/70 px-3 text-[13px] font-bold text-white">{formatPill(plan.startsAt)}</span>}
           <button type="button" aria-haspopup="menu" aria-expanded={menuOpen} aria-label="Plan menüsü" onClick={onMenu} className="absolute right-2.5 top-2.5 flex size-8 items-center justify-center rounded-pill bg-bg/70 text-white"><MoreIcon size={16} /></button>
-          <span className="pointer-events-none absolute bottom-0 right-0 flex h-10 items-center rounded-tl-xl bg-bg px-3.5 text-[13px] font-extrabold tracking-wide text-white">{badge(role)}</span>
+          <span className="pointer-events-none absolute bottom-0 right-0 flex h-10 items-center rounded-tl-xl bg-bg px-3.5 text-[13px] font-extrabold tracking-wide text-white">{badge(role, plan.status === "cancelled")}</span>
           {menuEl}
         </div>
         <Link href={href} className="flex flex-col gap-1.5">

@@ -15,6 +15,8 @@ import {
   listGuestEmails,
   markNotificationsRead,
   removePhoto,
+  cancelPlan as cancelPlanRow,
+  restorePlan as restorePlanRow,
   addInvitedGuests,
   inviteCohost as inviteCohostRow,
   respondCohost as respondCohostRow,
@@ -34,7 +36,7 @@ import {
   votePoll,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
-import { mailEnabled, sendBlastMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
+import { mailEnabled, sendBlastMail, sendCancelMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
 import { materialize, remove as removeFile } from "@/lib/storage";
 import { routes } from "@/lib/routes";
 
@@ -338,5 +340,27 @@ export async function markPaid(code: string, paid: boolean) {
   if (!g) return { ok: false as const };
   await setPaid(g.id, paid);
   revalidatePath(routes.plan(code));
+  return { ok: true as const };
+}
+
+/* ---------- cancel ---------- */
+
+export async function cancelPlan(code: string, note: string) {
+  const h = await hostOf(code);
+  if (!h) return { ok: false as const };
+  const r = await cancelPlanRow(h.plan.id, h.v.id, note.slice(0, 400));
+  if (!r) return { ok: false as const };
+  await sendCancelMail(r.emails, r.plan, r.hostName || "Düzenleyen", note);
+  revalidatePath(routes.plan(code));
+  revalidatePath(routes.home);
+  return { ok: true as const, notified: r.emails.length };
+}
+
+export async function restorePlan(code: string) {
+  const h = await hostOf(code);
+  if (!h) return { ok: false as const };
+  await restorePlanRow(h.plan.id, h.v.id);
+  revalidatePath(routes.plan(code));
+  revalidatePath(routes.home);
   return { ok: true as const };
 }
