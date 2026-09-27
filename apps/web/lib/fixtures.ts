@@ -5,7 +5,9 @@ import type { PlanDraft, RsvpStatus } from "@partile/core";
  * A published plan = draft + code + hosts + guests.
  */
 export type Host = { id: string; name: string; initials: string; gradient: string };
-export type Guest = { id: string; name: string; initials: string; gradient: string; status: RsvpStatus; plusOnes?: number; note?: string; at: string };
+export type Guest = { id: string; name: string; initials: string; gradient: string; status: RsvpStatus; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; checkedIn?: boolean; at: string };
+export type Blast = { id: string; at: string; to: string; count: number; text: string };
+export type Notification = { id: string; code: string; initials: string; gradient: string; kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album"; text: string; at: string; unread: boolean; role: "host" | "guest" };
 export type FeedItem = { id: string; guestId: string; kind: "rsvp" | "comment" | "blast"; text?: string; at: string };
 
 export type Plan = PlanDraft & {
@@ -13,6 +15,8 @@ export type Plan = PlanDraft & {
   hosts: Host[];
   guests: Guest[];
   feed: FeedItem[];
+  blasts: Blast[];
+  views: number;
   publishedAt: string;
 };
 
@@ -33,7 +37,7 @@ export const plans: Record<string, Plan> = {
     visibility: "private",
     plusOnesMax: 1,
     requirePlusOneNames: true,
-    requireApproval: false,
+    requireApproval: true,
     allowMaybe: true,
     guestsCanInviteMutuals: true,
     remindersEnabled: true,
@@ -52,11 +56,14 @@ export const plans: Record<string, Plan> = {
       { id: "h2", name: "Deniz", initials: "DA", gradient: g("#FF6A3D", "#FFD166") },
     ],
     guests: [
-      { id: "g1", name: "Selin Arslan", initials: "SA", gradient: g("#FFD166", "#FF6A3D"), status: "going", plusOnes: 1, at: "2026-09-25T10:00:00Z" },
-      { id: "g2", name: "Mert Kaya", initials: "MK", gradient: g("#1EC9B0", "#0E7C86"), status: "going", note: "Tatlıyı ben getiriyorum, kimse uğraşmasın.", at: "2026-09-27T07:55:00Z" },
-      { id: "g3", name: "Buse Yılmaz", initials: "BY", gradient: g("#F59E0B", "#C2410C"), status: "going", at: "2026-09-27T07:46:00Z" },
-      { id: "g4", name: "Ege Çelik", initials: "EÇ", gradient: g("#38BDF8", "#1D4ED8"), status: "maybe", at: "2026-09-27T07:00:00Z" },
-      { id: "g5", name: "Gökçe Tan", initials: "GT", gradient: g("#A8B545", "#4B5D2A"), status: "going", plusOnes: 1, at: "2026-09-26T18:00:00Z" },
+      { id: "g1", name: "Selin Arslan", initials: "SA", gradient: g("#FFD166", "#FF6A3D"), status: "going", plusOnes: 1, plusOneNames: ["Ayşe"], answers: { q1: "Vejetaryen", q2: "Evet" }, checkedIn: true, at: "2026-09-25T10:00:00Z" },
+      { id: "g2", name: "Mert Kaya", initials: "MK", gradient: g("#1EC9B0", "#0E7C86"), status: "going", note: "Tatlıyı ben getiriyorum, kimse uğraşmasın.", answers: { q2: "Evet" }, at: "2026-09-27T07:55:00Z" },
+      { id: "g3", name: "Buse Yılmaz", initials: "BY", gradient: g("#F59E0B", "#C2410C"), status: "going", answers: { q1: "Gluten yok", q2: "Bakarız" }, at: "2026-09-27T07:46:00Z" },
+      { id: "g4", name: "Ege Çelik", initials: "EÇ", gradient: g("#38BDF8", "#1D4ED8"), status: "maybe", note: "Vardiya belli olunca yazarım", at: "2026-09-27T07:00:00Z" },
+      { id: "g5", name: "Gökçe Tan", initials: "GT", gradient: g("#A8B545", "#4B5D2A"), status: "going", plusOnes: 1, checkedIn: true, at: "2026-09-26T18:00:00Z" },
+      { id: "g8", name: "Cem Demir", initials: "CD", gradient: g("#FFB020", "#FF6A3D"), status: "pending", note: "Listeye alın dedi", at: "2026-09-27T04:00:00Z" },
+      { id: "g9", name: "Zeynep Ak", initials: "ZA", gradient: g("#1EC9B0", "#FFD166"), status: "pending", plusOnes: 1, at: "2026-09-26T11:00:00Z" },
+      { id: "g10", name: "Onur Kara", initials: "OK", gradient: g("#CFC9C0", "#7A756D"), status: "invited", at: "2026-09-24T09:00:00Z" },
       { id: "g6", name: "İrem Koç", initials: "İK", gradient: g("#FB7185", "#B91C3C"), status: "maybe", at: "2026-09-26T12:00:00Z" },
       { id: "g7", name: "Deniz Aydın", initials: "DA", gradient: g("#FF6A3D", "#FFD166"), status: "no", note: "Şehir dışındayım, iyi eğlenceler", at: "2026-09-26T09:00:00Z" },
       ...Array.from({ length: 9 }, (_, i) => ({ id: `x${i}`, name: `Misafir ${i + 1}`, initials: "M", gradient: g("#CFC9C0", "#7A756D"), status: "going" as RsvpStatus, at: "2026-09-24T09:00:00Z" })),
@@ -67,6 +74,8 @@ export const plans: Record<string, Plan> = {
       { id: "f3", guestId: "g4", kind: "rsvp", at: "2026-09-27T07:00:00Z" },
       { id: "f4", guestId: "h1", kind: "blast", text: "Terası 20:00’de açıyorlar, erken gelenler için sahilde buluşalım.", at: "2026-09-26T15:00:00Z" },
     ],
+    blasts: [{ id: "b1", at: "2026-09-26T15:40:00Z", to: "Geliyor + Belki", count: 17, text: "Adres güncellendi: Moda Deniz Kulübü Terası. Kapıda “Ece 30” de." }],
+    views: 212,
     publishedAt: "2026-09-24T08:00:00Z",
   },
   sahil: {
@@ -100,6 +109,8 @@ export const plans: Record<string, Plan> = {
       ...Array.from({ length: 23 }, (_, i) => ({ id: `r${i}`, name: `Koşucu ${i + 1}`, initials: "K", gradient: g("#CFC9C0", "#7A756D"), status: "going" as RsvpStatus, at: "2026-09-24T09:00:00Z" })),
     ],
     feed: [],
+    blasts: [],
+    views: 480,
     publishedAt: "2026-09-20T08:00:00Z",
   },
 };
@@ -131,3 +142,14 @@ export const countByStatus = (guests: Guest[]) =>
     },
     { going: 0, maybe: 0, no: 0, invited: 0, pending: 0 } as Record<RsvpStatus, number>,
   );
+
+/** Notification feed for the viewer (`Notifications` artboard). */
+export const notifications: Notification[] = [
+  { id: "n1", code: "ece30", initials: "MK", gradient: g("#1EC9B0", "#0E7C86"), kind: "rsvp", text: "Mert Ece 30 Oluyor için “Geliyorum” dedi. 14 kişi oldunuz.", at: "2026-09-27T07:55:00Z", unread: true, role: "host" },
+  { id: "n2", code: "ece30", initials: "BY", gradient: g("#F59E0B", "#C2410C"), kind: "comment", text: "Buse yorum yazdı: “Gluten yok ama pasta serbest”", at: "2026-09-27T07:46:00Z", unread: true, role: "host" },
+  { id: "n3", code: "ece30", initials: "CD", gradient: g("#FFB020", "#FF6A3D"), kind: "approval", text: "Cem listeye alınmak istiyor. Onayla ya da reddet.", at: "2026-09-27T04:00:00Z", unread: true, role: "host" },
+  { id: "n4", code: "sahil", initials: "KK", gradient: g("#FF6A3D", "#FFD166"), kind: "reminder", text: "Yarın 06:30 — Caddebostan Sahil Koşusu. Buluşma: Kalamış iskelesi.", at: "2026-09-27T02:00:00Z", unread: false, role: "guest" },
+  { id: "n5", code: "ece30", initials: "DA", gradient: g("#FF6A3D", "#FFD166"), kind: "cohost", text: "Deniz ortak düzenleyen davetini kabul etti.", at: "2026-09-26T18:10:00Z", unread: false, role: "host" },
+  { id: "n6", code: "sahil", initials: "EÇ", gradient: g("#38BDF8", "#1D4ED8"), kind: "album", text: "Ege albüme 3 fotoğraf ekledi.", at: "2026-09-26T16:02:00Z", unread: false, role: "guest" },
+  { id: "n7", code: "ece30", initials: "SA", gradient: g("#FFD166", "#FF6A3D"), kind: "rsvp", text: "Selin +1 ile geliyor: Ayşe.", at: "2026-09-26T09:40:00Z", unread: false, role: "host" },
+];

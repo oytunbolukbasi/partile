@@ -104,3 +104,27 @@ export const CopyIcon = ({ size = 18, ...p }: P) => (
 export const BellOffIcon = ({ size = 18, ...p }: P) => (
   <svg {...base(size, p)}><path d="M6 8a6 6 0 0 1 11.3-2.8M18 8v5l2 3H8M6 8v5l-2 3h3M10 20a2 2 0 0 0 4 0M3 3l18 18" /></svg>
 );
+export const DownloadIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M12 4v11M7 10l5 5 5-5M4 19h16" /></svg>
+);
+export const TrashIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
+);
+export const ImageIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><rect x="3" y="4" width="18" height="16" rx="3" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="M21 16l-5-5-8 8" /></svg>
+);
+export const LinkIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>
+);
+export const ChatIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-4.6A8 8 0 1 1 21 12z" /></svg>
+);
+export const CameraIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M4 8h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+);
+export const QuestionIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><path d="M9.2 9a3 3 0 0 1 5.6 1.2c0 2-2.8 2.4-2.8 4M12 18h.01" /></svg>
+);
+export const CogIcon = ({ size = 18, ...p }: P) => (
+  <svg {...base(size, p)}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
+);

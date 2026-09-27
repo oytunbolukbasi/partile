@@ -14,7 +14,7 @@ const items: { key: RailKey; href: string; label: string; Icon: typeof HomeIcon 
   { key: "create", href: routes.create, label: "Plan oluştur", Icon: CreateIcon },
   { key: "card", href: "#", label: "Kart gönder", Icon: CardIcon },
   { key: "messages", href: "#", label: "Mesajlar", Icon: MessagesIcon },
-  { key: "bell", href: "#", label: "Bildirimler", Icon: BellIcon },
+  { key: "bell", href: routes.notifications, label: "Bildirimler", Icon: BellIcon },
 ];
 
 /** 72 px icon rail for signed-in desktop screens. Settings live under the avatar, not here. */

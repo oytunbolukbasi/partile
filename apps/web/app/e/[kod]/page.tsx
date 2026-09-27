@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { PlanCode, formatDayLong, formatTime } from "@partile/core";
 import { notFound } from "next/navigation";
+import { HostView } from "@/components/host/HostView";
 import { PlanView } from "@/components/plan/PlanView";
-import { getPlan } from "@/lib/fixtures";
+import { getPlan, roleFor } from "@/lib/fixtures";
 
-type Props = { params: Promise<{ kod: string }> };
+type Props = { params: Promise<{ kod: string }>; searchParams: Promise<{ goruntule?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { kod } = await params;
@@ -18,11 +19,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** `/e/{kod}` — `InviteDesktop` / `InviteMobile` before RSVP, `Event` / `EventMobile` after. Data from fixtures until the DB lands. */
-export default async function PlanPage({ params }: Props) {
-  const { kod } = await params;
+/**
+ * `/e/{kod}` — hosts get `EventHost`; guests get `InviteDesktop`/`InviteMobile` before RSVP and `Event`/`EventMobile` after.
+ * `?goruntule=misafir` lets a host preview the guest view. Data from fixtures until the DB lands.
+ */
+export default async function PlanPage({ params, searchParams }: Props) {
+  const [{ kod }, { goruntule }] = await Promise.all([params, searchParams]);
   if (!PlanCode.safeParse(kod).success) notFound();
   const plan = getPlan(kod);
   if (!plan) notFound();
+  if (roleFor(plan) === "host" && goruntule !== "misafir") return <HostView plan={plan} />;
   return <PlanView plan={plan} />;
 }

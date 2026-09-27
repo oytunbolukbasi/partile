@@ -5,6 +5,7 @@ export const routes = {
   home: "/planlar",
   create: "/olustur",
   profile: "/profil",
+  notifications: "/bildirimler",
   explore: "/kesfet", // Faz 2
   plan: (code: string) => `/e/${code}`,
   occasion: (slug: string) => `/${slug}`, // e.g. /dogum-gunu-davetiyesi

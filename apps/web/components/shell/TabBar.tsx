@@ -12,13 +12,13 @@ export function TabBar({ initials = "OB" }: { initials?: string }) {
     { href: routes.home, label: "Ana sayfa", Icon: HomeIcon },
     { href: routes.explore, label: "Keşfet", Icon: ExploreIcon },
     { href: routes.create, label: "Oluştur", Icon: null },
-    { href: "#", label: "Bildirimler", Icon: BellIcon },
+    { href: routes.notifications, label: "Bildirimler", Icon: BellIcon },
     { href: routes.profile, label: "Profil", Icon: null },
   ];
   return (
     <nav aria-label="Alt menü" className="fixed inset-x-0 bottom-0 z-30 flex h-[84px] items-center justify-around border-t border-line bg-bg/88 px-3 pb-[22px] pt-1.5 backdrop-blur-md md:hidden">
       {items.map(({ href, label, Icon }) => {
-        const on = href !== "#" && path.startsWith(href);
+        const on = path.startsWith(href);
         return (
           <Link key={label} href={href} aria-label={label} aria-current={on ? "page" : undefined} className={`flex size-14 items-center justify-center ${on ? "text-white" : "text-subtle"}`}>
             {label === "Oluştur" ? (

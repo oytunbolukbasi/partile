@@ -48,7 +48,7 @@ export function HomeView() {
       <header className="relative flex h-16 items-center justify-between px-4 md:hidden">
         <Link href={routes.home} className="flex items-center gap-2"><MarkTile size={32} /><Wordmark size={22} /></Link>
         <div className="flex gap-2">
-          <Link href="#" aria-label="Bildirimler" className="flex size-10 items-center justify-center rounded-pill bg-white/10"><BellIcon size={20} /></Link>
+          <Link href={routes.notifications} aria-label="Bildirimler" className="flex size-10 items-center justify-center rounded-pill bg-white/10"><BellIcon size={20} /></Link>
           <Link href={routes.create} className="flex h-10 items-center rounded-pill bg-white px-4 text-sm font-bold text-bg">Oluştur</Link>
         </div>
       </header>
