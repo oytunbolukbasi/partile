@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@partile/core": "workspace:*",
+    "@partile/db": "workspace:^",
     "@partile/ui-tokens": "workspace:*",
     "html-to-image": "^1.11.13",
     "next": "^15.1.6",

@@ -42,6 +42,7 @@ export const CostSettings = z.object({
   papara: z.string().trim().optional(),
   note: z.string().max(80).optional(),
 });
+export type CostSettings = z.infer<typeof CostSettings>;
 
 export const PollOption = z.object({
   id: z.string(),
