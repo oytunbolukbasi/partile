@@ -78,9 +78,9 @@ export function CreateEditor() {
         <span className="text-xs opacity-80 md:hidden">{savedAt ? "Kaydedildi" : "Taslak"}</span>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:items-start md:gap-8 md:pb-40 md:pl-24 md:pr-[400px] md:pt-[120px] 2xl:pr-10">
+      <div className="flex flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:items-start md:justify-center md:gap-6 md:px-6 md:pb-40 md:pr-[380px] md:pt-[120px] xl:pr-6 2xl:gap-8">
         {/* left column */}
-        <div className="flex w-full max-w-[460px] flex-col gap-3.5">
+        <div className="flex w-full max-w-[420px] flex-col gap-3.5 2xl:max-w-[460px]">
           <div className="glass flex flex-col gap-3 rounded-2xl px-3 pb-3 pt-3.5">
             <label htmlFor="title" className="sr-only">
               Planın adı
@@ -243,24 +243,24 @@ export function CreateEditor() {
         </div>
 
 
-        {/* 2xl+: panel and toolbar flow as columns so nothing floats over empty space */}
+        {/* xl+: panel and toolbar flow as columns; the whole row is centered so left/right margins match */}
         {panel === "theme" && (
-          <div className="glass-menu sticky top-[126px] hidden w-[220px] shrink-0 rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] 2xl:block">
+          <div className="glass-menu sticky top-[126px] hidden w-[220px] shrink-0 rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] xl:block">
             <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
           </div>
         )}
-        <div className="sticky top-[126px] hidden shrink-0 2xl:block">{toolbar}</div>
+        <div className="sticky top-[126px] hidden shrink-0 xl:block">{toolbar}</div>
       </div>
 
       {/* theme panel (desktop, below 2xl): fixed, left of the fixed toolbar */}
       {panel === "theme" && (
-        <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block 2xl:hidden">
+        <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block xl:hidden">
           <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
         </div>
       )}
 
       {/* desktop toolbar (fixed below 2xl; in-flow column at 2xl+) */}
-      <div className="fixed right-10 top-[126px] hidden md:block 2xl:hidden">{toolbar}</div>
+      <div className="fixed right-10 top-[126px] hidden md:block xl:hidden">{toolbar}</div>
 
       {/* desktop actions */}
       <div className="fixed bottom-10 right-10 hidden gap-2.5 md:flex">
