@@ -198,16 +198,16 @@ export function CreateEditor() {
 
           <div className="flex flex-col gap-2.5 pt-2">
             <div className="text-[13px] font-bold uppercase tracking-wide opacity-70">Düzenleyen için hızlı ayarlar</div>
-            <div className="grid grid-cols-2 gap-2 md:flex">
+            <div className="grid grid-cols-2 gap-2.5">
               {[
-                ["Misafirlere sor", draft.questions.length ? `${draft.questions.length} soru` : null],
+                ["Misafirlere sor", draft.questions.length ? `${draft.questions.length} soru` : "Kapalı"],
                 ["Hatırlatmalar", draft.remindersEnabled ? "Açık" : "Kapalı"],
-                ["Katılım onayı", draft.requireApproval ? "Açık" : null],
-                [`+1 misafir: ${draft.plusOnesMax}`, null],
+                ["Katılım onayı", draft.requireApproval ? "Açık" : "Kapalı"],
+                ["+1 misafir", draft.plusOnesMax ? `En fazla ${draft.plusOnesMax}` : "Kapalı"],
               ].map(([l, s]) => (
-                <button key={l} type="button" className="glass flex h-12 grow items-center justify-center gap-1.5 rounded-lg text-sm font-bold">
-                  {l}
-                  {s && <span className="opacity-70">· {s}</span>}
+                <button key={l} type="button" className="glass flex h-14 items-center justify-between gap-2 rounded-lg px-4 text-left">
+                  <span className="text-[15px] font-bold">{l}</span>
+                  <span className="shrink-0 text-[13px] opacity-70">{s}</span>
                 </button>
               ))}
             </div>
