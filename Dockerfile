@@ -30,8 +30,9 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 ENV DB_MIGRATIONS_DIR=/app/packages/db/drizzle UPLOAD_DIR=/data/uploads
 WORKDIR /app
 RUN addgroup -S partile && adduser -S partile -G partile && mkdir -p /data/uploads && chown -R partile:partile /data
-# `pg` is loaded at runtime (serverExternalPackages) and is not part of the traced standalone tree.
-RUN npm install --omit=dev --no-package-lock --no-audit --no-fund pg@8 && chown -R partile:partile /app
+# `pg` and `sharp` are loaded at runtime (server external packages) and are not reliably part of the traced
+# standalone tree; installing them here also picks sharp's musl binary for this Alpine image.
+RUN npm install --omit=dev --no-package-lock --no-audit --no-fund pg@8 sharp@0.34 && chown -R partile:partile /app
 # Standalone server + static assets
 COPY --from=build --chown=partile:partile /app/apps/web/.next/standalone ./
 COPY --from=build --chown=partile:partile /app/apps/web/.next/static ./apps/web/.next/static

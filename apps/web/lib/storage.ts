@@ -6,8 +6,9 @@ import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 /**
- * Upload storage. Development keeps files on disk under `.data/uploads` and serves them from `/api/dosya/…`;
- * production should swap `put`/`remove` for a blob store (Vercel Blob / R2) — the rest of the app only sees URLs.
+ * Upload storage on disk: `.data/uploads` in development, the Railway volume (`UPLOAD_DIR=/data/uploads`) in
+ * production; files are served from `/api/dosya/…`. The rest of the app only sees URLs, so a blob store can replace
+ * `put`/`get`/`remove` later.
  */
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
@@ -26,8 +27,34 @@ function uploadDir(): string {
 
 export const isImageType = (mime: string) => mime in TYPES;
 
-/** Store bytes; returns the public URL. */
-export async function put(bytes: Uint8Array, mime: string): Promise<string> {
+const MAX_EDGE = 2048;
+
+/**
+ * Stills are rotated by EXIF, fitted inside 2048 px and re-encoded as WebP; metadata (incl. GPS) is dropped.
+ * Animated GIF/WebP stay as they are. If sharp is unavailable or the image is odd, the original bytes are kept.
+ */
+async function optimize(bytes: Uint8Array, mime: string): Promise<{ bytes: Uint8Array; mime: string }> {
+  if (mime === "image/gif") return { bytes, mime };
+  try {
+    const { default: sharp } = await import("sharp");
+    const meta = await sharp(bytes).metadata();
+    if ((meta.pages ?? 1) > 1) return { bytes, mime };
+    const out = await sharp(bytes, { failOn: "none" })
+      .rotate()
+      .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+    return { bytes: new Uint8Array(out), mime: "image/webp" };
+  } catch (e) {
+    console.error("[storage] optimize failed, keeping original", e);
+    return { bytes, mime };
+  }
+}
+
+/** Store bytes (optimized); returns the public URL. */
+export async function put(input: Uint8Array, inputMime: string): Promise<string> {
+  if (!TYPES[inputMime]) throw new Error("unsupported type");
+  const { bytes, mime } = await optimize(input, inputMime);
   const ext = TYPES[mime];
   if (!ext) throw new Error("unsupported type");
   const dir = uploadDir();

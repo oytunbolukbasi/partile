@@ -15,7 +15,7 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 
 - **Kullanıcıdan:** Railway cron’unun ilk çalışma kaydı; KVKK veri sorumlusu adı + adresi (`apps/web/lib/legal.ts`), hukuk metinlerinin incelenmesi; toplu test.
 - **Halka açmadan önce:** `DEMO_LOGIN_CODE` ve `SEED_SAMPLE`’ı Railway’den kaldır; Neon’daki örnek plan/kullanıcıları temizle; sohbette paylaşılmış Neon şifresi, Resend anahtarı ve `CRON_SECRET`’ı yenile; Railway’deki fazla www özel alan adını sil (yönlendirme Cloudflare’de).
-- **Ürün:** GIF arama ve “Galerim” sekmeleri (afiş seçici), yüklenen görsellerin boyutlandırılması (sharp), OG kartında marka fontu, tuval + envanterin son özelliklerle güncellenmesi.
+- **Ürün:** GIF arama (sağlayıcı + anahtar kararı bekliyor; şimdilik GIF “Yükle”den), tuval + envanterin son özelliklerle güncellenmesi.
 - **Altyapı (acil değil):** Neon bölgesi us-east-2 → Frankfurt, Resend bölgesi Tokyo → İrlanda.
 - **Faz 2+:** AI öneri, Premium kapsamı, organizasyon profili, kartlar, plan şifresi; Faz 3 tahsilat/bilet/Expo.
 
@@ -61,7 +61,7 @@ corepack pnpm --filter @partile/db smoke       # yalnız DATABASE_URL boşken
 - `next build` dev sunucusuyla `.next`'i paylaşır: build'den önce dev'i durdur, `rm -rf apps/web/.next`.
 - **Veritabanı:** `DATABASE_URL` doluysa `pg` + TLS (libpq parametreleri ayıklanır); boşsa `./.data/partile` altında PGlite, migrasyon + örnek veri otomatik. PGlite Next içinde paketlenince bozulur; `client.ts` onu Node'un kendi yükleyicisiyle açar. **Yerel `apps/web/.env` şu an canlı Neon'a bağlı:** yerelde yapılan her yazma canlıya gider.
 - **Oturum:** 6 haneli kod 10 dk, tek kullanımlık; e-postada kod + sihirli link. `partile_session` httpOnly çerezi, `AUTH_SECRET` ile HMAC. Canlı dışında kod ekranda da görünür; `DEMO_LOGIN_CODE` demo@getpartile.com'a sabit kod verir ve bu adrese e-posta göndermez.
-- **Yüklemeler:** JPG/PNG/GIF/WebP, en çok 8 MB, boyutlandırma yok. Yerelde `./.data/uploads`, canlıda Railway volume `/data/uploads`; `/api/dosya/…` sunar.
+- **Yüklemeler:** JPG/PNG/GIF/WebP, en çok 8 MB. Durağan görseller `sharp` ile EXIF’e göre döndürülür, en çok 2048 px, WebP (kalite 82), meta veri (konum dahil) silinir; hareketli GIF/WebP olduğu gibi kalır; sharp yoksa orijinal saklanır. Yerelde `./.data/uploads`, canlıda Railway volume `/data/uploads`; `/api/dosya/…` sunar. `pg` ve `sharp` çalışma imajına ayrıca kurulur (Dockerfile).
 - **Stil:** Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez. Tema sayfalarında (`ThemeSurface` altı) `white/…` yerine `ink/…`, `bg-surface/…`, `bg-contrast text-on-contrast`; açık temada bunlar kendiliğinden döner. Modal paneli `shell-scope` ile koyu kabuğa döner.
 - **Fontlar:** self-hosted (`next/font/local`), Railway build'i Google Fonts'a erişemediği için. Davetiye başlık fontları `preload: false`.
 - **Env** (`apps/web/.env.example`): NEXT_PUBLIC_SITE_URL, DATABASE_URL, AUTH_SECRET, RESEND_API_KEY, RESEND_FROM, UPLOAD_DIR, CRON_SECRET, DEMO_LOGIN_CODE; ayrıca PGSSL, DB_AUTO_MIGRATE, SEED_SAMPLE. Gizli değerler yalnız `apps/web/.env`'de (git dışı) ve Railway'de.
@@ -86,14 +86,14 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Platform | Önce **Next.js web (mobile-first)**, sonra Expo RN (Faz 3). Monorepo: `apps/web`, `packages/{db,core,ui-tokens}`. |
 | Altyapı | Railway (Docker, `main` dalı) + Neon + Resend + Cloudflare. Vercel değil. |
 | Auth | **E-posta + tek seferlik kod / sihirli link (Resend)**, şifre yok. Misafir katılım bildirirken ad + e-posta verir, kodu girer ya da linke tıklar; giriş duvarı yok. SMS/Twilio MVP'de yok; ürün tutarsa ikinci yöntem olarak eklenir. |
-| Dağıtım | **WhatsApp birincil** (OG kartı: afiş + tarih + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru + hatırlatma kanalı: uygulama içi bildirim + e-posta. WhatsApp Business API ve SMS ileride. |
+| Dağıtım | **WhatsApp birincil** (OG kartı: temanın zemini, planın başlık fontu, tarih, semt, afiş + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru + hatırlatma kanalı: uygulama içi bildirim + e-posta. WhatsApp Business API ve SMS ileride. |
 | Paylaşım linki | `getpartile.com/e/{kod}`; kod başlıktan üretilir (`slugify`, en çok 20 karakter, doluysa `-xxxx`). Başlık değişince kod değişir, eski kod `plan_code_aliases`'ta kalır ve 308 ile yönlenir. Tüm paylaşım yolları `plan.code` kullanır. "Planın adı" yer tutucusuyla yayın/kayıt yapılamaz. |
 | Görünürlük | Varsayılan **Gizli** (linke sahip olanlar). **Herkese açık + Keşfet MVP'de** (`/kesfet`, semte göre). Katılımcı listesi, akış, albüm ve tam adres her durumda yalnız katılım bildirenlere. |
 | Gizlilik / mevzuat | Düzenleyen misafirin e-postasını **göremez** (CSV'de de yok). KVKK aydınlatma + gizlilik + koşullar sayfaları taslak (`/kvkk`, `/gizlilik`, `/kosullar`). Hatırlatma e-postası işlem mesajıdır; pazarlama e-postası ayrı izin (İYS/ETK). |
 | Mesajlar | Plan bazlı düzenleyen ↔ misafir yazışması, grup sohbeti yok. Giriş: plan sayfası “Düzenleyene yaz”, katılımcı listesi “Mesaj”. Yeni mesaj bildirim üretir. |
 | Ortak düzenleyen | Sahibi e-postayla davet eder; kabul edene dek yetkisi yok (`plan_hosts.accepted`). |
 | Davetli ekleme | Düzenleyen “Misafir ekle” ile ad (+ isteğe bağlı e-posta) girer. E-postası olana davetiye e-postası gider; hesap açınca satır ona bağlanır. |
-| Fotoğraf & afiş | Girişsiz seçilen afiş taslakta `data:` URL (≤1,5 MB), yayınlanınca dosyaya dönüşür. Albüm: düzenleyen her zaman; misafir “albüme yükleyebilir” açıksa ve Geliyorum/Belki ise. Kendi fotoğrafını, düzenleyen hepsini silebilir. |
+| Fotoğraf & afiş | Girişsiz seçilen afiş taslakta `data:` URL (≤1,5 MB), yayınlanınca dosyaya dönüşür. Afiş seçici: Şablonlar (kategori filtreli) · Yükle · Galerim (düzenlediğin planların afişleri + albüm fotoğrafların) · GIF (yakında). Albüm: düzenleyen her zaman; misafir “albüme yükleyebilir” açıksa ve Geliyorum/Belki ise. Kendi fotoğrafını, düzenleyen hepsini silebilir. |
 | Ödeme | **Masrafı böl** = IBAN / Papara gösterimi + misafir “Gönderdim” beyanı; doğrulama yok. Gerçek tahsilat ve bilet Faz 3. |
 | Tarih anketi | MVP'de var; masrafı böl ve katılım onayıyla aynı anda kapalı. Gün seçilince oylar katılıma dönüşür. |
 | Hatırlatmalar | Katılım hatırlatması 1 hafta önce (davetli + belki; plan en az 1 hafta önce yayınlandıysa), etkinlik hatırlatması 2 saat önce (geliyor). `reminder_log` plan+tür başına bir kez. Plan “hatırlatmalar kapalı” ise atlanır. |

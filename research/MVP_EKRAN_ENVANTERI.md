@@ -27,7 +27,7 @@
 | 4 | Plan oluştur (editör) | `Create`, `CreateMobile` | 1440 · 390 | tema seçimi canlı | Tema paneli sağda (masaüstü) / alt bar (mobil) |
 | 5 | Tarih & saat seç | `DatePicker` | modal | takvim canlı | Hafta Pazartesi; TSİ sabit; "tarih kesin değil" anahtarı |
 | 6 | Konum seç | `LocationPicker` | modal | semt/tam adres canlı | Photon (OSM, ücretsiz) autocomplete; harita yok; "Yalnız semt" varsayılan |
-| 7 | Afiş seç | `PosterPicker` | modal | sekmeler canlı | Şablonlar · Yükle · Galerim · GIF; kare, ≥1080 px. Kodda Galerim ve GIF henüz yer tutucu. |
+| 7 | Afiş seç | `PosterPicker` | modal | sekmeler canlı | Şablonlar · Yükle · Galerim · GIF; kare, ≥1080 px. Kodda: şablon kategorileri filtreler, Galerim = önceki afişler + albüm fotoğrafları, GIF “yakında” (GIF şimdilik Yükle’den). Yüklenen görsel en çok 2048 px WebP’ye çevrilir. |
 | 8 | Tarih anketi — düzenleyen | `Poll` | modal | seçenek ekle/sil | Masrafı böl ve katılım onayıyla birlikte kapalı |
 | 9 | Tarih anketi — misafir oyu | `PollGuest` | 390 | oy canlı | Evet/Belki/Hayır; gün seçilince oy → katılım |
 | 10 | Plan ayarları: Katılım | `Settings` | modal | — | +1, ad iste, katılım onayı, kontenjan, buton stili, "Belki" |
