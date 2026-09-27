@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
+import { blasts, conversations, feedItems, follows, guests, laterReminders, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
 
 const isoOf = (d: Date | null | undefined) => (d ? d.toISOString() : undefined);
 
@@ -174,8 +174,9 @@ export async function getUserByEmail(email: string) {
 export async function listGuestEmails(planId: string, guestIds: string[]): Promise<string[]> {
   if (!guestIds.length) return [];
   const db = await getDb();
-  const rows = await db.select({ email: guests.email }).from(guests).where(and(eq(guests.planId, planId), inArray(guests.id, guestIds)));
-  return [...new Set(rows.map((r) => r.email).filter((e): e is string => !!e))];
+  const rows = await db.select({ email: guests.email, userId: guests.userId }).from(guests).where(and(eq(guests.planId, planId), inArray(guests.id, guestIds)));
+  const muted = new Set((await db.select({ userId: planMutes.userId }).from(planMutes).where(eq(planMutes.planId, planId))).map((m) => m.userId));
+  return [...new Set(rows.filter((r) => !r.userId || !muted.has(r.userId)).map((r) => r.email).filter((e): e is string => !!e))];
 }
 
 /** Published, public, upcoming plans for Keşfet, soonest first. */
@@ -266,9 +267,10 @@ export async function dueReminders(now = new Date()): Promise<DueReminder[]> {
     if (!kinds.length) continue;
     const gs = await db.select({ id: guests.id, userId: guests.userId, email: guests.email, name: guests.name, status: guests.status }).from(guests).where(eq(guests.planId, r.id));
     const plan = await assemble(r);
+    const muted = new Set((await db.select({ userId: planMutes.userId }).from(planMutes).where(eq(planMutes.planId, r.id))).map((m) => m.userId));
     for (const kind of kinds) {
       const want = kind === "rsvp" ? ["invited", "maybe"] : ["going"];
-      out.push({ plan, kind, recipients: gs.filter((g) => want.includes(g.status)).map((g) => ({ guestId: g.id, userId: g.userId, email: g.email, name: g.name })) });
+      out.push({ plan, kind, recipients: gs.filter((g) => want.includes(g.status) && !(g.userId && muted.has(g.userId))).map((g) => ({ guestId: g.id, userId: g.userId, email: g.email, name: g.name })) });
     }
   }
   return out;
@@ -279,4 +281,44 @@ export async function ping(): Promise<boolean> {
   const db = await getDb();
   await db.execute(sql`select 1`);
   return true;
+}
+
+/** Viewer-specific switches on the plan page: muted, following the hosts, pending "Sonra hatırlat". */
+export async function viewerPlanState(planId: string, userId: string | null, hostIds: string[]) {
+  const db = await getDb();
+  const [followers] = hostIds[0] ? await db.select({ n: count() }).from(follows).where(eq(follows.followeeId, hostIds[0])) : [{ n: 0 }];
+  if (!userId) return { muted: false, following: false, remindAt: null as string | null, followers: followers?.n ?? 0 };
+  const [m] = await db.select({ u: planMutes.userId }).from(planMutes).where(and(eq(planMutes.planId, planId), eq(planMutes.userId, userId))).limit(1);
+  const f = hostIds.length ? await db.select({ id: follows.followeeId }).from(follows).where(and(eq(follows.followerId, userId), inArray(follows.followeeId, hostIds))) : [];
+  const [l] = await db.select().from(laterReminders).where(and(eq(laterReminders.planId, planId), eq(laterReminders.userId, userId), isNull(laterReminders.sentAt))).limit(1);
+  return { muted: !!m, following: f.length > 0, remindAt: l ? l.remindAt.toISOString() : null, followers: followers?.n ?? 0 };
+}
+
+export async function listMutedPlanIds(userId: string): Promise<string[]> {
+  const db = await getDb();
+  return (await db.select({ id: planMutes.planId }).from(planMutes).where(eq(planMutes.userId, userId))).map((r) => r.id);
+}
+
+export type DueLaterReminder = { plan: Plan; userId: string; email: string };
+
+/** "Sonra hatırlat" rows whose time came, for users who still have not answered a live plan. */
+export async function dueLaterReminders(now = new Date()): Promise<DueLaterReminder[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ planId: laterReminders.planId, userId: laterReminders.userId, email: users.email })
+    .from(laterReminders)
+    .innerJoin(users, eq(users.id, laterReminders.userId))
+    .where(and(isNull(laterReminders.sentAt), lte(laterReminders.remindAt, now)));
+  const out: DueLaterReminder[] = [];
+  for (const r of rows) {
+    const [p] = await db.select().from(plans).where(eq(plans.id, r.planId)).limit(1);
+    const [g] = p ? await db.select({ status: guests.status }).from(guests).where(and(eq(guests.planId, r.planId), eq(guests.userId, r.userId))).limit(1) : [];
+    const stale = !p || p.status !== "published" || (p.startsAt && p.startsAt.getTime() <= now.getTime()) || (g && g.status !== "invited");
+    if (stale) {
+      await db.delete(laterReminders).where(and(eq(laterReminders.planId, r.planId), eq(laterReminders.userId, r.userId)));
+      continue;
+    }
+    out.push({ plan: await assemble(p!), userId: r.userId, email: r.email });
+  }
+  return out;
 }

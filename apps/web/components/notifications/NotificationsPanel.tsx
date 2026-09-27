@@ -5,7 +5,7 @@ import { useState } from "react";
 import { formatTime } from "@partile/core";
 import { Avatar } from "@/components/plan/Avatar";
 import { TabBar } from "@/components/shell/TabBar";
-import { BellIcon, CameraIcon, ChatIcon, CheckIcon, CogIcon, CrownIcon, QuestionIcon } from "@/components/shell/icons";
+import { BellIcon, CameraIcon, ChatIcon, CheckIcon, CogIcon, CrownIcon, QuestionIcon, UsersIcon } from "@/components/shell/icons";
 import type { Notification } from "@partile/core";
 import { markRead } from "@/app/actions";
 import type { Viewer } from "@/lib/auth";
@@ -21,6 +21,7 @@ const BADGE: Record<Notification["kind"], { Icon: typeof CheckIcon; bg: string }
   album: { Icon: CameraIcon, bg: "#F5F2EC" },
   blast: { Icon: ChatIcon, bg: "#FFB020" },
   message: { Icon: ChatIcon, bg: "#1EC9B0" },
+  follow: { Icon: UsersIcon, bg: "#1EC9B0" },
 };
 
 const dayKey = (iso: string) => {

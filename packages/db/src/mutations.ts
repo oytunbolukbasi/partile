@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import type { PlanDraft, Rsvp } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
+import { blasts, conversations, feedItems, follows, guests, laterReminders, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
 
 const id = () => randomUUID();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -122,7 +122,18 @@ export async function createPlan(ownerId: string, draft: PlanDraft, publish = tr
   await db.insert(plans).values({ id: planId, code, ownerId, status: publish ? "published" : "draft", publishedAt: publish ? new Date() : null, ...draftToRow(draft) });
   await db.insert(planHosts).values({ planId, userId: ownerId, role: "owner", position: 0 });
   await syncPoll(planId, draft.poll);
+  if (publish && draft.visibility === "public") await notifyFollowers(ownerId, planId, draft.title);
   return { id: planId, code };
+}
+
+/** Followers hear about a host's new public plan (private plans stay link-only). */
+async function notifyFollowers(hostId: string, planId: string, title: string) {
+  const db = await getDb();
+  const fs = await db.select({ userId: follows.followerId }).from(follows).where(eq(follows.followeeId, hostId));
+  if (!fs.length) return;
+  const [host] = await db.select({ name: users.name }).from(users).where(eq(users.id, hostId)).limit(1);
+  const first = (host?.name || "Takip ettiğin biri").split(" ")[0];
+  await db.insert(notifications).values(fs.map((f) => ({ id: id(), userId: f.userId, planId, kind: "follow", actorName: host?.name ?? "", text: `${first} yeni bir plan yayınladı: ${title}`, role: "guest" })));
 }
 
 export async function updatePlan(planId: string, patch: Partial<PlanDraft>) {
@@ -254,7 +265,13 @@ export async function upsertRsvp(planId: string, userId: string, email: string, 
   await db.insert(feedItems).values({ id: id(), planId, actorId: guestId!, kind: "rsvp", text: r.note ?? null });
   const first = r.name.split(" ")[0];
   const label = status === "pending" ? "listeye alınmak istiyor" : status === "going" ? "“Geliyorum” dedi" : status === "maybe" ? "“Belki” dedi" : "gelemiyor";
-  await db.insert(notifications).values({ id: id(), userId: plan.ownerId, planId, kind: status === "pending" ? "approval" : "rsvp", actorName: r.name, text: `${first} ${plan.title} için ${label}.`, role: "host" });
+  const ownerMuted = status !== "pending" && (await mutedUserIds(planId)).has(plan.ownerId);
+  if (!ownerMuted) await db.insert(notifications).values({ id: id(), userId: plan.ownerId, planId, kind: status === "pending" ? "approval" : "rsvp", actorName: r.name, text: `${first} ${plan.title} için ${label}.`, role: "host" });
+  if (r.followHost) {
+    const hosts = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.accepted, true)));
+    await setFollow(userId, hosts.map((h) => h.userId), true);
+  }
+  await db.delete(laterReminders).where(and(eq(laterReminders.planId, planId), eq(laterReminders.userId, userId)));
   return { guestId: guestId!, status };
 }
 
@@ -302,7 +319,8 @@ export async function sendBlast(planId: string, userId: string, toLabel: string,
   const [plan] = await db.select({ title: plans.title }).from(plans).where(eq(plans.id, planId)).limit(1);
   const [host] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
   const recipients = recipientGuestIds.length ? await db.select({ userId: guests.userId }).from(guests).where(and(eq(guests.planId, planId), sql`${guests.id} in ${recipientGuestIds}`)) : [];
-  const rows = recipients.filter((r) => r.userId).map((r) => ({ id: id(), userId: r.userId!, planId, kind: "blast", actorName: host?.name ?? "", text: `${plan?.title ?? "Plan"}: ${text}`, role: "guest" }));
+  const muted = await mutedUserIds(planId);
+  const rows = recipients.filter((r) => r.userId && !muted.has(r.userId)).map((r) => ({ id: id(), userId: r.userId!, planId, kind: "blast", actorName: host?.name ?? "", text: `${plan?.title ?? "Plan"}: ${text}`, role: "guest" }));
   if (rows.length) await db.insert(notifications).values(rows);
   return bid;
 }
@@ -446,4 +464,42 @@ export async function restorePlan(planId: string, hostId: string) {
   const db = await getDb();
   await db.update(plans).set({ status: "published", updatedAt: new Date() }).where(and(eq(plans.id, planId), eq(plans.status, "cancelled")));
   await db.insert(feedItems).values({ id: id(), planId, actorId: hostId, kind: "blast", text: "Plan yeniden aktif." });
+}
+
+/* ---------- mute, follow, remind later ---------- */
+
+export async function mutedUserIds(planId: string): Promise<Set<string>> {
+  const db = await getDb();
+  const rows = await db.select({ userId: planMutes.userId }).from(planMutes).where(eq(planMutes.planId, planId));
+  return new Set(rows.map((r) => r.userId));
+}
+
+export async function setMuted(planId: string, userId: string, muted: boolean) {
+  const db = await getDb();
+  if (muted) await db.insert(planMutes).values({ planId, userId }).onConflictDoNothing();
+  else await db.delete(planMutes).where(and(eq(planMutes.planId, planId), eq(planMutes.userId, userId)));
+}
+
+export async function setFollow(followerId: string, followeeIds: string[], follow: boolean) {
+  const ids = followeeIds.filter((f) => f !== followerId);
+  if (!ids.length) return;
+  const db = await getDb();
+  if (follow) await db.insert(follows).values(ids.map((followeeId) => ({ followerId, followeeId }))).onConflictDoNothing();
+  else await db.delete(follows).where(and(eq(follows.followerId, followerId), inArray(follows.followeeId, ids)));
+}
+
+/** Set or clear (`remindAt` null) the viewer's "Sonra hatırlat" for a plan. */
+export async function setLaterReminder(planId: string, userId: string, remindAt: Date | null) {
+  const db = await getDb();
+  if (!remindAt) {
+    await db.delete(laterReminders).where(and(eq(laterReminders.planId, planId), eq(laterReminders.userId, userId)));
+    return;
+  }
+  await db.insert(laterReminders).values({ planId, userId, remindAt }).onConflictDoUpdate({ target: [laterReminders.planId, laterReminders.userId], set: { remindAt, sentAt: null } });
+}
+
+export async function markLaterReminderSent(planId: string, userId: string, text: string) {
+  const db = await getDb();
+  await db.update(laterReminders).set({ sentAt: new Date() }).where(and(eq(laterReminders.planId, planId), eq(laterReminders.userId, userId)));
+  await db.insert(notifications).values({ id: id(), userId, planId, kind: "reminder", actorName: "partile", text, role: "guest" });
 }

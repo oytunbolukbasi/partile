@@ -120,6 +120,15 @@ export async function sendReminderMail(to: string, kind: "rsvp" | "event", plan:
   return send(to, title, shell(body, "Bu hatırlatma, katılım bildirdiğin ya da davet edildiğin plan için gönderildi. Planı sessize almak için plan sayfasındaki zili kullan."), `${title}\n${when}\n\n${url}`);
 }
 
+/** "Sonra hatırlat" came due and the viewer has not answered yet. */
+export async function sendLaterReminderMail(to: string, plan: { title: string; code: string; startsAt?: string; district?: string; hostName?: string }) {
+  const url = planUrl(plan.code);
+  const when = plan.startsAt ? `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}` : "Tarih netleşmedi";
+  const title = `Hatırlatma: ${plan.title}`;
+  const body = `<p style="margin:0 0 12px;font-size:18px;font-weight:800">${esc(plan.title)}</p><p style="margin:0 0 16px;font-size:14px;line-height:1.5">${esc(when)}${plan.district ? ` · ${esc(plan.district)}` : ""}<br>Hatırlatmamızı istemiştin. ${plan.hostName ? `${esc(plan.hostName.split(" ")[0] ?? "")} kimlerin geleceğini bilmek istiyor.` : "Düzenleyen kimlerin geleceğini bilmek istiyor."} Geliyor musun?</p>${button(url, "Katılımını bildir")}`;
+  return send(to, title, shell(body, "Bu e-postayı, plan sayfasında “Sonra hatırlat” dediğin için aldın. Tek seferliktir."), `${title}\n${when}\n\n${url}`);
+}
+
 /** Plan cancelled: one message per guest so addresses stay private. */
 export async function sendCancelMail(to: string[], plan: { title: string; code: string; startsAt?: string }, hostName: string, note?: string) {
   if (!to.length) return { sent: false as const };

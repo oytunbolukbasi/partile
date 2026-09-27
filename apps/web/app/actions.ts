@@ -34,6 +34,9 @@ import {
   updateUser,
   upsertRsvp,
   votePoll,
+  setMuted,
+  setFollow,
+  setLaterReminder,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
 import { mailEnabled, sendBlastMail, sendCancelMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
@@ -341,6 +344,58 @@ export async function markPaid(code: string, paid: boolean) {
   await setPaid(g.id, paid);
   revalidatePath(routes.plan(code));
   return { ok: true as const };
+}
+
+/* ---------- mute, follow, remind later ---------- */
+
+/** Mute a plan for the viewer (host or guest): no blasts, reminders or RSVP pings; cancellations still arrive. */
+export async function mutePlan(code: string, muted: boolean) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  await setMuted(plan.id, v.id, muted);
+  revalidatePath(routes.plan(code));
+  revalidatePath(routes.home);
+  return { ok: true as const };
+}
+
+/** Follow / unfollow the plan's accepted hosts. */
+export async function followHosts(code: string, follow: boolean) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  await setFollow(v.id, plan.hosts.filter((h) => h.accepted !== false).map((h) => h.id), follow);
+  revalidatePath(routes.plan(code));
+  return { ok: true as const };
+}
+
+export type LaterOption = "tomorrow" | "in3days" | "dayBefore";
+const HOUR = 3600e3;
+
+/** Remind-later times still useful for a plan: at least an hour before it starts. */
+function laterAt(option: LaterOption, startsAt: string | undefined, now = Date.now()): Date | null {
+  const t = option === "tomorrow" ? now + 24 * HOUR : option === "in3days" ? now + 72 * HOUR : startsAt ? new Date(startsAt).getTime() - 24 * HOUR : NaN;
+  if (!Number.isFinite(t) || t <= now + HOUR) return null;
+  if (startsAt && t > new Date(startsAt).getTime() - HOUR) return null;
+  return new Date(t);
+}
+
+/** "Sonra hatırlat": one e-mail + notification later, skipped if the viewer answers first. `null` clears it. */
+export async function remindLater(code: string, option: LaterOption | null) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan || plan.status !== "published") return { ok: false as const, error: "Plan bulunamadı." };
+  if (option && (await isHost(plan.id, v.id))) return { ok: false as const, error: "Kendi planın için hatırlatma gerekmez." };
+  if (!option) {
+    await setLaterReminder(plan.id, v.id, null);
+    revalidatePath(routes.plan(code));
+    return { ok: true as const, at: null };
+  }
+  const at = laterAt(option, plan.dateTbd ? undefined : plan.startsAt);
+  if (!at) return { ok: false as const, error: "Bu zaman plandan sonraya denk geliyor." };
+  await setLaterReminder(plan.id, v.id, at);
+  revalidatePath(routes.plan(code));
+  return { ok: true as const, at: at.toISOString() };
 }
 
 /* ---------- cancel ---------- */

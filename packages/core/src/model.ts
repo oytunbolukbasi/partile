@@ -31,7 +31,7 @@ export type Notification = {
   planTitle: string;
   initials: string;
   gradient: string;
-  kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album" | "blast" | "message";
+  kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album" | "blast" | "message" | "follow";
   text: string;
   at: string;
   unread: boolean;

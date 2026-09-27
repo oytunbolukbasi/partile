@@ -11,6 +11,8 @@ import { BellIcon, BellOffIcon, CalendarIcon, CopyIcon, MoreIcon, PencilIcon, Pl
 import { countByStatus, type Plan, type PlanRole } from "@partile/core";
 import type { Viewer } from "@/lib/auth";
 import { loadDraft } from "@/lib/draft";
+import { mutePlan } from "@/app/actions";
+import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 
 type Tab = "upcoming" | "hosting" | "attending" | "drafts";
@@ -25,7 +27,7 @@ const badge = (role: PlanRole, cancelled = false) => (cancelled ? "İPTAL EDİLD
 const chip = (on: boolean) => `flex h-11 shrink-0 items-center gap-2 rounded-pill px-4 text-[15px] ${on ? "border border-white/45 bg-white/14 font-bold text-white" : "bg-white/10 font-semibold text-text hover:bg-white/14"}`;
 
 /** `Home` / `HomeMobile`: greeting, filter chips, plan cards with a per-card menu, drafts, cards & mutuals. */
-export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[] }) {
+export function HomeView({ viewer, plans, mutedIds = [] }: { viewer: Viewer; plans: { plan: Plan; role: PlanRole }[]; mutedIds?: string[] }) {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [menu, setMenu] = useState<string | null>(null);
   const [draft, setDraft] = useState<(PlanDraft & { touched: boolean }) | null>(null);
@@ -79,7 +81,7 @@ export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Pla
         {tab !== "drafts" && (
           <div className="flex flex-col gap-5 md:flex-row md:flex-wrap md:gap-10">
             {list.map(({ plan, role }, i) => (
-              <PlanCard key={plan.code} plan={plan} role={role} viewerId={viewer.id} compact={i > 0} menuOpen={menu === plan.code} onMenu={() => setMenu(menu === plan.code ? null : plan.code)} onClose={() => setMenu(null)} />
+              <PlanCard key={plan.code} plan={plan} role={role} muted={mutedIds.includes(plan.id)} viewerId={viewer.id} compact={i > 0} menuOpen={menu === plan.code} onMenu={() => setMenu(menu === plan.code ? null : plan.code)} onClose={() => setMenu(null)} />
             ))}
             {list.length === 0 && <p className="py-10 text-lg text-muted">Burada henüz bir şey yok.</p>}
             <Link href={routes.create} className="hidden h-[300px] w-[300px] flex-col items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-dashed border-white/35 text-base font-bold md:flex">
@@ -133,24 +135,23 @@ export function HomeView({ viewer, plans }: { viewer: Viewer; plans: { plan: Pla
   );
 }
 
-function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: { plan: Plan; role: PlanRole; viewerId: string; compact: boolean; menuOpen: boolean; onMenu: () => void; onClose: () => void }) {
+function PlanCard({ plan, role, muted, viewerId, compact, menuOpen, onMenu, onClose }: { plan: Plan; role: PlanRole; muted: boolean; viewerId: string; compact: boolean; menuOpen: boolean; onMenu: () => void; onClose: () => void }) {
+  const router = useRouter();
   const href = routes.plan(plan.code);
   const c = countByStatus(plan.guests);
   const hostLabel = plan.hosts.map((h) => (h.id === viewerId ? "Sen" : h.name.split(" ")[0])).join(" & ");
   const menuItems = role === "host"
     ? [
         { label: "Düzenle", href: `${routes.create}?kod=${plan.code}`, Icon: PencilIcon },
-        { label: "Paylaş", href: "#", Icon: ShareIcon },
-        { label: "Katılımcılar", href: "#", Icon: UsersIcon },
+        { label: "Paylaş", href: `${href}?paylas=1`, Icon: ShareIcon },
+        { label: "Katılımcılar", href, Icon: UsersIcon },
         { label: "Takvime ekle (.ics)", href: `/api/takvim/${plan.code}`, Icon: CalendarIcon },
         { label: "Kopyala (yeni plan)", href: routes.create, Icon: CopyIcon },
-        { label: "Sessize al", href: "#", Icon: BellOffIcon },
       ]
     : [
         { label: "Katılımı değiştir", href, Icon: PencilIcon },
-        { label: "Paylaş", href: "#", Icon: ShareIcon },
+        { label: "Paylaş", href, Icon: ShareIcon },
         { label: "Takvime ekle (.ics)", href: `/api/takvim/${plan.code}`, Icon: CalendarIcon },
-        { label: "Sessize al", href: "#", Icon: BellOffIcon },
       ];
 
   const menuEl = menuOpen && (
@@ -160,6 +161,9 @@ function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: 
         {menuItems.map(({ label, href: h, Icon }) => (
           <Link key={label} href={h} role="menuitem" onClick={onClose} className="flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] font-semibold hover:bg-white/10"><Icon size={18} className="text-muted" />{label}</Link>
         ))}
+        <button type="button" role="menuitem" onClick={async () => { onClose(); await mutePlan(plan.code, !muted); router.refresh(); }} className="flex h-11 items-center gap-3 rounded-[10px] px-3 text-left text-[15px] font-semibold hover:bg-white/10">
+          {muted ? <BellIcon size={18} className="text-muted" /> : <BellOffIcon size={18} className="text-muted" />}{muted ? "Bildirimleri aç" : "Sessize al"}
+        </button>
         {role === "host" && (
           <>
             <span className="mx-2 my-1 h-px bg-white/12" />

@@ -252,3 +252,50 @@ export const reminderLog = pgTable(
   },
   (t) => [primaryKey({ columns: [t.planId, t.kind] })],
 );
+
+/** A user muted a plan: no blast or reminder notifications/e-mails (hosts: no RSVP notifications). Cancellations still arrive. */
+export const planMutes = pgTable(
+  "plan_mutes",
+  {
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.planId, t.userId] })],
+);
+
+/** Follower gets an in-app notification when the followed host publishes a public plan. */
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: text("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followeeId: text("followee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.followerId, t.followeeId] }), index("follows_followee_idx").on(t.followeeId)],
+);
+
+/** "Sonra hatırlat": one e-mail + notification at `remindAt` unless the user answered by then. */
+export const laterReminders = pgTable(
+  "later_reminders",
+  {
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    remindAt: timestamp("remind_at", { withTimezone: true }).notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.planId, t.userId] }), index("later_reminders_due_idx").on(t.remindAt)],
+);

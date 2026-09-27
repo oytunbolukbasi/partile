@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatDayLong, formatTimeRange, formatTry, rsvpLabel, type RsvpStatus } from "@partile/core";
+import { formatDayLong, formatTimeRange, formatTry, planUrl, rsvpLabel, type RsvpStatus } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
@@ -10,7 +10,9 @@ import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
 import { CalendarMenu } from "@/components/plan/CalendarMenu";
-import { markPaid, openConversation, respondCohost } from "@/app/actions";
+import { followHosts, markPaid, mutePlan, openConversation, respondCohost } from "@/app/actions";
+import { RemindLaterMenu } from "@/components/plan/RemindLaterMenu";
+import { GuestListSheet } from "@/components/plan/GuestListSheet";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
@@ -18,7 +20,7 @@ import { RsvpButtons } from "@/components/plan/RsvpButtons";
 import { EffectLayer } from "@/components/plan/EffectLayer";
 import { RsvpFlow } from "@/components/plan/RsvpFlow";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
-import { BellIcon, CalendarIcon, CheckIcon, ChevronDownIcon, CrownIcon, LockIcon, PinIcon } from "@/components/shell/icons";
+import { BellIcon, BellOffIcon, CalendarIcon, CheckIcon, ChevronDownIcon, CrownIcon, LockIcon, PinIcon } from "@/components/shell/icons";
 import { countByStatus, type Plan } from "@partile/core";
 import type { Viewer } from "@/lib/auth";
 import { useRouter } from "next/navigation";
@@ -40,8 +42,26 @@ const timeAgo = (iso: string) => {
 /** `InviteDesktop` / `InviteMobile` (pre-RSVP) and `Event` / `EventMobile` (post-RSVP) in one component. */
 type ViewerGuest = { id: string; name: string; status: string; paid?: boolean; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
 
-export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInvite = false }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean; cohostInvite?: boolean }) {
+export type ViewerPlanState = { muted: boolean; following: boolean; remindAt: string | null; followers: number };
+const NO_STATE: ViewerPlanState = { muted: false, following: false, remindAt: null, followers: 0 };
+
+export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInvite = false, state = NO_STATE }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean; cohostInvite?: boolean; state?: ViewerPlanState }) {
   const router = useRouter();
+  const [listOpen, setListOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const loginHref = `${routes.login}?next=${encodeURIComponent(routes.plan(plan.code))}`;
+  const toggle = async (fn: () => Promise<unknown>) => {
+    if (preview || busy) return;
+    setBusy(true);
+    await fn();
+    setBusy(false);
+    router.refresh();
+  };
+  const share = async () => {
+    const url = planUrl(plan.code);
+    if (navigator.share) await navigator.share({ title: plan.title, url }).catch(() => {});
+    else await navigator.clipboard?.writeText(url);
+  };
   const rsvp = viewerGuest && viewerGuest.status !== "invited" ? viewerGuest : null;
   const ready = true;
   const [flowState, setFlowState] = useState<"going" | "maybe" | "no" | null>(null);
@@ -129,11 +149,15 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
               <>
                 <span className={chip}>TSİ</span>
                 <CalendarMenu plan={plan} full />
-                <button type="button" aria-label="Davet et" className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><SendIcon size={16} /></button>
-                <button type="button" aria-label="Sessize al" className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><BellIcon size={16} /></button>
+                <button type="button" aria-label="Davet et" title="Davet et" onClick={share} className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><SendIcon size={16} /></button>
+                {viewer && (
+                  <button type="button" aria-pressed={state.muted} disabled={busy} onClick={() => toggle(() => mutePlan(plan.code, !state.muted))} title={state.muted ? "Bildirimleri aç" : "Duyuru ve hatırlatmaları sessize al"} className={state.muted ? chip : "flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"}>
+                    {state.muted ? <><BellOffIcon size={16} /> Sessizde</> : <><BellIcon size={16} /><span className="sr-only">Sessize al</span></>}
+                  </button>
+                )}
               </>
             ) : (
-              <button type="button" className={chip}>Sonra hatırlat</button>
+              !cancelled && !preview && <RemindLaterMenu code={plan.code} startsAt={plan.dateTbd ? undefined : plan.startsAt} remindAt={state.remindAt} signedIn={!!viewer} chipClass={chip} />
             )}
           </div>
 
@@ -141,11 +165,17 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             <div className="flex items-center gap-2.5 text-[17px] opacity-85"><CrownIcon size={20} /> Düzenleyenler</div>
             <div className="flex items-center gap-3.5">
               <div className="flex">{plan.hosts.map((h, i) => <Avatar key={h.id} initials={h.initials} gradient={h.gradient} size={52} square ring="rgba(0,0,0,0.35)" className={i ? "-ml-3" : ""} />)}</div>
-              <div className="flex grow flex-col"><span className="text-lg font-bold">{hostNames}</span><span className="text-sm opacity-75">3 yaklaşan plan</span></div>
+              <div className="flex grow flex-col"><span className="text-lg font-bold">{hostNames}</span><span className="text-sm opacity-75">{state.followers > 0 ? `${state.followers} takipçi` : plan.hosts.length > 1 ? "Düzenleyenler" : "Düzenleyen"}</span></div>
               {joined && !preview ? (
                 <button type="button" onClick={async () => { const r = await openConversation(plan.code, plan.hosts[0]!.id); if (r.ok) router.push(`${routes.messages}?s=${r.id}`); }} className={chip}>Düzenleyene yaz</button>
               ) : (
-                <button type="button" className={chip}>Takip et</button>
+                viewer ? (
+                  <button type="button" aria-pressed={state.following} disabled={busy || preview} onClick={() => toggle(() => followHosts(plan.code, !state.following))} className={chip}>
+                    {state.following ? <><CheckIcon size={16} /> Takip ediliyor</> : "Takip et"}
+                  </button>
+                ) : (
+                  <Link href={loginHref} className={chip}>Takip et</Link>
+                )
               )}
             </div>
           </section>
@@ -194,7 +224,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                 <h2 className="display text-[26px] tracking-tight">Katılımcılar</h2>
                 {plan.showGuestCount && <span className="text-base opacity-85">{counts.going} geliyor · {counts.maybe} belki{joined ? ` · ${counts.no} gelemiyor` : ""}</span>}
               </div>
-              {joined && <button type="button" className={chip}>Tümünü gör</button>}
+              {joined && <button type="button" onClick={() => setListOpen(true)} className={chip}>Tümünü gör</button>}
             </div>
             <AvatarStack items={plan.guests.slice(0, joined ? 6 : 4)} ring="rgba(0,0,0,0.35)" more={Math.max(0, plan.guests.length - (joined ? 6 : 4))} />
             {!joined && (
@@ -209,6 +239,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             )}
           </section>
 
+          {joined && <GuestListSheet open={listOpen} onClose={() => setListOpen(false)} guests={plan.guests} />}
           {joined && (
             <>
               <AlbumSection code={plan.code} photos={plan.photos} viewerId={viewer?.id ?? null} isHost={false} canUpload={!preview && plan.albumGuestsCanUpload && !!viewer} chipClass={chip} />
