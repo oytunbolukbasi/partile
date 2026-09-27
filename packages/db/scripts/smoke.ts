@@ -1,3 +1,9 @@
+// End-to-end smoke test of the data layer. It WRITES (RSVP, poll vote, new plan, picks a poll day), so it only runs
+// against local PGlite: refuse when DATABASE_URL points at a real database.
+if (process.env.DATABASE_URL) {
+  console.error("smoke: DATABASE_URL is set — this test writes data. Unset it to run against local PGlite.");
+  process.exit(1);
+}
 import { getPlanByCode, listPlansForUser, listNotifications, getUserByEmail, createVerificationCode, consumeVerificationCode, upsertRsvp, votePoll, pickPollDay, createPlan, DEMO_EMAIL } from "../src/index.ts";
 const t0 = Date.now();
 const u = await getUserByEmail(DEMO_EMAIL);
