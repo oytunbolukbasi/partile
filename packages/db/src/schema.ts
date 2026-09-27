@@ -1,5 +1,5 @@
 import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
-import type { CostSettings, Question } from "@partile/core";
+import type { CostSettings, EffectSettings, Question } from "@partile/core";
 
 /** Postgres schema (PGlite in development, Neon in production). Identifiers are text ids generated in code. */
 
@@ -53,6 +53,8 @@ export const plans = pgTable("plans", {
   requirePlusOneNames: boolean("require_plus_one_names").notNull().default(false),
   requireApproval: boolean("require_approval").notNull().default(false),
   allowMaybe: boolean("allow_maybe").notNull().default(true),
+  rsvpStyle: text("rsvp_style").notNull().default("icons"),
+  effect: jsonb("effect").$type<EffectSettings>(),
   guestsCanInviteMutuals: boolean("guests_can_invite_mutuals").notNull().default(true),
   remindersEnabled: boolean("reminders_enabled").notNull().default(true),
   showGuestNames: boolean("show_guest_names").notNull().default(true),

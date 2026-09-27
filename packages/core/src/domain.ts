@@ -44,6 +44,21 @@ export const CostSettings = z.object({
 });
 export type CostSettings = z.infer<typeof CostSettings>;
 
+export const RsvpStyle = z.enum(["icons", "text", "single", "emoji"]);
+export type RsvpStyle = z.infer<typeof RsvpStyle>;
+export const rsvpStyleLabel: Record<RsvpStyle, string> = { icons: "Simgeler", text: "Metin", single: "Tek düğme", emoji: "Emoji" };
+
+export const EffectId = z.enum(["none", "confetti", "sparkle", "snow", "balloons", "hearts", "fireworks"]);
+export type EffectId = z.infer<typeof EffectId>;
+export const effectLabel: Record<EffectId, string> = { none: "Yok", confetti: "Konfeti", sparkle: "Işıltı", snow: "Kar", balloons: "Balon", hearts: "Kalp", fireworks: "Havai fişek" };
+/** Particle layer shown over the invitation (`Effects` artboard). */
+export const EffectSettings = z.object({
+  id: EffectId.default("none"),
+  level: z.enum(["low", "mid", "high"]).default("mid"),
+  mode: z.enum(["once", "loop"]).default("once"),
+});
+export type EffectSettings = z.infer<typeof EffectSettings>;
+
 export const PollOption = z.object({
   id: z.string(),
   startsAt: z.string().datetime(),
@@ -83,6 +98,9 @@ export const PlanDraft = z.object({
   requirePlusOneNames: z.boolean().default(false),
   requireApproval: z.boolean().default(false),
   allowMaybe: z.boolean().default(true),
+  /** How the Geliyorum / Belki / Gelemiyorum choice is drawn on the invitation. */
+  rsvpStyle: RsvpStyle.default("icons"),
+  effect: EffectSettings.optional(),
   guestsCanInviteMutuals: z.boolean().default(true),
   remindersEnabled: z.boolean().default(true),
   /** Display & privacy — guest list and feed are always hidden pre-RSVP. */

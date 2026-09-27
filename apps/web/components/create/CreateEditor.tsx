@@ -36,6 +36,8 @@ import type { Viewer } from "@/lib/auth";
 import type { Plan } from "@partile/core";
 import { SettingsModal, type SettingsTab } from "./SettingsModal";
 import { ThemePanel } from "./ThemePanel";
+import { EffectPanel } from "./EffectPanel";
+import { RsvpStyleMenu } from "./RsvpStyleMenu";
 
 const glassRow = "glass flex h-[52px] items-center gap-3 rounded-lg px-4 text-left";
 const chip = "glass h-[38px] rounded-pill px-3.5 text-[15px] font-semibold";
@@ -47,8 +49,8 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
   const [publishing, startPublish] = useTransition();
   const [publishError, setPublishError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
-  const [panel, setPanel] = useState<"theme" | null>("theme");
-  const [sheet, setSheet] = useState<"theme" | null>(null);
+  const [panel, setPanel] = useState<"theme" | "effect" | null>("theme");
+  const [sheet, setSheet] = useState<"theme" | "effect" | null>(null);
   const [modal, setModal] = useState<"date" | "poll" | "location" | "poster" | "settings" | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   // Signed-out hosts verify their e-mail first; the draft stays in the browser and publishes on return (?yayinla=1).
@@ -90,8 +92,8 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
           <span className="size-10 rounded-pill border-2 border-white shadow-[0_0_0_3px_rgba(255,255,255,0.15)]" style={{ background: theme.poster }} />
           Tema
         </button>
-        <button type="button" className="flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold text-muted">
-          <span className="flex size-10 items-center justify-center rounded-pill text-white" style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }}>
+        <button type="button" onClick={() => setPanel(panel === "effect" ? null : "effect")} aria-pressed={panel === "effect"} className={`flex w-[84px] flex-col items-center gap-1.5 py-1.5 text-[13px] font-semibold ${panel === "effect" ? "" : "text-muted"}`}>
+          <span className={`flex size-10 items-center justify-center rounded-pill text-white ${panel === "effect" ? "border-2 border-white shadow-[0_0_0_3px_rgba(255,255,255,0.15)]" : ""}`} style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }}>
             <SparklesIcon />
           </span>
           Efekt
@@ -275,30 +277,28 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
             <div className="flex items-center gap-3">
               <SettingsIcon size={20} />
               <span className="grow text-[17px] font-semibold">Katılım seçenekleri</span>
-              <button type="button" onClick={() => openSettings("rsvp")} className="glass flex h-10 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold">
-                Simgeler <ChevronDownIcon size={14} />
-              </button>
+              <RsvpStyleMenu value={draft.rsvpStyle} onChange={(rsvpStyle) => patch({ rsvpStyle })} />
             </div>
             <div className="flex justify-around">
-              <RsvpButtons size={92} accentFg="#0C0C0D" />
+              <RsvpButtons size={92} accentFg="#0C0C0D" variant={draft.rsvpStyle} allowMaybe={draft.allowMaybe} />
             </div>
           </div>
         </div>
 
 
         {/* xl+: panel and toolbar flow as columns; the whole row is centered so left/right margins match */}
-        {panel === "theme" && (
+        {panel && (
           <div className="glass-menu sticky top-[126px] hidden w-[220px] shrink-0 rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] xl:block">
-            <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
+            {panel === "theme" ? <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} /> : <EffectPanel value={draft.effect} onChange={(effect) => patch({ effect })} />}
           </div>
         )}
         <div className="sticky top-[126px] hidden shrink-0 xl:block">{toolbar}</div>
       </div>
 
       {/* theme panel (desktop, below 2xl): fixed, left of the fixed toolbar */}
-      {panel === "theme" && (
+      {panel && (
         <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block xl:hidden">
-          <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
+          {panel === "theme" ? <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} /> : <EffectPanel value={draft.effect} onChange={(effect) => patch({ effect })} />}
         </div>
       )}
 
@@ -329,7 +329,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
             <span className="size-8 rounded-pill border-2 border-white" style={{ background: theme.poster }} />
             Tema
           </button>
-          <button type="button" className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
+          <button type="button" onClick={() => setSheet(sheet === "effect" ? null : "effect")} className="flex w-[76px] flex-col items-center gap-1 text-xs font-semibold text-muted">
             <span className="size-8 rounded-pill" style={{ background: "radial-gradient(circle at 40% 40%, #FFD166, #FF6A3D 55%, #3F0D06)" }} />
             Efekt
           </button>
@@ -349,10 +349,10 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
             Yayınla ve paylaş <ArrowRightIcon size={18} />
           </Link>
         )}
-        {sheet === "theme" && (
+        {sheet && (
           <div className="glass-menu -mx-4 -mb-6 rounded-t-[28px] px-5 pb-8 pt-3">
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-pill bg-white/25" />
-            <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} onClose={() => setSheet(null)} />
+            {sheet === "theme" ? <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} onClose={() => setSheet(null)} /> : <EffectPanel value={draft.effect} onChange={(effect) => patch({ effect })} onClose={() => setSheet(null)} />}
           </div>
         )}
       </div>

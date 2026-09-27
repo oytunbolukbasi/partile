@@ -41,6 +41,7 @@ export async function seedIfEmpty(db: Db): Promise<void> {
       plusOnesMax: 1,
       requirePlusOneNames: true,
       requireApproval: true,
+      effect: { id: "confetti", level: "mid", mode: "once" },
       questions: [
         { id: "q1", type: "short", text: "Diyet kısıtın var mı?", required: false },
         { id: "q2", type: "single", text: "Sahil yürüyüşüne katılır mısın?", required: true, options: ["Evet", "Hayır", "Bakarız"] },

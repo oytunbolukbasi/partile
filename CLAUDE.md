@@ -9,7 +9,7 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
 - **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
 - Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
-- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron). Tasarımı hazır, kodu bekleyen: Efekt paneli, katılım butonu stili (tuvalde onay bekliyor). Prod için: Neon `DATABASE_URL` + `AUTH_SECRET` + Resend domain doğrulaması (`getpartile.com`) ve `pnpm --filter @partile/db exec drizzle-kit migrate`.
+- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron). Efekt paneli ve katılım butonu stili kodlandı (27 Eyl 2026). Prod için: Neon `DATABASE_URL` + `AUTH_SECRET` + Resend domain doğrulaması (`getpartile.com`) ve `pnpm --filter @partile/db exec drizzle-kit migrate`.
 
 ## Kod
 
@@ -76,6 +76,8 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 - **Durum noktası (dot indicator) yok.** Durum, metnin rengiyle ya da rozetle anlatılır; okunmamış bildirim rozeti (zil üstü) istisna.
 - **Açılır menüler cam:** `rgba(28,28,31,0.72)` + `backdrop-filter: blur(24px)` + `1px rgba(255,255,255,0.16)` çizgi; ör. Ana sayfa kart menüsü.
 - **Afiş üzerinde süs halka yok**; afiş yalnız görsel + köşe etiketleri.
+- **Efekt:** davetiyenin üstünde parçacık katmanı (`EffectLayer`), en çok 60 parçacık, “açılışta bir kez” 4 sn ya da sürekli; `prefers-reduced-motion` açıkken oynamaz; misafir kapatabilir. Plan alanı `effect {id, level, mode}`.
+- **Katılım butonu stili** (`rsvpStyle`): Simgeler (varsayılan) · Emoji (🎉 🤔 😢 — düzenleyen seçer, kabuk emoji kullanmaz) · Metin · Tek düğme. Etiketler hep Geliyorum / Belki / Gelemiyorum.
 - **Davetiye temaları** kendi zemin/metin/vurgu üçlüsünü taşır; kabuk temaya bürünür (Partiful modeli).
 - **Fontlar:** Schibsted Grotesk (kabuk başlık), Hanken Grotesk (gövde), Unbounded (afiş rakam). Davetiye başlık fontları: Klasik/Schibsted · Eklektik/Fraunces · Şık/Pinyon Script · Edebi/Libre Baskerville · Dijital/Space Mono · Zarif/Cormorant italik. Hepsi Google Fonts, TR glif destekli.
 - **Logo:** "cam p + onay" — p harfi, bowl deliğinde tik. ≥60 px cam, ürün içinde düz, <32 px dolu bowl, 16 px yalnız tik. Kullanıcı 3D render'ı kendi aracında üretecek (`#1EC9B0 → #FFB020 → #FF6A3D`, siyah zemin).

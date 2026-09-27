@@ -13,6 +13,7 @@ import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
 import { RsvpButtons } from "@/components/plan/RsvpButtons";
+import { EffectLayer } from "@/components/plan/EffectLayer";
 import { RsvpFlow } from "@/components/plan/RsvpFlow";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
 import { BellIcon, CalendarIcon, CheckIcon, ChevronDownIcon, CrownIcon, LockIcon, PinIcon } from "@/components/shell/icons";
@@ -54,6 +55,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
 
   return (
     <ThemeSurface themeId={plan.themeId} className="min-h-dvh pb-28 md:pb-16">
+      {!joined && <EffectLayer effect={plan.effect} themeId={plan.themeId} seed={plan.code.length} />}
       {!joined && (
         <Link href={routes.landing} className="flex h-13 items-center justify-between bg-bg px-4 text-[15px] text-text md:justify-center md:gap-4">
           <span>Plan yapmak bu kadar kolay</span>
@@ -98,7 +100,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
           {!joined && !polling && !pendingApproval && ready && (
             <div className="flex flex-col items-center gap-4 md:hidden">
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
-              <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} />
+              <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} variant={plan.rsvpStyle} allowMaybe={plan.allowMaybe} />
             </div>
           )}
 
@@ -219,7 +221,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
           ) : !joined ? (
             <>
               <span className="display text-xl tracking-normal">Geliyor musun?</span>
-              {ready && <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} />}
+              {ready && <RsvpButtons size={104} accentFg="#160804" selected={null} onSelect={(s) => setFlow(s)} variant={plan.rsvpStyle} allowMaybe={plan.allowMaybe} />}
               <span className="max-w-[300px] text-center text-sm opacity-75">Katılımını bildirmek için ad ve e-posta yeter; uygulama gerekmez. E-postanı düzenleyenler göremez.</span>
             </>
           ) : (

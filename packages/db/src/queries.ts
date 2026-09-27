@@ -49,6 +49,8 @@ async function assemble(row: PlanRow): Promise<Plan> {
     requirePlusOneNames: row.requirePlusOneNames,
     requireApproval: row.requireApproval,
     allowMaybe: row.allowMaybe,
+    rsvpStyle: row.rsvpStyle as Plan["rsvpStyle"],
+    effect: row.effect ?? undefined,
     guestsCanInviteMutuals: row.guestsCanInviteMutuals,
     remindersEnabled: row.remindersEnabled,
     showGuestNames: row.showGuestNames,

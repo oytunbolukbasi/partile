@@ -52,7 +52,7 @@
 |---|---|---|---|---|---|
 | 29 | Mesajlar | `Messages` | 1440 | sohbet seçimi canlı | Plan bazlı yazışma: düzenleyen ↔ misafir; sol liste (Tümü · Planlar · Kişiler), sağ yazışma, plan çipi, sessize al. Grup sohbeti yok. Rail'de zarf ikonu; "Kart gönder" rail'den kaldırıldı. |
 | 30 | Efekt paneli | `Effects` | 1440 | efekt/yoğunluk/zaman seçimi canlı | Tema paneliyle aynı yer ve ölçü; Yok · Konfeti · Işıltı · Kar · Balon · Kalp · Havai fişek; yoğunluk Az/Orta/Çok; "açılışta bir kez (4 sn)" / "sürekli"; misafir kapatabilir; hareketi azalt'a saygı; `extras.effect` olarak kaydedilir. |
-| 31 | Katılım butonu stili | `RsvpStyles` | 1440 | menü canlı | Editör kartındaki açılır menü: Simgeler (varsayılan) · Metin · Tek düğme; Ayarlar → Katılım ile aynı değer. |
+| 31 | Katılım butonu stili | `RsvpStyles` | 1440 | menü canlı | Editör kartındaki açılır menü: Simgeler (varsayılan) · Emoji (🎉 🤔 😢) · Metin · Tek düğme; Ayarlar → Katılım ile aynı değer. |
 
 ## Faz 1 — giriş yapmamış (public) yüzeyler (çizili)
 

@@ -123,6 +123,9 @@ export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSav
                 </SettingRow>
               </Group>
               <Group>
+                <SettingRow title="Katılım butonu stili" hint="Davetiyedeki Geliyorum / Belki / Gelemiyorum görünümü">
+                  <Select label="Katılım butonu stili" value={d.rsvpStyle} onChange={(v) => set({ rsvpStyle: v as PlanDraft["rsvpStyle"] })} options={[["icons", "Simgeler"], ["emoji", "Emoji"], ["text", "Metin"], ["single", "Tek düğme"]]} />
+                </SettingRow>
                 <SettingRow title="“Belki” seçeneği">
                   <Toggle checked={d.allowMaybe} onChange={(v) => set({ allowMaybe: v })} label="Belki seçeneği" />
                 </SettingRow>
@@ -299,7 +302,7 @@ export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSav
           onClick={() => {
             onSave({
               plusOnesMax: d.plusOnesMax, requirePlusOneNames: d.requirePlusOneNames, requireApproval: d.requireApproval, capacity: d.capacity,
-              guestsCanInviteMutuals: d.guestsCanInviteMutuals, allowMaybe: d.allowMaybe, cost: d.cost, questions: d.questions.filter((q) => q.text.trim()),
+              guestsCanInviteMutuals: d.guestsCanInviteMutuals, allowMaybe: d.allowMaybe, rsvpStyle: d.rsvpStyle, cost: d.cost, questions: d.questions.filter((q) => q.text.trim()),
               showTimestamps: d.showTimestamps, showGuestNames: d.showGuestNames, showGuestCount: d.showGuestCount, visibility: d.visibility,
               albumFilter: d.albumFilter, albumGuestsCanUpload: d.albumGuestsCanUpload, remindersEnabled: d.remindersEnabled,
             });
