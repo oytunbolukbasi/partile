@@ -6,6 +6,8 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 
 ## Durum (27 Eylül 2026)
 
+- **Canlıda (27 Eyl 2026):** https://getpartile.com — Railway (Docker, Amsterdam edge) + Neon Postgres + Resend + Cloudflare DNS/proxy (kök ve www). Test aşaması: örnek içerik yüklü, `DEMO_LOGIN_CODE` açık; halka açmadan önce ikisi de temizlenecek.
+
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
 - **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
 - Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
