@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { rsvpLabel, type RsvpStatus } from "@partile/core";
 import { Avatar } from "@/components/plan/Avatar";
 import { CheckIcon, CloseIcon, DownloadIcon, MoreIcon, SearchIcon } from "@/components/shell/icons";
@@ -31,7 +31,11 @@ const timeAgo = (iso: string) => {
 };
 
 /** `GuestList` artboard: host-side guest table with filters, search, approvals, check-in and CSV. No e-mail column (KVKK). */
-export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, onBlast, onMessage }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onDecide: (guestId: string, decision: "approve" | "reject") => void; onFlag: (guestId: string, flag: "checkedIn" | "paid", value: boolean) => void; onBlast: () => void; onMessage?: (userId: string) => void }) {
+export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, onBlast, onMessage, onAdd }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onDecide: (guestId: string, decision: "approve" | "reject") => void; onFlag: (guestId: string, flag: "checkedIn" | "paid", value: boolean) => void; onBlast: () => void; onMessage?: (userId: string) => void; onAdd?: (text: string) => Promise<{ ok: boolean; error?: string; added?: number; mailed?: number; skipped?: number }> }) {
+  const [adding, setAdding] = useState(false);
+  const [addText, setAddText] = useState("");
+  const [addMsg, setAddMsg] = useState<string | null>(null);
+  const [pending, start] = useTransition();
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [checkin, setCheckin] = useState(false);
@@ -64,13 +68,36 @@ export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, 
       headerRight={
         <div className="hidden gap-2 md:flex">
           <button type="button" onClick={csv} className={btn}><DownloadIcon size={16} /> CSV indir</button>
-          <button type="button" className={btn} title="Yakında">Misafir ekle</button>
+          <button type="button" onClick={() => setAdding(!adding)} aria-pressed={adding} className={`${btn} ${adding ? "bg-white/12" : ""}`}>Misafir ekle</button>
           <button type="button" onClick={onBlast} className="flex h-10 items-center rounded-pill bg-white px-4 text-sm font-extrabold text-bg">Duyuru gönder</button>
         </div>
       }
     >
       <div className="flex min-h-0 flex-col">
         <p className="border-b border-line px-6 py-2.5 text-[13px] text-subtle">{sub}</p>
+        {adding && onAdd && (
+          <form
+            className="flex flex-col gap-2.5 border-b border-line bg-white/4 px-6 py-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!addText.trim()) return;
+              start(async () => {
+                const r = await onAdd(addText);
+                if (!r.ok) return setAddMsg(r.error ?? "Eklenemedi.");
+                setAddText("");
+                setAddMsg(`${r.added} kişi eklendi${r.mailed ? `, ${r.mailed} davet e-postası gitti` : ""}${r.skipped ? `, ${r.skipped} zaten listedeydi` : ""}.`);
+              });
+            }}
+          >
+            <label htmlFor="add-guests" className="text-[13px] font-bold">Misafir ekle <span className="font-medium text-subtle">· her satıra bir kişi: Ad Soyad, e-posta (e-posta isteğe bağlı)</span></label>
+            <textarea id="add-guests" rows={3} value={addText} onChange={(e) => setAddText(e.target.value)} placeholder={"Selin Arslan, selin@ornek.com\nMert Kaya"} className="rounded-md border border-white/18 bg-white/6 px-3.5 py-2.5 text-[15px] font-medium outline-none placeholder:text-subtle focus:border-white/40" />
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="submit" disabled={pending || !addText.trim()} className="h-10 rounded-pill bg-white px-4 text-sm font-extrabold text-bg disabled:opacity-40">{pending ? "Ekleniyor…" : "Listeye ekle"}</button>
+              <span className="text-[13px] text-subtle">E-postası olanlara davetiye linki gider; olmayanlar “Davetli · yanıtsız” olarak durur, linki sen paylaşırsın.</span>
+            </div>
+            {addMsg && <p className="text-[13px] text-muted">{addMsg}</p>}
+          </form>
+        )}
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-3.5">
           {FILTERS.map((f) => (
             <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`flex h-[38px] items-center gap-1.5 rounded-pill px-3.5 text-sm font-bold ${filter === f.id ? "border border-white/45 bg-white/14" : "bg-white/6"}`}>

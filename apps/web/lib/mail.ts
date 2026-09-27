@@ -72,3 +72,15 @@ ${button(link, "Daveti aç")}
 <p style="margin:16px 0 0;font-size:12px;color:#5F584F">Link 10 dakika geçerli; süresi dolarsa partile’a e-postanla giriş yapıp plana git.</p>`;
   return send(to, `${inviterName} seni ${plan.title} için ortak düzenleyen yaptı`, shell(body, "Ortak düzenleyenler planı değiştirebilir ve misafir listesini görür; e-posta adresleri görünmez."), `${inviterName} seni ${plan.title} için ortak düzenleyen olarak davet etti.\n\n${link}`);
 }
+
+/** Host-added invitee: "X seni davet etti — geliyor musun?" with a magic link straight to the invitation. */
+export async function sendInviteMail(to: string, code: string, plan: { title: string; code: string; startsAt?: string; district?: string }, hostName: string) {
+  const link = `${SITE}/giris/dogrula?e=${encodeURIComponent(to)}&kod=${code}&next=${encodeURIComponent(`/e/${plan.code}`)}`;
+  const when = plan.startsAt ? `${formatDayShort(plan.startsAt)} · ${formatTime(plan.startsAt)}` : "Tarih netleşmedi";
+  const body = `<p style="margin:0 0 6px;font-size:13px;color:#5F584F">${esc(hostName)} seni davet etti</p>
+<p style="margin:0 0 12px;font-size:20px;font-weight:800">${esc(plan.title)}</p>
+<p style="margin:0 0 16px;font-size:14px;line-height:1.5">${esc(when)}${plan.district ? ` · ${esc(plan.district)}` : ""}<br>Geliyor musun? Linke dokun, tek adımda cevapla.</p>
+${button(link, "Davetiyeyi aç")}
+<p style="margin:16px 0 0;font-size:12px;color:#5F584F">Link 10 dakika geçerli; sonra ${esc(SITE.replace("https://", ""))}/e/${esc(plan.code)} adresinden e-postanla giriş yapabilirsin.</p>`;
+  return send(to, `${hostName} seni davet etti: ${plan.title}`, shell(body, "E-postan yalnızca giriş ve hatırlatma için kullanılır; düzenleyenlere gösterilmez."), `${hostName} seni davet etti: ${plan.title}\n${when}\n\n${link}`);
+}

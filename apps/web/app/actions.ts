@@ -13,6 +13,7 @@ import {
   listGuestEmails,
   markNotificationsRead,
   removePhoto,
+  addInvitedGuests,
   inviteCohost as inviteCohostRow,
   respondCohost as respondCohostRow,
   removeCohost as removeCohostRow,
@@ -31,7 +32,7 @@ import {
   votePoll,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
-import { mailEnabled, sendBlastMail, sendCohostMail, sendVerificationMail } from "@/lib/mail";
+import { mailEnabled, sendBlastMail, sendCohostMail, sendInviteMail, sendVerificationMail } from "@/lib/mail";
 import { materialize, remove as removeFile } from "@/lib/storage";
 import { routes } from "@/lib/routes";
 
@@ -285,4 +286,35 @@ export async function removeCohost(code: string, userId: string) {
   const done = await removeCohostRow(h.plan.id, h.v.id, userId);
   revalidatePath(routes.plan(code));
   return { ok: done };
+}
+
+/* ---------- invitees ---------- */
+
+/** "Misafir ekle": one entry per line — `Ad Soyad` or `Ad Soyad, e-posta`. E-mails get an invitation mail. */
+export async function addGuests(code: string, text: string) {
+  const h = await hostOf(code);
+  if (!h) return { ok: false as const, error: "Yetki yok." };
+  const entries = text
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 100)
+    .map((line) => {
+      const parts = line.split(/[,;\t]/).map((p) => p.trim()).filter(Boolean);
+      const email = parts.find((p) => EMAIL.test(p));
+      const name = parts.filter((p) => p !== email).join(" ") || email?.split("@")[0] || "";
+      return { name, email };
+    })
+    .filter((e) => e.name);
+  if (!entries.length) return { ok: false as const, error: "Her satıra bir kişi: Ad Soyad, e-posta" };
+  const added = await addInvitedGuests(h.plan.id, entries);
+  let mailed = 0;
+  for (const g of added) {
+    if (!g.email) continue;
+    const loginCode = await createVerificationCode(g.email, "rsvp");
+    const r = await sendInviteMail(g.email, loginCode, { title: h.plan.title, code: h.plan.code, startsAt: h.plan.startsAt, district: h.plan.location?.district }, h.v.name || "Düzenleyen");
+    if (r.sent) mailed++;
+  }
+  revalidatePath(routes.plan(code));
+  return { ok: true as const, added: added.length, mailed, skipped: entries.length - added.length };
 }

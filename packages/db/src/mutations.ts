@@ -15,6 +15,8 @@ export async function ensureUser(email: string, name = "") {
   const [existing] = await db.select().from(users).where(eq(users.email, e)).limit(1);
   if (existing) return existing;
   const [created] = await db.insert(users).values({ id: id(), email: e, name }).returning();
+  // Invitations added by a host before this person had an account now belong to them.
+  await db.update(guests).set({ userId: created!.id }).where(and(eq(guests.email, e), isNull(guests.userId)));
   return created!;
 }
 
@@ -385,4 +387,29 @@ export async function removePhoto(planId: string, photoId: string, userId: strin
   if (p.userId !== userId && !(await isHost(planId, userId))) return null;
   await db.delete(photos).where(eq(photos.id, photoId));
   return p.url;
+}
+
+/** Host adds invitees by name (+ optional e-mail). Existing names/e-mails on the plan are skipped. */
+export async function addInvitedGuests(planId: string, entries: { name: string; email?: string }[]) {
+  const db = await getDb();
+  const current = await db.select({ name: guests.name, email: guests.email }).from(guests).where(eq(guests.planId, planId));
+  const names = new Set(current.map((g) => g.name.toLocaleLowerCase("tr-TR")));
+  const emails = new Set(current.map((g) => g.email?.toLowerCase()).filter(Boolean));
+  const added: { id: string; name: string; email?: string }[] = [];
+  for (const e of entries) {
+    const name = e.name.trim();
+    const email = e.email?.trim().toLowerCase() || undefined;
+    if (!name || names.has(name.toLocaleLowerCase("tr-TR")) || (email && emails.has(email))) continue;
+    let userId: string | null = null;
+    if (email) {
+      const [u] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+      userId = u?.id ?? null;
+    }
+    const gid = id();
+    await db.insert(guests).values({ id: gid, planId, userId, email: email ?? null, name, status: "invited" });
+    names.add(name.toLocaleLowerCase("tr-TR"));
+    if (email) emails.add(email);
+    added.push({ id: gid, name, email });
+  }
+  return added;
 }
