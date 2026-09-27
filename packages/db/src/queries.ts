@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
-import { gradientFor, initials, type Guest, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
+import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, feedItems, guests, notifications, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
 
 const isoOf = (d: Date | null | undefined) => (d ? d.toISOString() : undefined);
 
@@ -71,6 +71,7 @@ async function assemble(row: PlanRow): Promise<Plan> {
 
 const toGuest = (g: typeof guests.$inferSelect): Guest => ({
   id: g.id,
+  userId: g.userId ?? undefined,
   name: g.name,
   initials: initials(g.name),
   gradient: gradientFor(g.userId ?? g.id),
@@ -185,4 +186,51 @@ export async function listPublicPlans(limit = 40): Promise<Plan[]> {
   const now = Date.now();
   const upcoming = rows.filter((r) => !r.startsAt || r.startsAt.getTime() > now - 6 * 3600 * 1000);
   return Promise.all(upcoming.map(assemble));
+}
+
+/* ---------- messages ---------- */
+
+export async function listConversations(userId: string): Promise<Conversation[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ c: conversations, code: plans.code, title: plans.title })
+    .from(conversations)
+    .innerJoin(plans, eq(plans.id, conversations.planId))
+    .where(or(eq(conversations.hostId, userId), eq(conversations.guestId, userId)))
+    .orderBy(desc(conversations.lastAt))
+    .limit(100);
+  if (!rows.length) return [];
+  const otherIds = [...new Set(rows.map(({ c }) => (c.hostId === userId ? c.guestId : c.hostId)))];
+  const people = await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, otherIds));
+  const nameOf = new Map(people.map((p) => [p.id, p.name]));
+  const msgs = await db.select().from(messages).where(inArray(messages.conversationId, rows.map(({ c }) => c.id))).orderBy(desc(messages.createdAt));
+  const guestStatus = await db.select({ planId: guests.planId, userId: guests.userId, status: guests.status }).from(guests).where(inArray(guests.planId, [...new Set(rows.map(({ c }) => c.planId))]));
+  const label = (status?: string) => (status === "going" ? "Geliyorum" : status === "maybe" ? "Belki" : status === "no" ? "Gelemiyorum" : status === "pending" ? "onay bekliyor" : "misafir");
+  return rows.map(({ c, code, title }) => {
+    const role = c.hostId === userId ? "host" : "guest";
+    const otherId = role === "host" ? c.guestId : c.hostId;
+    const mine = msgs.filter((m) => m.conversationId === c.id);
+    const last = mine[0];
+    const gs = guestStatus.find((g) => g.planId === c.planId && g.userId === c.guestId)?.status;
+    return {
+      id: c.id,
+      planCode: code,
+      planTitle: title,
+      other: { id: otherId, name: nameOf.get(otherId) ?? "Kullanıcı", initials: initials(nameOf.get(otherId) ?? "?"), gradient: gradientFor(otherId) },
+      role,
+      otherRoleLabel: role === "host" ? label(gs) : "düzenleyen",
+      lastText: last ? (last.senderId === userId ? `Sen: ${last.text}` : last.text) : undefined,
+      lastAt: (last?.createdAt ?? c.lastAt).toISOString(),
+      unread: mine.filter((m) => m.senderId !== userId && !m.readAt).length,
+    };
+  });
+}
+
+export async function getConversation(id: string, userId: string): Promise<{ meta: Conversation; messages: Message[] } | null> {
+  const all = await listConversations(userId);
+  const meta = all.find((c) => c.id === id);
+  if (!meta) return null;
+  const db = await getDb();
+  const rows = await db.select().from(messages).where(eq(messages.conversationId, id)).orderBy(asc(messages.createdAt));
+  return { meta, messages: rows.map((m) => ({ id: m.id, senderId: m.senderId, text: m.text, at: m.createdAt.toISOString(), read: !!m.readAt })) };
 }

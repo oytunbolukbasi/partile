@@ -8,6 +8,7 @@ import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
+import { openConversation } from "@/app/actions";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
@@ -119,7 +120,11 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
             <div className="flex items-center gap-3.5">
               <div className="flex">{plan.hosts.map((h, i) => <Avatar key={h.id} initials={h.initials} gradient={h.gradient} size={52} square ring="rgba(0,0,0,0.35)" className={i ? "-ml-3" : ""} />)}</div>
               <div className="flex grow flex-col"><span className="text-lg font-bold">{hostNames}</span><span className="text-sm opacity-75">3 yaklaşan plan</span></div>
-              <button type="button" className={chip}>Takip et</button>
+              {joined && !preview ? (
+                <button type="button" onClick={async () => { const r = await openConversation(plan.code, plan.hosts[0]!.id); if (r.ok) router.push(`${routes.messages}?s=${r.id}`); }} className={chip}>Düzenleyene yaz</button>
+              ) : (
+                <button type="button" className={chip}>Takip et</button>
+              )}
             </div>
           </section>
 

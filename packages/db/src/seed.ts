@@ -1,6 +1,6 @@
 import { count } from "drizzle-orm";
 import type { Db } from "./client";
-import { blasts, feedItems, guests, notifications, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
 
 /** Demo host: sign in with this e-mail to see the sample plans as their organiser. */
 export const DEMO_EMAIL = "demo@getpartile.com";
@@ -20,6 +20,8 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     { id: "u_ba", email: "mikrofon@example.com", name: "Bostancı Açık Mikrofon", onboarded: true },
     { id: "u_sk", email: "sofra@example.com", name: "Sofra Kolektifi", onboarded: true },
     { id: "u_ks", email: "kitap@example.com", name: "Cihangir Kitap Kulübü", onboarded: true },
+    { id: "u_mert", email: "mert@example.com", name: "Mert Kaya", onboarded: true },
+    { id: "u_buse", email: "buse@example.com", name: "Buse Yılmaz", onboarded: true },
   ]);
 
   await db.insert(plans).values([
@@ -111,8 +113,8 @@ export async function seedIfEmpty(db: Db): Promise<void> {
   const G = (id: string, planId: string, name: string, status: string, at: string, extra: Partial<typeof guests.$inferInsert> = {}) => ({ id, planId, name, status, createdAt: iso(at), updatedAt: iso(at), ...extra });
   await db.insert(guests).values([
     G("g1", "p_ece30", "Selin Arslan", "going", "2026-09-25T10:00:00Z", { plusOnes: 1, plusOneNames: ["Ayşe"], answers: { q1: "Vejetaryen", q2: "Evet" }, checkedIn: true, paid: true }),
-    G("g2", "p_ece30", "Mert Kaya", "going", "2026-09-27T07:55:00Z", { note: "Tatlıyı ben getiriyorum, kimse uğraşmasın.", answers: { q2: "Evet" }, paid: true }),
-    G("g3", "p_ece30", "Buse Yılmaz", "going", "2026-09-27T07:46:00Z", { answers: { q1: "Gluten yok", q2: "Bakarız" } }),
+    G("g2", "p_ece30", "Mert Kaya", "going", "2026-09-27T07:55:00Z", { userId: "u_mert", email: "mert@example.com", note: "Tatlıyı ben getiriyorum, kimse uğraşmasın.", answers: { q2: "Evet" }, paid: true }),
+    G("g3", "p_ece30", "Buse Yılmaz", "going", "2026-09-27T07:46:00Z", { userId: "u_buse", email: "buse@example.com", answers: { q1: "Gluten yok", q2: "Bakarız" } }),
     G("g4", "p_ece30", "Ege Çelik", "maybe", "2026-09-27T07:00:00Z", { note: "Vardiya belli olunca yazarım" }),
     G("g5", "p_ece30", "Gökçe Tan", "going", "2026-09-26T18:00:00Z", { plusOnes: 1, checkedIn: true, paid: true }),
     G("g6", "p_ece30", "İrem Koç", "maybe", "2026-09-26T12:00:00Z"),
@@ -157,5 +159,16 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     { id: "n5", userId: "u_demo", planId: "p_ece30", kind: "cohost", actorName: "Deniz Aydın", text: "Deniz ortak düzenleyen davetini kabul etti.", role: "host", readAt: iso("2026-09-26T19:00:00Z"), createdAt: iso("2026-09-26T18:10:00Z") },
     { id: "n6", userId: "u_demo", planId: "p_sahil", kind: "album", actorName: "Ege Çelik", text: "Ege albüme 3 fotoğraf ekledi.", role: "guest", readAt: iso("2026-09-26T19:00:00Z"), createdAt: iso("2026-09-26T16:02:00Z") },
     { id: "n7", userId: "u_demo", planId: "p_ece30", kind: "rsvp", actorName: "Selin Arslan", text: "Selin +1 ile geliyor: Ayşe.", role: "host", readAt: iso("2026-09-26T19:00:00Z"), createdAt: iso("2026-09-26T09:40:00Z") },
+  ]);
+
+  await db.insert(conversations).values([
+    { id: "c_mert", planId: "p_ece30", hostId: "u_demo", guestId: "u_mert", lastAt: iso("2026-09-27T11:09:00Z"), createdAt: iso("2026-09-27T11:00:00Z") },
+    { id: "c_buse", planId: "p_ece30", hostId: "u_demo", guestId: "u_buse", lastAt: iso("2026-09-27T09:40:00Z"), createdAt: iso("2026-09-27T09:40:00Z") },
+  ]);
+  await db.insert(messages).values([
+    { id: "m1", conversationId: "c_mert", senderId: "u_mert", text: "Tatlıyı ben getiriyorum demiştim, kaç kişilik olsun? Bir de terasta fırın var mı?", readAt: iso("2026-09-27T11:03:00Z"), createdAt: iso("2026-09-27T11:02:00Z") },
+    { id: "m2", conversationId: "c_mert", senderId: "u_demo", text: "16 kişiyiz şu an, 20 kişilik yeter. Fırın yok ama buzdolabı var.", readAt: iso("2026-09-27T11:06:00Z"), createdAt: iso("2026-09-27T11:05:00Z") },
+    { id: "m3", conversationId: "c_mert", senderId: "u_mert", text: "Tamamdır, cheesecake yapıyorum o zaman. Ayşe’yi de +1 olarak ekledim.", readAt: iso("2026-09-27T11:10:00Z"), createdAt: iso("2026-09-27T11:09:00Z") },
+    { id: "m4", conversationId: "c_buse", senderId: "u_buse", text: "Gluten yok ama pasta serbest, sorun olur mu?", createdAt: iso("2026-09-27T09:40:00Z") },
   ]);
 }

@@ -20,6 +20,7 @@ const BADGE: Record<Notification["kind"], { Icon: typeof CheckIcon; bg: string }
   cohost: { Icon: CrownIcon, bg: "#FFB020" },
   album: { Icon: CameraIcon, bg: "#F5F2EC" },
   blast: { Icon: ChatIcon, bg: "#FFB020" },
+  message: { Icon: ChatIcon, bg: "#1EC9B0" },
 };
 
 const dayKey = (iso: string) => {

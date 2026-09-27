@@ -31,7 +31,7 @@ const timeAgo = (iso: string) => {
 };
 
 /** `GuestList` artboard: host-side guest table with filters, search, approvals, check-in and CSV. No e-mail column (KVKK). */
-export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, onBlast }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onDecide: (guestId: string, decision: "approve" | "reject") => void; onFlag: (guestId: string, flag: "checkedIn" | "paid", value: boolean) => void; onBlast: () => void }) {
+export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, onBlast, onMessage }: { plan: Plan; guests: Guest[]; open: boolean; onClose: () => void; onDecide: (guestId: string, decision: "approve" | "reject") => void; onFlag: (guestId: string, flag: "checkedIn" | "paid", value: boolean) => void; onBlast: () => void; onMessage?: (userId: string) => void }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [checkin, setCheckin] = useState(false);
@@ -110,7 +110,11 @@ export function GuestListModal({ plan, guests, open, onClose, onDecide, onFlag, 
                 ) : checkin && g.status === "going" ? (
                   <Toggle checked={!!g.checkedIn} onChange={(v) => onFlag(g.id, "checkedIn", v)} label={`${g.name} giriş yaptı`} />
                 ) : (
-                  <button type="button" aria-label="Daha fazla" className="flex size-8 items-center justify-center rounded-pill text-subtle"><MoreIcon size={16} /></button>
+                  g.userId && onMessage ? (
+                    <button type="button" onClick={() => onMessage(g.userId!)} className="h-8 rounded-pill border border-white/25 px-3 text-xs font-bold">Mesaj</button>
+                  ) : (
+                    <button type="button" aria-label="Daha fazla" title="Hesabı olmayan misafire mesaj gönderilemez" className="flex size-8 items-center justify-center rounded-pill text-subtle"><MoreIcon size={16} /></button>
+                  )
                 )}
               </span>
             </div>

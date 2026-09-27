@@ -7,6 +7,8 @@ import type { PlanDraft, RsvpStatus } from "./domain";
 export type Host = { id: string; name: string; initials: string; gradient: string; accepted?: boolean };
 export type Guest = {
   id: string;
+  /** Set once the guest verified their e-mail; lets hosts message them. */
+  userId?: string;
   name: string;
   initials: string;
   gradient: string;
@@ -28,7 +30,7 @@ export type Notification = {
   planTitle: string;
   initials: string;
   gradient: string;
-  kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album" | "blast";
+  kind: "rsvp" | "comment" | "approval" | "reminder" | "cohost" | "album" | "blast" | "message";
   text: string;
   at: string;
   unread: boolean;
@@ -77,3 +79,18 @@ export const gradientFor = (seed: string): string => {
   const [a, b] = PALETTE[h % PALETTE.length]!;
   return `linear-gradient(135deg, ${a}, ${b})`;
 };
+
+export type Conversation = {
+  id: string;
+  planCode: string;
+  planTitle: string;
+  /** The other party. */
+  other: { id: string; name: string; initials: string; gradient: string };
+  /** The viewer's role in this thread. */
+  role: "host" | "guest";
+  otherRoleLabel: string;
+  lastText?: string;
+  lastAt: string;
+  unread: number;
+};
+export type Message = { id: string; senderId: string; text: string; at: string; read: boolean };

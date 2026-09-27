@@ -182,3 +182,40 @@ export const notifications = pgTable(
   },
   (t) => [index("notifications_user_idx").on(t.userId)],
 );
+
+/** A plan-scoped thread between one host and one guest (no group chat). */
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: text("id").primaryKey(),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    hostId: text("host_id")
+      .notNull()
+      .references(() => users.id),
+    guestId: text("guest_id")
+      .notNull()
+      .references(() => users.id),
+    lastAt: timestamp("last_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("conversations_plan_pair_idx").on(t.planId, t.hostId, t.guestId), index("conversations_host_idx").on(t.hostId), index("conversations_guest_idx").on(t.guestId)],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => users.id),
+    text: text("text").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("messages_conversation_idx").on(t.conversationId)],
+);

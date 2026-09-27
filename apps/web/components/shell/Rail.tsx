@@ -12,7 +12,7 @@ const items: { key: RailKey; href: string; label: string; Icon: typeof HomeIcon 
   { key: "home", href: routes.home, label: "Ana sayfa", Icon: HomeIcon },
   { key: "explore", href: routes.explore, label: "Keşfet", Icon: ExploreIcon },
   { key: "create", href: routes.create, label: "Plan oluştur", Icon: CreateIcon },
-  { key: "messages", href: "#", label: "Mesajlar", Icon: CardIcon },
+  { key: "messages", href: routes.messages, label: "Mesajlar", Icon: CardIcon },
   { key: "bell", href: routes.notifications, label: "Bildirimler", Icon: BellIcon },
 ];
 

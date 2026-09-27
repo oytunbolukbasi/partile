@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { blast as sendBlastAction, decideGuest, pickDay, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
+import { blast as sendBlastAction, decideGuest, openConversation, pickDay, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
 import { formatDayLong, formatDayShort, formatTime, formatTimeRange, formatTry, planUrl, rsvpLabel, type PlanDraft } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { SettingsModal, type SettingsTab } from "@/components/create/SettingsModal";
@@ -209,7 +209,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
 
       <PollModal open={modal === "poll"} onClose={() => setModal(null)} draft={plan} onSave={(p) => act(() => savePlan(plan.code, p), true)} />
       <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
-      <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onDecide={(id, d) => act(() => decideGuest(plan.code, id, d))} onFlag={(id, flag, v) => act(() => setGuestFlag(plan.code, id, flag, v))} onBlast={() => setModal("blast")} />
+      <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onDecide={(id, d) => act(() => decideGuest(plan.code, id, d))} onFlag={(id, flag, v) => act(() => setGuestFlag(plan.code, id, flag, v))} onBlast={() => setModal("blast")} onMessage={async (uid) => { const r = await openConversation(plan.code, uid); if (r.ok) router.push(`${routes.messages}?s=${r.id}`); }} />
       <BlastModal plan={plan} guests={guests} hostName={plan.hosts.find((h) => h.id === viewerId)?.name ?? "Düzenleyen"} open={modal === "blast"} onClose={() => setModal(null)} onSend={(b) => act(() => sendBlastAction(plan.code, b.toLabel, b.guestIds, b.text), true)} />
       <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => act(() => savePlan(plan.code, p), true)} />
     </ThemeSurface>

@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { PlanDraft, Rsvp } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, feedItems, guests, notifications, planHosts, plans, pollOptions, pollVotes, users, verificationCodes } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, planHosts, plans, pollOptions, pollVotes, users, verificationCodes } from "./schema";
 
 const id = () => randomUUID();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -274,4 +274,39 @@ export async function markNotificationsRead(userId: string, ids?: string[]) {
   const db = await getDb();
   const where = ids?.length ? and(eq(notifications.userId, userId), sql`${notifications.id} in ${ids}`) : eq(notifications.userId, userId);
   await db.update(notifications).set({ readAt: new Date() }).where(where);
+}
+
+/* ---------- messages ---------- */
+
+/** Find or create the thread between a host and a guest on a plan. Both must belong to the plan. */
+export async function ensureConversation(planId: string, hostId: string, guestUserId: string): Promise<string | null> {
+  const db = await getDb();
+  if (hostId === guestUserId) return null;
+  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, hostId))).limit(1);
+  const [g] = await db.select({ id: guests.id }).from(guests).where(and(eq(guests.planId, planId), eq(guests.userId, guestUserId))).limit(1);
+  if (!h || !g) return null;
+  const [existing] = await db.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.planId, planId), eq(conversations.hostId, hostId), eq(conversations.guestId, guestUserId))).limit(1);
+  if (existing) return existing.id;
+  const cid = id();
+  await db.insert(conversations).values({ id: cid, planId, hostId, guestId: guestUserId });
+  return cid;
+}
+
+export async function sendMessage(conversationId: string, senderId: string, text: string) {
+  const db = await getDb();
+  const [c] = await db.select().from(conversations).where(eq(conversations.id, conversationId)).limit(1);
+  if (!c || (c.hostId !== senderId && c.guestId !== senderId)) return null;
+  const mid = id();
+  await db.insert(messages).values({ id: mid, conversationId, senderId, text });
+  await db.update(conversations).set({ lastAt: new Date() }).where(eq(conversations.id, conversationId));
+  const [plan] = await db.select({ title: plans.title, code: plans.code }).from(plans).where(eq(plans.id, c.planId)).limit(1);
+  const [sender] = await db.select({ name: users.name }).from(users).where(eq(users.id, senderId)).limit(1);
+  const recipient = c.hostId === senderId ? c.guestId : c.hostId;
+  await db.insert(notifications).values({ id: id(), userId: recipient, planId: c.planId, kind: "message", actorName: sender?.name ?? "", text: `${(sender?.name ?? "Biri").split(" ")[0]} · ${plan?.title ?? "Plan"}: “${text.slice(0, 80)}”`, role: c.hostId === recipient ? "host" : "guest" });
+  return mid;
+}
+
+export async function markConversationRead(conversationId: string, userId: string) {
+  const db = await getDb();
+  await db.update(messages).set({ readAt: new Date() }).where(and(eq(messages.conversationId, conversationId), sql`${messages.senderId} <> ${userId}`, isNull(messages.readAt)));
 }

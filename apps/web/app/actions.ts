@@ -12,6 +12,9 @@ import {
   isHost,
   listGuestEmails,
   markNotificationsRead,
+  ensureConversation,
+  sendMessage,
+  markConversationRead,
   pickPollDay,
   removeGuest,
   sendBlast,
@@ -194,5 +197,34 @@ export async function markRead(ids?: string[]) {
   if (!v) return { ok: false as const };
   await markNotificationsRead(v.id, ids);
   revalidatePath(routes.notifications);
+  return { ok: true as const };
+}
+
+/* ---------- messages ---------- */
+
+/** Open (or find) the thread between the viewer and `otherUserId` on a plan; either side may start it. */
+export async function openConversation(code: string, otherUserId: string) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  const viewerIsHost = await isHost(plan.id, v.id);
+  const cid = viewerIsHost ? await ensureConversation(plan.id, v.id, otherUserId) : await ensureConversation(plan.id, otherUserId, v.id);
+  if (!cid) return { ok: false as const };
+  return { ok: true as const, id: cid };
+}
+
+export async function postMessage(conversationId: string, text: string) {
+  const v = await getViewer();
+  if (!v || !text.trim()) return { ok: false as const };
+  const id = await sendMessage(conversationId, v.id, text.trim().slice(0, 1000));
+  if (!id) return { ok: false as const };
+  revalidatePath(routes.messages);
+  return { ok: true as const };
+}
+
+export async function readConversation(conversationId: string) {
+  const v = await getViewer();
+  if (!v) return { ok: false as const };
+  await markConversationRead(conversationId, v.id);
   return { ok: true as const };
 }
