@@ -1,0 +1,10 @@
+# Railway service config for the web app. Cron for reminders is a separate Railway cron service (see DEPLOY.md).
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/saglik"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

@@ -9,7 +9,11 @@ import { routes } from "./routes";
 
 const COOKIE = "partile_session";
 const MAX_AGE = 60 * 60 * 24 * 90; // 90 days
-const secret = () => process.env.AUTH_SECRET || "partile-dev-secret-change-me";
+const secret = () => {
+  const s = process.env.AUTH_SECRET;
+  if (!s && process.env.NODE_ENV === "production") throw new Error("AUTH_SECRET is required in production");
+  return s || "partile-dev-secret-change-me";
+};
 
 const sign = (userId: string) => `${userId}.${createHmac("sha256", secret()).update(userId).digest("base64url")}`;
 const verify = (token: string | undefined): string | null => {

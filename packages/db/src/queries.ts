@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
 import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, reminderLog, users } from "./schema";
@@ -272,4 +272,11 @@ export async function dueReminders(now = new Date()): Promise<DueReminder[]> {
     }
   }
   return out;
+}
+
+/** Health check: the connection answers. */
+export async function ping(): Promise<boolean> {
+  const db = await getDb();
+  await db.execute(sql`select 1`);
+  return true;
 }

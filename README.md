@@ -23,3 +23,7 @@ pnpm typecheck
 | `research` | MVP ekran envanteri, Partiful ham referansları |
 
 Ortam değişkenleri: `apps/web/.env.example`.
+
+## Deploy
+
+Railway: bkz. [DEPLOY.md](DEPLOY.md).

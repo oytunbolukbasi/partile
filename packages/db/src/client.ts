@@ -1,17 +1,17 @@
 import { existsSync, mkdirSync } from "node:fs";
-import { pathToFileURL } from "node:url";
 import { dirname, join, resolve } from "node:path";
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { pathToFileURL } from "node:url";
+import { drizzle as drizzlePg, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 import * as schema from "./schema";
 
-export type Db = PgliteDatabase<typeof schema> | NeonHttpDatabase<typeof schema>;
+export type Db = PgliteDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
 type Cache = { db?: Promise<Db> };
 const g = globalThis as unknown as { __partileDb?: Cache };
 const cache = (g.__partileDb ??= {});
 
-/** Walk up from cwd until the db package's migrations folder is found (dev: apps/web or repo root). */
+/** Walk up from cwd until the db package's migrations folder is found (dev: apps/web or repo root). Override with DB_MIGRATIONS_DIR (production image). */
 function migrationsFolder(): string {
   if (process.env.DB_MIGRATIONS_DIR) return process.env.DB_MIGRATIONS_DIR;
   let dir = process.cwd();
@@ -25,12 +25,25 @@ function migrationsFolder(): string {
   throw new Error("packages/db/drizzle not found; run `pnpm --filter @partile/db generate` or set DB_MIGRATIONS_DIR");
 }
 
-/** Local file-backed Postgres (PGlite) next to the repo root, unless DATABASE_URL points at Neon. */
+/**
+ * DATABASE_URL set → Postgres over TCP (Railway Postgres, Neon, …) with migrations applied at boot
+ * (DB_AUTO_MIGRATE=0 disables) and sample content only when SEED_SAMPLE=1.
+ * Otherwise a file-backed PGlite next to the repo root, always seeded (development).
+ */
 async function open(): Promise<Db> {
   const url = process.env.DATABASE_URL;
   if (url && url.startsWith("postgres")) {
-    const { neon } = await import("@neondatabase/serverless");
-    return drizzleNeon({ client: neon(url), schema });
+    const { Pool } = await import("pg");
+    const { migrate } = await import("drizzle-orm/node-postgres/migrator");
+    const needsSsl = /sslmode=require/.test(url) || process.env.PGSSL === "1";
+    const pool = new Pool({ connectionString: url, ssl: needsSsl ? { rejectUnauthorized: false } : undefined, max: 10 });
+    const db = drizzlePg({ client: pool, schema });
+    if (process.env.DB_AUTO_MIGRATE !== "0") await migrate(db, { migrationsFolder: migrationsFolder() });
+    if (process.env.SEED_SAMPLE === "1") {
+      const { seedIfEmpty } = await import("./seed");
+      await seedIfEmpty(db);
+    }
+    return db;
   }
   const { migrate } = await import("drizzle-orm/pglite/migrator");
   const dataDir = process.env.PGLITE_DATA_DIR ?? resolve(dirname(migrationsFolder()), "../../.data/partile");

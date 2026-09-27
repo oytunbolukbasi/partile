@@ -9,7 +9,7 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
 - **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
 - Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
-- Kalan yer tutucular: GIF arama, “Galerim”, plan iptali, Sessize al / Takip et, görüntü boyutlandırma (sharp), hukuk metinleri. Prod: **Railway** (Vercel değil) — Railway Postgres ya da Neon `DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, kalıcı volume ile `UPLOAD_DIR` (ya da blob), `pnpm --filter @partile/db exec drizzle-kit migrate`; hatırlatma cron’u Railway cron job: saatte bir `GET /api/cron/hatirlatma` (Bearer `CRON_SECRET`). Resend domain’i doğrulandı (27 Eyl 2026), anahtar yalnız `apps/web/.env`’de (git dışı).
+- Kalan yer tutucular: GIF arama, “Galerim”, plan iptali, Sessize al / Takip et, görüntü boyutlandırma (sharp), hukuk metinleri. Prod: **Railway** (Vercel değil) — adımlar `DEPLOY.md`’de: kökteki `Dockerfile` (Next standalone) + `railway.toml`, Railway Postgres (`DATABASE_URL`, sürücü `pg`; migrasyonlar açılışta), `/data` volume (`UPLOAD_DIR`), `AUTH_SECRET`, `CRON_SECRET`, saatlik cron servisi → `/api/cron/hatirlatma`, sağlık `/api/saglik`, OG kartı `/e/{kod}/opengraph-image`. Resend domain’i doğrulandı (27 Eyl 2026), anahtar yalnız `apps/web/.env`’de (git dışı).
 
 ## Kod
 
@@ -30,7 +30,7 @@ packages/ui-tokens    src/index.ts (renkler, 8 davetiye teması, başlık fontla
 packages/core         src/domain.ts (zod: PlanDraft, PollOption, Rsvp, Question, CostSettings, RsvpStatus, VerificationCode) · src/format.ts (TR tarih/saat/₺, formatPill, planUrl, initials) + testler
 ```
 
-- Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` · `pnpm typecheck` · `pnpm --filter @partile/core test`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`. `next build` çalışan dev sunucusuyla `.next`'i paylaşır: build'den önce dev'i durdur, sonra `rm -rf apps/web/.next`.
+- Komutlar: `corepack pnpm install` · `pnpm dev` (web :3000) · `pnpm build` (standalone çıktı) · `pnpm typecheck` · `pnpm --filter @partile/core test` · `pnpm --filter @partile/db smoke`. pnpm global kurulu değil; `corepack pnpm …` ya da `corepack enable`. `next build` çalışan dev sunucusuyla `.next`'i paylaşır: build'den önce dev'i durdur, sonra `rm -rf apps/web/.next`.
 - Stil: Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility oluyor (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez, token'dan gelir.
 - Fontlar `next/font/google` ile (Schibsted Grotesk, Hanken Grotesk, Unbounded); davetiye başlık fontları plan sayfasında ihtiyaç anında yüklenir.
 - Rotalar Türkçe: `/`, `/giris`, `/ilk-giris`, `/planlar`, `/kesfet`, `/olustur`, `/profil`, `/bildirimler`, `/mesajlar`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil → Hesap ayarları.
