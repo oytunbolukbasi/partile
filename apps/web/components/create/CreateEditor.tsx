@@ -55,7 +55,7 @@ export function CreateEditor() {
         <span className="text-xs opacity-80 md:hidden">{savedAt ? "Kaydedildi" : "Taslak"}</span>
       </div>
 
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:gap-14 md:px-8 md:pb-24 md:pl-[144px] md:pt-[120px]">
+      <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-4 pb-44 pt-3 md:flex-row md:gap-14 md:px-8 md:pb-40 md:pl-[144px] md:pr-[400px] md:pt-[120px]">
         {/* left column */}
         <div className="flex w-full max-w-[420px] flex-col gap-3.5">
           <div className="glass flex flex-col gap-3 rounded-2xl px-3 pb-3 pt-3.5">
@@ -219,15 +219,14 @@ export function CreateEditor() {
           </div>
         </div>
 
-        {/* theme panel (desktop, floating) */}
-        {panel === "theme" && (
-          <div className="hidden w-[200px] shrink-0 md:block">
-            <div className="glass-menu sticky top-[126px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
-              <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* theme panel (desktop): fixed, left of the toolbar so it never overlaps it */}
+      {panel === "theme" && (
+        <div className="glass-menu fixed right-[160px] top-[126px] hidden w-[220px] rounded-2xl p-3.5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] md:block">
+          <ThemePanel value={draft.themeId} onChange={(id) => patch({ themeId: id })} />
+        </div>
+      )}
 
       {/* desktop toolbar */}
       <div className="glass-menu fixed right-10 top-[126px] hidden w-[100px] flex-col items-center gap-4.5 rounded-2xl py-4 text-text md:flex">
