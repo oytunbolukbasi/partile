@@ -19,6 +19,11 @@
   --color-glass: var(--glass-fill);
   --color-glass-strong: var(--glass-fill-strong);
   --color-glass-line: var(--glass-line);
+  /* Theme-aware pair (see ThemeSurface): ink = lines/fills, surface = pill ground, contrast = primary button. */
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-contrast: var(--contrast);
+  --color-on-contrast: var(--on-contrast);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -32,6 +37,22 @@
   --radius-2xl: var(--radius-2xl);
   --radius-modal: var(--radius-modal);
   --radius-pill: var(--radius-pill);
+}
+
+:root,
+.shell-scope {
+  --ink: #ffffff;
+  --surface: var(--bg);
+  --contrast: #ffffff;
+  --on-contrast: var(--bg);
+}
+/* Dialogs and menus inside a light invitation keep the dark shell. */
+.shell-scope {
+  --glass-fill: rgba(255, 255, 255, 0.08);
+  --glass-fill-strong: rgba(255, 255, 255, 0.14);
+  --glass-line: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.08);
+  color: var(--text);
 }
 
 html {

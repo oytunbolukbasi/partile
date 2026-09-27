@@ -24,7 +24,7 @@ export function CommentBox({ code, initials, gradient, placeholder = "+ Yorum ya
   };
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-3 rounded-xl border border-white/14 bg-white/10 py-2.5 pl-3 pr-2">
+      <div className="flex items-center gap-3 rounded-xl border border-ink/14 bg-ink/10 py-2.5 pl-3 pr-2">
         <Avatar initials={initials} gradient={gradient} size={40} />
         <input
           value={text}
@@ -35,7 +35,7 @@ export function CommentBox({ code, initials, gradient, placeholder = "+ Yorum ya
           aria-label="Yorum"
           className="min-w-0 grow bg-transparent text-[17px] outline-none placeholder:opacity-60"
         />
-        <button type="button" onClick={send} disabled={!text.trim() || pending} className="h-9 shrink-0 rounded-pill bg-white px-3.5 text-sm font-extrabold text-bg disabled:opacity-40">
+        <button type="button" onClick={send} disabled={!text.trim() || pending} className="h-9 shrink-0 rounded-pill bg-contrast px-3.5 text-sm font-extrabold text-on-contrast disabled:opacity-40">
           Gönder
         </button>
       </div>

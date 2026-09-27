@@ -79,9 +79,9 @@ export function AlbumSection({ code, photos, viewerId, isHost, canUpload, chipCl
             <span>{open.name} · {new Date(open.at).toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}</span>
             <span className="flex items-center gap-2">
               {(isHost || open.userId === viewerId) && (
-                <button type="button" onClick={(e) => { e.stopPropagation(); start(async () => { await deletePhoto(code, open.id); setOpen(null); router.refresh(); }); }} className="flex h-9 items-center gap-1.5 rounded-pill border border-white/30 px-3 text-xs font-bold"><TrashIcon size={14} /> Sil</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); start(async () => { await deletePhoto(code, open.id); setOpen(null); router.refresh(); }); }} className="flex h-9 items-center gap-1.5 rounded-pill border border-ink/30 px-3 text-xs font-bold"><TrashIcon size={14} /> Sil</button>
               )}
-              <button type="button" aria-label="Kapat" className="flex size-9 items-center justify-center rounded-pill bg-white/10"><CloseIcon size={18} /></button>
+              <button type="button" aria-label="Kapat" className="flex size-9 items-center justify-center rounded-pill bg-ink/10"><CloseIcon size={18} /></button>
             </span>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}

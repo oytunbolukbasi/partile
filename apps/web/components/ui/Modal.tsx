@@ -45,7 +45,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-modal border border-line bg-panel text-text shadow-[0_40px_100px_rgba(0,0,0,0.6)] md:max-h-[88dvh] md:rounded-modal"
+        className="shell-scope flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-modal border border-line bg-panel text-text shadow-[0_40px_100px_rgba(0,0,0,0.6)] md:max-h-[88dvh] md:rounded-modal"
         style={{ maxWidth: width }}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-5">

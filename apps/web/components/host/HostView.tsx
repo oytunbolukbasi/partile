@@ -26,8 +26,8 @@ import { countByStatus, type Plan } from "@partile/core";
 import { titleFontStyle } from "@/lib/fonts";
 import { routes } from "@/lib/routes";
 
-const tool = "flex h-11 shrink-0 items-center gap-2 rounded-pill border border-white/14 bg-bg/60 px-4 text-sm font-bold";
-const chip = "flex h-10 items-center rounded-pill border border-white/35 bg-white/8 px-4 text-sm font-bold";
+const tool = "flex h-11 shrink-0 items-center gap-2 rounded-pill border border-ink/14 bg-surface/60 px-4 text-sm font-bold";
+const chip = "flex h-10 items-center rounded-pill border border-ink/35 bg-ink/8 px-4 text-sm font-bold";
 const timeAgo = (iso: string) => {
   const m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   return m < 60 ? `${m} dk` : m < 1440 ? `${Math.round(m / 60)} sa` : `${Math.round(m / 1440)} g`;
@@ -73,11 +73,11 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
         {cancelled && (
           <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-[rgba(255,106,61,0.5)] bg-[rgba(255,106,61,0.14)] px-4 py-3.5">
             <span className="grow"><strong>Bu plan iptal edildi.</strong> <span className="opacity-85">Misafirler davetiyede iptal notunu görüyor; katılım ve hatırlatmalar kapalı.</span></span>
-            <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="h-10 shrink-0 rounded-pill bg-white px-4 text-sm font-extrabold text-bg">Geri al</button>
+            <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="h-10 shrink-0 rounded-pill bg-contrast px-4 text-sm font-extrabold text-on-contrast">Geri al</button>
           </div>
         )}
-        <div className="-mx-4 flex items-center gap-2.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
-          <span className={`${tool} text-[13px] font-extrabold tracking-wide`}><CrownIcon size={16} /> SEN DÜZENLİYORSUN</span>
+        <span className="-mb-3 flex items-center gap-2 text-[13px] font-extrabold tracking-wide opacity-80"><CrownIcon size={16} /> SEN DÜZENLİYORSUN</span>
+        <div className="-mx-4 flex items-center gap-2.5 overflow-x-auto px-4 py-0.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
           <Link href={`${routes.create}?kod=${plan.code}`} className={tool}><PencilIcon size={16} /> Düzenle</Link>
           <button type="button" onClick={() => setModal("guests")} className={tool}>
             Katılımcılar {pending.length > 0 && <span className="flex h-[22px] items-center rounded-pill bg-amber px-2 text-xs font-extrabold text-bg">{pending.length} onay</span>}
@@ -85,7 +85,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
           <button type="button" onClick={() => setModal("blast")} className={tool}>Duyuru</button>
           <button type="button" onClick={() => openSettings("rsvp")} className={tool}>Ayarlar</button>
           <Link href={`${routes.plan(plan.code)}?goruntule=misafir`} className={tool} title="Misafir gözüyle gör"><EyeIcon size={16} /> Misafir gözüyle</Link>
-          <button type="button" onClick={() => setModal("share")} className="ml-auto flex h-11 shrink-0 items-center gap-2 rounded-pill bg-white px-4.5 text-sm font-extrabold text-bg"><ShareIcon size={16} /> Paylaş</button>
+          <button type="button" onClick={() => setModal("share")} className="ml-auto flex h-11 shrink-0 items-center gap-2 rounded-pill bg-contrast px-4.5 text-sm font-extrabold text-on-contrast"><ShareIcon size={16} /> Paylaş</button>
         </div>
 
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-[72px]">
@@ -107,7 +107,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
                 [c.invited, "Yanıtsız"],
                 [plan.views, "Görüntülenme"],
               ].map(([n, l]) => (
-                <div key={l} className="flex flex-col gap-0.5 rounded-lg border border-white/14 bg-white/8 p-3"><span className="display text-[26px] tracking-normal">{n}</span><span className="text-xs opacity-80">{l}</span></div>
+                <div key={l} className="flex flex-col gap-0.5 rounded-lg border border-ink/14 bg-ink/8 p-3"><span className="display text-[26px] tracking-normal">{n}</span><span className="text-xs opacity-80">{l}</span></div>
               ))}
             </div>
 
@@ -138,7 +138,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
             <p className="whitespace-pre-line text-lg leading-relaxed opacity-90">{plan.description}</p>
 
             {plan.cost.mode !== "off" && (
-              <div className="flex items-center gap-3.5 rounded-xl border border-white/14 bg-white/8 px-4.5 py-4">
+              <div className="flex items-center gap-3.5 rounded-xl border border-ink/14 bg-ink/8 px-4.5 py-4">
                 <span className="flex size-11 items-center justify-center rounded-md font-poster text-base font-extrabold text-bg" style={{ background: t.accent }}>₺</span>
                 <span className="flex grow flex-col">
                   <span className="text-[17px] font-bold">Masrafı böl{plan.cost.mode === "fixed" && plan.cost.amountTry ? ` · ${formatTry(plan.cost.amountTry)} kişi başı` : ""}</span>
@@ -172,7 +172,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
                       <span className="text-base">
                         <strong>{who.id === me.id ? "Sen" : who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "duyuru gönderdi" : f.kind === "comment" ? "yorum yazdı" : <>katılımını bildirdi · <span className="font-bold" style={{ color: guest?.status === "going" ? t.accent : undefined }}>{guest ? rsvpLabel[guest.status] : ""}</span></>} <span className="opacity-60">· {timeAgo(f.at)}</span>
                       </span>
-                      {f.text && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{f.text}</span>}
+                      {f.text && <span className="rounded-[4px_14px_14px_14px] bg-ink/10 px-3.5 py-2.5 text-base">{f.text}</span>}
                       <span className="flex gap-3 text-sm font-bold opacity-85">
                         <button type="button" className="opacity-70" onClick={() => act(() => removeFeedItem(plan.code, f.id))}>Sil</button>
                       </span>
@@ -189,17 +189,17 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
               <Link href={`${routes.create}?kod=${plan.code}`} className="absolute right-3 top-3 flex h-10 items-center gap-1.5 rounded-pill bg-bg/70 px-3.5 text-[13px] font-bold text-white"><PencilIcon size={14} /> Afişi değiştir</Link>
             </div>
 
-            <div className="flex w-full flex-col gap-3 rounded-xl border border-white/14 bg-white/8 p-4">
-              <div className="flex items-center justify-between"><span className="text-[15px] font-bold">Davet linki</span><span className="flex h-6 items-center gap-1 rounded-pill bg-white/10 px-2 text-[11px] font-extrabold"><LockIcon size={11} /> {plan.visibility === "public" ? "HERKESE AÇIK" : "GİZLİ"}</span></div>
-              <div className="flex h-11 items-center gap-2 rounded-lg bg-bg/50 pl-3 pr-1.5"><span className="grow truncate text-sm font-semibold">{url.replace("https://", "")}</span><button type="button" onClick={copy} className="h-8 rounded-md bg-white px-3 text-xs font-extrabold text-bg">{copied ? "Kopyalandı" : "Kopyala"}</button></div>
+            <div className="flex w-full flex-col gap-3 rounded-xl border border-ink/14 bg-ink/8 p-4">
+              <div className="flex items-center justify-between"><span className="text-[15px] font-bold">Davet linki</span><span className="flex h-6 items-center gap-1 rounded-pill bg-ink/10 px-2 text-[11px] font-extrabold"><LockIcon size={11} /> {plan.visibility === "public" ? "HERKESE AÇIK" : "GİZLİ"}</span></div>
+              <div className="flex h-11 items-center gap-2 rounded-lg bg-surface/50 pl-3 pr-1.5"><span className="grow truncate text-sm font-semibold">{url.replace("https://", "")}</span><button type="button" onClick={copy} className="h-8 rounded-md bg-contrast px-3 text-xs font-extrabold text-on-contrast">{copied ? "Kopyalandı" : "Kopyala"}</button></div>
               <div className="grid grid-cols-2 gap-2">
                 <a href={`https://wa.me/?text=${encodeURIComponent(`${plan.title} · ${url}`)}`} target="_blank" rel="noreferrer" className="flex h-10 items-center justify-center rounded-[10px] bg-[#25D366] text-[13px] font-extrabold text-[#0B141A]">WhatsApp</a>
-                <button type="button" onClick={() => setModal("share")} className="flex h-10 items-center justify-center rounded-[10px] border border-white/30 text-[13px] font-bold">Hikâye afişi</button>
+                <button type="button" onClick={() => setModal("share")} className="flex h-10 items-center justify-center rounded-[10px] border border-ink/30 text-[13px] font-bold">Hikâye afişi</button>
               </div>
             </div>
 
             <CalendarMenu plan={plan} full variant="card" className="w-full" />
-            <div className="flex w-full flex-col gap-2.5 rounded-xl border border-white/14 bg-white/8 p-4">
+            <div className="flex w-full flex-col gap-2.5 rounded-xl border border-ink/14 bg-ink/8 p-4">
               <span className="text-[15px] font-bold">Otomatik hatırlatmalar</span>
               {plan.remindersEnabled && remindAt && remind2h ? (
                 <>
@@ -213,9 +213,9 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
             </div>
 
             <div className="flex w-full gap-2">
-              <Link href={routes.create} className="flex h-11 grow items-center justify-center rounded-pill border border-white/25 text-sm font-bold opacity-85">Kopyala (yeni plan)</Link>
+              <Link href={routes.create} className="flex h-11 grow items-center justify-center rounded-pill border border-ink/25 text-sm font-bold opacity-85">Kopyala (yeni plan)</Link>
               {cancelled ? (
-                <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="flex h-11 grow items-center justify-center rounded-pill border border-white/25 text-sm font-bold">Geri al</button>
+                <button type="button" onClick={() => act(() => restorePlan(plan.code))} className="flex h-11 grow items-center justify-center rounded-pill border border-ink/25 text-sm font-bold">Geri al</button>
               ) : (
                 <button type="button" onClick={() => setModal("cancel")} className="flex h-11 grow items-center justify-center rounded-pill border border-[rgba(255,106,61,0.5)] text-sm font-bold text-[#FF8C6B]">İptal et</button>
               )}

@@ -26,7 +26,7 @@ export function CalendarMenu({ plan, full = true, className, variant = "chip" }:
     return (
       <div className={`relative ${className ?? ""}`}>
         <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} className="glass flex w-full items-center gap-3 rounded-xl p-4 text-left">
-          <span className="flex size-11 items-center justify-center rounded-md bg-white/10"><CalendarIcon /></span>
+          <span className="flex size-11 items-center justify-center rounded-md bg-ink/10"><CalendarIcon /></span>
           <span className="flex grow flex-col"><span className="text-[15px] font-bold">Takvime ekle</span><span className="text-[13px] opacity-80">Google · Apple · .ics</span></span>
           <ChevronDownIcon size={16} className="opacity-70" />
         </button>
@@ -36,7 +36,7 @@ export function CalendarMenu({ plan, full = true, className, variant = "chip" }:
   }
   return (
     <div className={`relative ${className ?? ""}`}>
-      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} className="flex h-10 items-center gap-2 rounded-pill border border-white/28 bg-white/8 px-4 text-sm font-bold"><CalendarIcon size={16} /> Takvime ekle</button>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} className="flex h-10 items-center gap-2 rounded-pill border border-ink/28 bg-ink/8 px-4 text-sm font-bold"><CalendarIcon size={16} /> Takvime ekle</button>
       {menu}
     </div>
   );

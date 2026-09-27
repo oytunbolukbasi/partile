@@ -33,7 +33,7 @@ const SendIcon = ({ size = 18 }: { size?: number }) => (
   </svg>
 );
 
-const chip = "flex h-10 items-center gap-2 rounded-pill border border-white/28 bg-white/8 px-4 text-sm font-bold";
+const chip = "flex h-10 items-center gap-2 rounded-pill border border-ink/28 bg-ink/8 px-4 text-sm font-bold";
 const timeAgo = (iso: string) => {
   const m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   return m < 60 ? `${m} dk` : m < 1440 ? `${Math.round(m / 60)} sa` : `${Math.round(m / 1440)} g`;
@@ -123,8 +123,8 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
               <span className="font-bold">{plan.hosts.find((h) => h.owner)?.name ?? "Düzenleyen"} seni ortak düzenleyen olarak davet etti.</span>
               <span className="text-sm opacity-85">Kabul edersen planı düzenleyebilir, katılımcıları görebilir ve duyuru gönderebilirsin.</span>
               <div className="flex gap-2">
-                <button type="button" onClick={async () => { await respondCohost(plan.code, true); router.refresh(); }} className="h-11 rounded-pill bg-white px-4.5 text-[15px] font-extrabold text-bg">Kabul et</button>
-                <button type="button" onClick={async () => { await respondCohost(plan.code, false); router.refresh(); }} className="h-11 rounded-pill border border-white/30 px-4 text-[15px] font-bold">Reddet</button>
+                <button type="button" onClick={async () => { await respondCohost(plan.code, true); router.refresh(); }} className="h-11 rounded-pill bg-contrast px-4.5 text-[15px] font-extrabold text-on-contrast">Kabul et</button>
+                <button type="button" onClick={async () => { await respondCohost(plan.code, false); router.refresh(); }} className="h-11 rounded-pill border border-ink/30 px-4 text-[15px] font-bold">Reddet</button>
               </div>
             </div>
           )}
@@ -149,7 +149,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
               <>
                 <span className={chip}>TSİ</span>
                 <CalendarMenu plan={plan} full />
-                <button type="button" aria-label="Davet et" title="Davet et" onClick={share} className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><SendIcon size={16} /></button>
+                <button type="button" aria-label="Davet et" title="Davet et" onClick={share} className="flex size-10 items-center justify-center rounded-pill border border-ink/28 bg-ink/8"><SendIcon size={16} /></button>
                 {viewer && (
                   <button type="button" aria-pressed={state.muted} disabled={busy} onClick={() => toggle(() => mutePlan(plan.code, !state.muted))} title={state.muted ? "Bildirimleri aç" : "Duyuru ve hatırlatmaları sessize al"} className={state.muted ? chip : "flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"}>
                     {state.muted ? <><BellOffIcon size={16} /> Sessizde</> : <><BellIcon size={16} /><span className="sr-only">Sessize al</span></>}
@@ -203,13 +203,13 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                   <span className="text-sm opacity-80">{viewerGuest?.paid ? "Gönderdin · düzenleyen görüyor" : "Gönderince işaretle; doğrulama yok"}</span>
                 </span>
                 {!preview && (
-                  <button type="button" onClick={async () => { await markPaid(plan.code, !viewerGuest?.paid); router.refresh(); }} className={`h-10 shrink-0 rounded-pill px-4 text-sm font-bold ${viewerGuest?.paid ? "border border-white/35 bg-white/8" : "bg-white text-bg"}`}>
+                  <button type="button" onClick={async () => { await markPaid(plan.code, !viewerGuest?.paid); router.refresh(); }} className={`h-10 shrink-0 rounded-pill px-4 text-sm font-bold ${viewerGuest?.paid ? "border border-ink/35 bg-ink/8" : "bg-white text-bg"}`}>
                     {viewerGuest?.paid ? "Geri al" : "Gönderdim"}
                   </button>
                 )}
               </div>
               {(plan.cost.iban || plan.cost.papara || plan.cost.note) && (
-                <div className="flex flex-col gap-1 rounded-lg bg-bg/35 px-3.5 py-2.5 text-sm">
+                <div className="flex flex-col gap-1 rounded-lg bg-surface/35 px-3.5 py-2.5 text-sm">
                   {plan.cost.iban && <span className="flex flex-wrap items-center gap-2"><span className="opacity-70">IBAN</span><code className="font-semibold">{plan.cost.iban}</code><button type="button" onClick={() => navigator.clipboard?.writeText(plan.cost.iban!)} className="text-xs font-bold" style={{ color: t.accent }}>Kopyala</button></span>}
                   {plan.cost.papara && <span className="flex items-center gap-2"><span className="opacity-70">Papara</span><code className="font-semibold">{plan.cost.papara}</code></span>}
                   {plan.cost.note && <span className="opacity-80">Açıklama: {plan.cost.note}</span>}
@@ -228,11 +228,11 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             </div>
             <AvatarStack items={plan.guests.slice(0, joined ? 6 : 4)} ring="rgba(0,0,0,0.35)" more={Math.max(0, plan.guests.length - (joined ? 6 : 4))} />
             {!joined && (
-              <div className="flex flex-col items-start gap-3 rounded-xl border border-white/12 bg-bg/55 p-5">
+              <div className="flex flex-col items-start gap-3 rounded-xl border border-ink/12 bg-surface/55 p-5">
                 <span className="flex items-center gap-2 text-[17px] font-bold"><LockIcon size={18} /> Katılımcılara özel</span>
                 <p className="text-[15px] leading-relaxed opacity-85">Kimlerin geldiğini, yorumları ve fotoğraf albümünü yalnızca katılımını bildirenler görür.</p>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setFlow("going")} className="h-11 rounded-pill bg-white px-4.5 text-[15px] font-bold text-bg">Katılımını bildir</button>
+                  <button type="button" onClick={() => setFlow("going")} className="h-11 rounded-pill bg-contrast px-4.5 text-[15px] font-bold text-on-contrast">Katılımını bildir</button>
                   <Link href={routes.login} className="flex h-11 items-center px-3.5 text-[15px] font-bold">Zaten bildirdin mi? Giriş yap</Link>
                 </div>
               </div>
@@ -258,7 +258,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                         <span className="text-base">
                           <strong>{who.name.split(" ")[0]}</strong> {f.kind === "blast" ? "bir duyuru gönderdi" : f.kind === "comment" ? "yorum yazdı" : <>katılımını bildirdi · <span className="font-bold" style={{ color: status === "going" ? t.accent : undefined }}>{status ? rsvpLabel[status] : ""}</span></>} {plan.showTimestamps && <span className="opacity-60">· {timeAgo(f.at)}</span>}
                         </span>
-                        {f.text && <span className="rounded-[4px_14px_14px_14px] bg-white/10 px-3.5 py-2.5 text-base">{f.text}</span>}
+                        {f.text && <span className="rounded-[4px_14px_14px_14px] bg-ink/10 px-3.5 py-2.5 text-base">{f.text}</span>}
                       </div>
                     </div>
                   );
@@ -297,14 +297,14 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
                   <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>
                 </div>
               </div>
-              <button type="button" className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-white text-[15px] font-extrabold text-bg"><SendIcon /> Arkadaşlarını davet et</button>
+              <button type="button" onClick={share} className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-contrast text-[15px] font-extrabold text-on-contrast"><SendIcon /> Arkadaşlarını davet et</button>
             </div>
           )}
           {joined ? (
             <CalendarMenu plan={plan} full variant="card" className="w-full" />
           ) : (
             <div className="glass flex w-full items-center gap-3 rounded-xl p-4">
-              <span className="flex size-11 items-center justify-center rounded-md bg-white/10"><CalendarIcon /></span>
+              <span className="flex size-11 items-center justify-center rounded-md bg-ink/10"><CalendarIcon /></span>
               <span className="flex grow flex-col"><span className="text-[15px] font-bold">Takvime ekle</span><span className="text-[13px] opacity-80">Google · Apple · .ics</span></span>
               <span className="text-[13px] opacity-70">Katılım sonrası</span>
             </div>
@@ -317,7 +317,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
           <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="flex h-12 grow items-center justify-center gap-2 rounded-pill text-[15px] font-extrabold text-[#160804]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
             <CheckIcon size={18} /> {rsvpLabel[rsvp!.status as RsvpStatus]} <ChevronDownIcon size={16} />
           </button>
-          <button type="button" className="flex h-12 items-center gap-2 rounded-pill bg-white/12 px-4 text-sm font-bold text-white"><SendIcon size={16} /> Davet et</button>
+          <button type="button" onClick={share} className="flex h-12 items-center gap-2 rounded-pill bg-white/12 px-4 text-sm font-bold text-white"><SendIcon size={16} /> Davet et</button>
         </div>
       )}
 

@@ -64,7 +64,7 @@ export function PollCard({ code, themeId, hostName, options, tally, viewer, exis
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5 rounded-lg border border-white/16 bg-white/10 px-4 py-3.5">
+      <div className="flex flex-col gap-0.5 rounded-lg border border-ink/16 bg-ink/10 px-4 py-3.5">
         <span className="text-lg font-bold">Tarih netleşmedi</span>
         <span className="text-sm opacity-85">{hostName} hangi gün olsun diye soruyor — her seçeneğe oy ver</span>
       </div>
@@ -77,9 +77,9 @@ export function PollCard({ code, themeId, hostName, options, tally, viewer, exis
         const yes = adj("yes"), maybe = adj("maybe"), no = adj("no");
         const tot = Math.max(1, yes + maybe + no);
         return (
-          <div key={o.id} className="flex flex-col gap-3 rounded-xl border border-white/14 bg-white/8 px-3.5 pb-3 pt-3.5">
+          <div key={o.id} className="flex flex-col gap-3 rounded-xl border border-ink/14 bg-ink/8 px-3.5 pb-3 pt-3.5">
             <div className="flex items-baseline justify-between"><span className="text-[19px] font-bold">{formatDayShort(o.startsAt)}</span><span className="text-sm opacity-80">{formatTime(o.startsAt)}</span></div>
-            <div className="flex h-2 overflow-hidden rounded-pill bg-white/12"><span style={{ width: `${Math.round((yes / tot) * 100)}%`, background: t.accent }} /><span className="bg-white/45" style={{ width: `${Math.round((maybe / tot) * 100)}%` }} /></div>
+            <div className="flex h-2 overflow-hidden rounded-pill bg-ink/12"><span style={{ width: `${Math.round((yes / tot) * 100)}%`, background: t.accent }} /><span className="bg-ink/45" style={{ width: `${Math.round((maybe / tot) * 100)}%` }} /></div>
             <div className="flex justify-between text-[13px] opacity-85"><span>{yes} evet · {maybe} belki</span><span>{no} hayır</span></div>
             {!submitted && (
               <div role="radiogroup" aria-label={`${formatDayShort(o.startsAt)} için oyun`} className="grid grid-cols-3 gap-2">
@@ -98,26 +98,26 @@ export function PollCard({ code, themeId, hostName, options, tally, viewer, exis
       })}
 
       {submitted ? (
-        <div className="flex items-center justify-between rounded-lg bg-white/8 px-4 py-3 text-sm"><span>Oyların kaydedildi. Gün seçilince katılıma dönüşür, sana haber veririz.</span><button type="button" onClick={() => setEditing(true)} className="font-bold" style={{ color: t.accent }}>Değiştir</button></div>
+        <div className="flex items-center justify-between rounded-lg bg-ink/8 px-4 py-3 text-sm"><span>Oyların kaydedildi. Gün seçilince katılıma dönüşür, sana haber veririz.</span><button type="button" onClick={() => setEditing(true)} className="font-bold" style={{ color: t.accent }}>Değiştir</button></div>
       ) : gate === "name" ? (
-        <div className="flex flex-col gap-2.5 rounded-xl border border-white/16 bg-white/10 p-4">
+        <div className="flex flex-col gap-2.5 rounded-xl border border-ink/16 bg-ink/10 p-4">
           <span className="font-bold">Oyunu kaydetmek için adın ve e-postan yeter</span>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ad Soyad" autoComplete="name" className={input} />
           <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ad@ornek.com" type="email" inputMode="email" autoComplete="email" className={input} />
           {err && <p className="text-sm font-bold" style={{ color: t.accent }}>{err}</p>}
-          <button type="button" onClick={askCode} disabled={pending} className="h-12 rounded-pill bg-white text-[15px] font-extrabold text-bg disabled:opacity-60">Kodu gönder</button>
+          <button type="button" onClick={askCode} disabled={pending} className="h-12 rounded-pill bg-contrast text-[15px] font-extrabold text-on-contrast disabled:opacity-60">Kodu gönder</button>
         </div>
       ) : gate === "code" ? (
-        <div className="flex flex-col items-center gap-2.5 rounded-xl border border-white/16 bg-white/10 p-4">
+        <div className="flex flex-col items-center gap-2.5 rounded-xl border border-ink/16 bg-ink/10 p-4">
           <span className="text-center text-sm"><strong>{maskEmail(email)}</strong> adresine kod gönderdik.</span>
           <CodeBoxes value={digits} onChange={setDigits} onEnter={verify} size="sm" />
           {devCode && <span className="text-center text-xs opacity-85">Geliştirme: kodun <strong className="display text-base tracking-[0.2em]">{devCode}</strong></span>}
           {err && <p className="text-sm font-bold" style={{ color: t.accent }}>{err}</p>}
-          <button type="button" onClick={verify} disabled={pending} className="h-12 w-full rounded-pill bg-white text-[15px] font-extrabold text-bg disabled:opacity-60">Doğrula ve oyları gönder</button>
+          <button type="button" onClick={verify} disabled={pending} className="h-12 w-full rounded-pill bg-contrast text-[15px] font-extrabold text-on-contrast disabled:opacity-60">Doğrula ve oyları gönder</button>
         </div>
       ) : (
         <>
-          <button type="button" disabled={!complete || pending} onClick={beginGate} className="h-14 rounded-pill bg-white text-base font-extrabold text-bg disabled:opacity-40">Oyları gönder</button>
+          <button type="button" disabled={!complete || pending} onClick={beginGate} className="h-14 rounded-pill bg-contrast text-base font-extrabold text-on-contrast disabled:opacity-40">Oyları gönder</button>
           <span className="text-center text-[13px] opacity-75">Gün seçilince oyun otomatik katılıma dönüşür, sana haber veririz.</span>
         </>
       )}

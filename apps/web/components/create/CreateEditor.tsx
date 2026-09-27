@@ -306,7 +306,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
       <div className="fixed right-10 top-[126px] hidden md:block xl:hidden">{toolbar}</div>
 
       {/* desktop actions */}
-      <div className="fixed bottom-10 right-10 hidden gap-2.5 md:flex relative">
+      <div className="fixed bottom-10 right-10 z-30 hidden gap-2.5 md:flex">
         <Link href={routes.home} className="flex h-14 items-center rounded-pill border border-white/30 bg-bg/55 px-5.5 text-base font-bold text-text">
           Taslağı kaydet
         </Link>
