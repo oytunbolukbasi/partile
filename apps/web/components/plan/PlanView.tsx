@@ -9,7 +9,7 @@ import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
-import { openConversation } from "@/app/actions";
+import { openConversation, respondCohost } from "@/app/actions";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
 import { Poster } from "@/components/plan/Poster";
@@ -39,7 +39,7 @@ const timeAgo = (iso: string) => {
 /** `InviteDesktop` / `InviteMobile` (pre-RSVP) and `Event` / `EventMobile` (post-RSVP) in one component. */
 type ViewerGuest = { id: string; name: string; status: string; plusOnes?: number; plusOneNames?: string[]; note?: string; answers?: Record<string, string>; followHost: boolean; votes: Record<string, "yes" | "maybe" | "no"> };
 
-export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean }) {
+export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInvite = false }: { plan: Plan; viewer: Viewer | null; viewerGuest: ViewerGuest | null; preview?: boolean; cohostInvite?: boolean }) {
   const router = useRouter();
   const rsvp = viewerGuest && viewerGuest.status !== "invited" ? viewerGuest : null;
   const ready = true;
@@ -95,6 +95,16 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
             </div>
           )}
 
+          {cohostInvite && (
+            <div className="flex flex-col gap-3 rounded-xl border border-[rgba(255,181,71,0.4)] bg-[rgba(255,181,71,0.14)] px-4 py-4">
+              <span className="font-bold">{plan.hosts.find((h) => h.owner)?.name ?? "Düzenleyen"} seni ortak düzenleyen olarak davet etti.</span>
+              <span className="text-sm opacity-85">Kabul edersen planı düzenleyebilir, katılımcıları görebilir ve duyuru gönderebilirsin.</span>
+              <div className="flex gap-2">
+                <button type="button" onClick={async () => { await respondCohost(plan.code, true); router.refresh(); }} className="h-11 rounded-pill bg-white px-4.5 text-[15px] font-extrabold text-bg">Kabul et</button>
+                <button type="button" onClick={async () => { await respondCohost(plan.code, false); router.refresh(); }} className="h-11 rounded-pill border border-white/30 px-4 text-[15px] font-bold">Reddet</button>
+              </div>
+            </div>
+          )}
           {pendingApproval && (
             <div className="flex items-center gap-3 rounded-xl border border-[rgba(255,181,71,0.4)] bg-[rgba(255,181,71,0.14)] px-4 py-3.5 text-sm md:hidden"><span className="font-bold">Onay bekliyor.</span> Düzenleyen listeye alınca haber veririz.</div>
           )}

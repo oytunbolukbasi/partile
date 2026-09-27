@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { blast as sendBlastAction, decideGuest, openConversation, pickDay, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
+import { blast as sendBlastAction, decideGuest, inviteCohost, openConversation, pickDay, removeCohost, removeFeedItem, savePlan, setGuestFlag } from "@/app/actions";
 import { formatDayLong, formatDayShort, formatTime, formatTimeRange, formatTry, planUrl, rsvpLabel, type PlanDraft } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
 import { SettingsModal, type SettingsTab } from "@/components/create/SettingsModal";
@@ -114,7 +114,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
               <div className="flex items-center gap-2.5 text-[17px] opacity-85"><CrownIcon size={20} /> Düzenleyenler</div>
               <div className="flex items-center gap-3.5">
                 <div className="flex">{plan.hosts.map((h, i) => <Avatar key={h.id} initials={h.initials} gradient={h.gradient} size={52} square ring="rgba(0,0,0,0.35)" className={i ? "-ml-3" : ""} />)}</div>
-                <div className="flex grow flex-col"><span className="text-lg font-bold">{plan.hosts.map((h) => (h.id === me.id ? "Sen" : h.name)).join(" & ")}</span>{plan.hosts.length > 1 && <span className="text-sm opacity-75">{plan.hosts[1]!.name} ortak düzenleyen · kabul etti</span>}</div>
+                <div className="flex grow flex-col"><span className="text-lg font-bold">{plan.hosts.filter((h) => h.accepted !== false).map((h) => (h.id === me.id ? "Sen" : h.name)).join(" & ")}</span>{plan.hosts.length > 1 && <span className="text-sm opacity-75">{plan.hosts.filter((h) => !h.owner).map((h) => `${h.name.split(" ")[0]} · ${h.accepted === false ? "davet bekliyor" : "ortak düzenleyen"}`).join(" · ")}</span>}</div>
                 <button type="button" onClick={() => openSettings("hosts")} className={chip}>+ Ekle</button>
               </div>
             </section>
@@ -214,7 +214,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
       <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
       <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onDecide={(id, d) => act(() => decideGuest(plan.code, id, d))} onFlag={(id, flag, v) => act(() => setGuestFlag(plan.code, id, flag, v))} onBlast={() => setModal("blast")} onMessage={async (uid) => { const r = await openConversation(plan.code, uid); if (r.ok) router.push(`${routes.messages}?s=${r.id}`); }} />
       <BlastModal plan={plan} guests={guests} hostName={plan.hosts.find((h) => h.id === viewerId)?.name ?? "Düzenleyen"} open={modal === "blast"} onClose={() => setModal(null)} onSend={(b) => act(() => sendBlastAction(plan.code, b.toLabel, b.guestIds, b.text), true)} />
-      <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => act(() => savePlan(plan.code, p), true)} />
+      <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => act(() => savePlan(plan.code, p), true)} hostTools={{ viewerId, hosts: plan.hosts, onInvite: async (email) => { const r = await inviteCohost(plan.code, email); router.refresh(); return r; }, onRemove: (uid) => act(() => removeCohost(plan.code, uid)) }} />
     </ThemeSurface>
   );
 }

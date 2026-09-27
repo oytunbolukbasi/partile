@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PlanCode, formatDayLong, formatTime } from "@partile/core";
-import { bumpViews, getPlanByCode, getViewerGuest, roleFor } from "@partile/db";
+import { bumpViews, getPlanByCode, getViewerGuest, pendingCohostInvite, roleFor } from "@partile/db";
 import { HostView } from "@/components/host/HostView";
 import { PlanView } from "@/components/plan/PlanView";
 import { getViewer } from "@/lib/auth";
@@ -33,7 +33,7 @@ export default async function PlanPage({ params, searchParams }: Props) {
   const viewer = await getViewer();
   const role = await roleFor(plan.id, viewer?.id ?? null);
   if (role === "host" && goruntule !== "misafir") return <HostView plan={plan} viewerId={viewer!.id} />;
-  const viewerGuest = await getViewerGuest(plan.id, viewer?.id ?? null);
+  const [viewerGuest, cohostInvite] = await Promise.all([getViewerGuest(plan.id, viewer?.id ?? null), pendingCohostInvite(plan.id, viewer?.id ?? null)]);
   if (role !== "host") await bumpViews(plan.id);
-  return <PlanView plan={plan} viewer={viewer} viewerGuest={viewerGuest} />;
+  return <PlanView plan={plan} viewer={viewer} viewerGuest={viewerGuest} cohostInvite={cohostInvite} />;
 }

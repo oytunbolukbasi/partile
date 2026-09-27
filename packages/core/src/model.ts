@@ -4,7 +4,7 @@ import type { PlanDraft, RsvpStatus } from "./domain";
  * Read models the screens render. The data layer (`@partile/db`) assembles these
  * from tables; hosts never receive guest e-mails.
  */
-export type Host = { id: string; name: string; initials: string; gradient: string; accepted?: boolean };
+export type Host = { id: string; name: string; initials: string; gradient: string; accepted?: boolean; owner?: boolean };
 export type Guest = {
   id: string;
   /** Set once the guest verified their e-mail; lets hosts message them. */

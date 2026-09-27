@@ -62,3 +62,13 @@ ${button(url, "Planı aç")}`;
   const results = await Promise.all(to.map((addr) => send(addr, `${plan.title}: duyuru`, shell(body, footer), `${plan.title} · ${hostName}’dan duyuru\n\n${text}\n\n${url}`)));
   return { sent: results.some((r) => r.sent) };
 }
+
+/** Co-host invitation: the link signs the invitee in (magic code) and lands on the plan, where they accept. */
+export async function sendCohostMail(to: string, code: string, plan: { title: string; code: string }, inviterName: string) {
+  const link = `${SITE}/giris/dogrula?e=${encodeURIComponent(to)}&kod=${code}&next=${encodeURIComponent(`/e/${plan.code}`)}`;
+  const body = `<p style="margin:0 0 12px;font-size:18px;font-weight:800">${esc(inviterName)} seni ortak düzenleyen yaptı</p>
+<p style="margin:0 0 16px;font-size:14px;line-height:1.5"><strong>${esc(plan.title)}</strong> planını birlikte düzenlemek için davet edildin. Linke dokun, daveti kabul et; planı düzenleyebilir, katılımcıları görebilir, duyuru gönderebilirsin.</p>
+${button(link, "Daveti aç")}
+<p style="margin:16px 0 0;font-size:12px;color:#5F584F">Link 10 dakika geçerli; süresi dolarsa partile’a e-postanla giriş yapıp plana git.</p>`;
+  return send(to, `${inviterName} seni ${plan.title} için ortak düzenleyen yaptı`, shell(body, "Ortak düzenleyenler planı değiştirebilir ve misafir listesini görür; e-posta adresleri görünmez."), `${inviterName} seni ${plan.title} için ortak düzenleyen olarak davet etti.\n\n${link}`);
+}

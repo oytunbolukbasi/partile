@@ -40,7 +40,13 @@ const H = ({ title, hint }: { title: string; hint?: string }) => (
 const newId = () => Math.random().toString(36).slice(2, 8);
 
 /** `Settings*` artboards: one modal, left tabs, per-tab content bound to the draft. Changes apply on Kaydet. */
-export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSave }: { open: boolean; onClose: () => void; initialTab?: SettingsTab; draft: PlanDraft; onSave: (patch: Partial<PlanDraft>) => void }) {
+export type HostRow = { id: string; name: string; initials: string; gradient: string; accepted?: boolean; owner?: boolean };
+export type HostTools = { viewerId: string; hosts: HostRow[]; onInvite: (email: string) => Promise<{ ok: boolean; error?: string; devLink?: string; mailed?: boolean }>; onRemove: (userId: string) => void };
+
+export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSave, hostTools }: { open: boolean; onClose: () => void; initialTab?: SettingsTab; draft: PlanDraft; onSave: (patch: Partial<PlanDraft>) => void; hostTools?: HostTools }) {
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteMsg, setInviteMsg] = useState<{ text: string; link?: string; error?: boolean } | null>(null);
+  const [inviting, setInviting] = useState(false);
   const [tab, setTab] = useState<SettingsTab>(initialTab);
   const [d, setD] = useState<PlanDraft>(draft);
   const set = (p: Partial<PlanDraft>) => setD((x) => ({ ...x, ...p }));
@@ -78,23 +84,52 @@ export function SettingsModal({ open, onClose, initialTab = "rsvp", draft, onSav
         <section className="flex min-h-[520px] grow flex-col gap-4.5 p-6 md:p-7">
           {tab === "hosts" && (
             <>
-              <H title="Düzenleyenler" hint="Düzenleyenler planı değiştirebilir, ortak düzenleyen ekleyip çıkarabilir." />
-              <div className="flex items-center gap-3.5">
-                <span className="flex size-[52px] items-center justify-center rounded-pill text-base font-extrabold text-bg" style={{ background: "linear-gradient(135deg, #1EC9B0, #FFB020)" }}>
-                  OB
-                </span>
-                <span className="flex flex-col">
-                  <span className="text-[17px] font-bold">Oytun Bölükbaşı</span>
-                  <span className="text-sm text-subtle">Oluşturan · Sen</span>
-                </span>
-              </div>
-              <button type="button" className={`${btnPrimary} w-fit`}>+ Ortak düzenleyen</button>
-              <Group>
-                <SettingRow title="Linkle ortak düzenleyen ekle" hint="Linke sahip herkes düzenleyen olur; misafirlerle paylaşma">
-                  <Toggle checked={false} onChange={() => {}} label="Linkle ortak düzenleyen" />
-                </SettingRow>
-              </Group>
-              <p className="text-[13px] text-subtle">Ortak düzenleyen daveti ve link, yayınlayıp e-postanı doğruladıktan sonra aktif olur.</p>
+              <H title="Düzenleyenler" hint="Düzenleyenler planı değiştirebilir, katılımcıları görür, duyuru gönderir. E-posta adresleri kimseye görünmez." />
+              {hostTools ? (
+                <>
+                  <div className="flex flex-col gap-3">
+                    {hostTools.hosts.map((h) => (
+                      <div key={h.id} className="flex items-center gap-3.5">
+                        <span className="flex size-[52px] items-center justify-center rounded-pill text-base font-extrabold text-bg" style={{ background: h.gradient }}>{h.initials}</span>
+                        <span className="flex grow flex-col">
+                          <span className="text-[17px] font-bold">{h.id === hostTools.viewerId ? `${h.name} · Sen` : h.name}</span>
+                          <span className="text-sm text-subtle">{h.owner ? "Oluşturan" : h.accepted ? "Ortak düzenleyen" : "Davet gönderildi · kabul bekliyor"}</span>
+                        </span>
+                        {!h.owner && hostTools.hosts.some((x) => x.owner && x.id === hostTools.viewerId) && (
+                          <button type="button" onClick={() => hostTools.onRemove(h.id)} className={`${btnGhost} h-10 px-4 text-sm`}>Çıkar</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <form
+                    className="flex flex-col gap-2 rounded-lg border border-line bg-white/5 p-4"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!inviteEmail.trim() || inviting) return;
+                      setInviting(true);
+                      const r = await hostTools.onInvite(inviteEmail);
+                      setInviting(false);
+                      if (!r.ok) return setInviteMsg({ text: r.error ?? "Davet gönderilemedi.", error: true });
+                      setInviteEmail("");
+                      setInviteMsg({ text: r.mailed ? "Davet e-postası gönderildi. Kabul edince listede görünür." : "Davet oluşturuldu. E-posta bağlı değil; geliştirme linkini paylaş:", link: r.devLink });
+                    }}
+                  >
+                    <label htmlFor="cohost-email" className="text-[13px] font-bold">Ortak düzenleyen davet et</label>
+                    <div className="flex gap-2">
+                      <input id="cohost-email" type="email" inputMode="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="ad@ornek.com" className={`${field} h-11`} />
+                      <button type="submit" disabled={inviting || !inviteEmail.trim()} className={`${btnPrimary} h-11 shrink-0 disabled:opacity-40`}>{inviting ? "Gönderiliyor…" : "Davet et"}</button>
+                    </div>
+                    {inviteMsg && (
+                      <p className={`text-[13px] ${inviteMsg.error ? "font-bold text-[#FF8C6B]" : "text-muted"}`}>
+                        {inviteMsg.text}{inviteMsg.link && <> <code className="break-all text-text">{inviteMsg.link}</code></>}
+                      </p>
+                    )}
+                    <p className="text-xs text-subtle">Davetli e-postasındaki linkle giriş yapar ve plan sayfasında daveti kabul eder.</p>
+                  </form>
+                </>
+              ) : (
+                <p className="text-[13px] text-subtle">Ortak düzenleyen daveti, planı yayınladıktan sonra plan sayfasındaki Ayarlar’dan gönderilir.</p>
+              )}
             </>
           )}
 

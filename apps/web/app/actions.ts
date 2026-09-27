@@ -13,6 +13,9 @@ import {
   listGuestEmails,
   markNotificationsRead,
   removePhoto,
+  inviteCohost as inviteCohostRow,
+  respondCohost as respondCohostRow,
+  removeCohost as removeCohostRow,
   ensureConversation,
   sendMessage,
   markConversationRead,
@@ -28,7 +31,7 @@ import {
   votePoll,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
-import { mailEnabled, sendBlastMail, sendVerificationMail } from "@/lib/mail";
+import { mailEnabled, sendBlastMail, sendCohostMail, sendVerificationMail } from "@/lib/mail";
 import { materialize, remove as removeFile } from "@/lib/storage";
 import { routes } from "@/lib/routes";
 
@@ -44,7 +47,8 @@ export async function requestCode(email: string, purpose: "login" | "rsvp" = "lo
   if (!mailEnabled()) return { ok: true as const, devCode: code };
   const r = await sendVerificationMail(e, code, purpose, next);
   if (!r.sent) return { ok: false as const, error: "E-posta gönderilemedi. Biraz sonra tekrar dene." };
-  return { ok: true as const, devCode: undefined };
+  // Outside production the code stays visible so sample accounts (demo@…) can sign in without a mailbox.
+  return { ok: true as const, devCode: process.env.NODE_ENV === "production" ? undefined : code };
 }
 
 export async function verifyCode(email: string, code: string) {
@@ -248,4 +252,37 @@ export async function deletePhoto(code: string, photoId: string) {
   await removeFile(url);
   revalidatePath(routes.plan(code));
   return { ok: true as const };
+}
+
+/* ---------- co-hosts ---------- */
+
+export async function inviteCohost(code: string, email: string) {
+  const h = await hostOf(code);
+  if (!h) return { ok: false as const, error: "Yetki yok." };
+  const e = email.trim().toLowerCase();
+  if (!EMAIL.test(e)) return { ok: false as const, error: "Geçerli bir e-posta gir." };
+  const r = await inviteCohostRow(h.plan.id, h.v.id, e);
+  if ("error" in r) return { ok: false as const, error: r.error };
+  const loginCode = await createVerificationCode(e, "login");
+  const mail = await sendCohostMail(e, loginCode, { title: h.plan.title, code: h.plan.code }, h.v.name || "Bir düzenleyen");
+  revalidatePath(routes.plan(code));
+  return { ok: true as const, mailed: mail.sent, devLink: mail.sent ? undefined : `/giris/dogrula?e=${encodeURIComponent(e)}&kod=${loginCode}&next=${encodeURIComponent(`/e/${code}`)}` };
+}
+
+export async function respondCohost(code: string, accept: boolean) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  await respondCohostRow(plan.id, v.id, accept);
+  revalidatePath(routes.plan(code));
+  revalidatePath(routes.home);
+  return { ok: true as const };
+}
+
+export async function removeCohost(code: string, userId: string) {
+  const h = await hostOf(code);
+  if (!h) return { ok: false as const };
+  const done = await removeCohostRow(h.plan.id, h.v.id, userId);
+  revalidatePath(routes.plan(code));
+  return { ok: done };
 }

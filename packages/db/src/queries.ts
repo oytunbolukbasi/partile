@@ -11,7 +11,7 @@ type PlanRow = typeof plans.$inferSelect;
 async function assemble(row: PlanRow): Promise<Plan> {
   const db = await getDb();
   const [hostRows, guestRows, feedRows, blastRows, optionRows, photoRows] = await Promise.all([
-    db.select({ userId: planHosts.userId, role: planHosts.role, accepted: planHosts.accepted, position: planHosts.position, name: users.name }).from(planHosts).innerJoin(users, eq(users.id, planHosts.userId)).where(eq(planHosts.planId, row.id)).orderBy(asc(planHosts.position)),
+    db.select({ userId: planHosts.userId, role: planHosts.role, accepted: planHosts.accepted, position: planHosts.position, name: users.name, email: users.email }).from(planHosts).innerJoin(users, eq(users.id, planHosts.userId)).where(eq(planHosts.planId, row.id)).orderBy(asc(planHosts.position)),
     db.select().from(guests).where(eq(guests.planId, row.id)).orderBy(desc(guests.createdAt)),
     db.select().from(feedItems).where(eq(feedItems.planId, row.id)).orderBy(desc(feedItems.createdAt)),
     db.select().from(blasts).where(eq(blasts.planId, row.id)).orderBy(asc(blasts.createdAt)),
@@ -62,7 +62,7 @@ async function assemble(row: PlanRow): Promise<Plan> {
     questions: row.questions,
     cost: row.cost,
     extras: (row.extras as Plan["extras"]) ?? undefined,
-    hosts: hostRows.map((h) => ({ id: h.userId, name: h.name, initials: initials(h.name), gradient: gradientFor(h.userId), accepted: h.accepted })),
+    hosts: hostRows.map((h) => ({ id: h.userId, name: h.name || h.email.split("@")[0]!, initials: initials(h.name || h.email), gradient: gradientFor(h.userId), accepted: h.accepted, owner: h.role === "owner" })),
     guests: guestRows.map(toGuest),
     feed: feedRows.map((f) => ({ id: f.id, guestId: f.actorId, kind: f.kind as "rsvp" | "comment" | "blast", text: f.text ?? undefined, at: f.createdAt.toISOString() })),
     blasts: blastRows.map((b) => ({ id: b.id, at: b.createdAt.toISOString(), to: b.toLabel, count: b.count, text: b.text })),
@@ -105,7 +105,7 @@ export async function getPlanById(id: string): Promise<Plan | null> {
 export async function roleFor(planId: string, userId: string | null): Promise<PlanRole | null> {
   if (!userId) return null;
   const db = await getDb();
-  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId))).limit(1);
+  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId), eq(planHosts.accepted, true))).limit(1);
   if (h) return "host";
   const [g] = await db.select({ status: guests.status }).from(guests).where(and(eq(guests.planId, planId), eq(guests.userId, userId))).limit(1);
   return g ? (g.status as RsvpStatus) : null;
@@ -124,7 +124,7 @@ export async function getViewerGuest(planId: string, userId: string | null) {
 /** Plans the user hosts or answered, soonest first (undated last). */
 export async function listPlansForUser(userId: string): Promise<{ plan: Plan; role: PlanRole }[]> {
   const db = await getDb();
-  const hosted = await db.select({ id: planHosts.planId }).from(planHosts).where(eq(planHosts.userId, userId));
+  const hosted = await db.select({ id: planHosts.planId }).from(planHosts).where(and(eq(planHosts.userId, userId), eq(planHosts.accepted, true)));
   const answered = await db.select({ id: guests.planId, status: guests.status }).from(guests).where(eq(guests.userId, userId));
   const ids = [...new Set([...hosted.map((h) => h.id), ...answered.map((a) => a.id)])];
   if (!ids.length) return [];

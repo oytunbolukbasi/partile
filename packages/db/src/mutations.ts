@@ -166,10 +166,53 @@ function rowToDraft(r: typeof plans.$inferSelect): PlanDraft {
   };
 }
 
+/** Accepted hosts only; a pending co-host invite gives no access. */
 export async function isHost(planId: string, userId: string): Promise<boolean> {
   const db = await getDb();
-  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId))).limit(1);
+  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId), eq(planHosts.accepted, true))).limit(1);
   return !!h;
+}
+
+/* ---------- co-hosts ---------- */
+
+/** Invite by e-mail: creates the account if needed, adds a pending host row, notifies. Returns the invitee's user id. */
+export async function inviteCohost(planId: string, inviterId: string, email: string) {
+  const db = await getDb();
+  const user = await ensureUser(email);
+  if (user.id === inviterId) return { error: "Kendini davet edemezsin." as const };
+  const [existing] = await db.select().from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, user.id))).limit(1);
+  if (existing) return { error: (existing.accepted ? "Zaten düzenleyen." : "Davet zaten gönderildi.") as string };
+  const [cnt] = await db.select({ n: sql<number>`count(*)` }).from(planHosts).where(eq(planHosts.planId, planId));
+  await db.insert(planHosts).values({ planId, userId: user.id, role: "cohost", accepted: false, position: Number(cnt?.n ?? 0) });
+  const [plan] = await db.select({ title: plans.title, code: plans.code }).from(plans).where(eq(plans.id, planId)).limit(1);
+  const [inviter] = await db.select({ name: users.name }).from(users).where(eq(users.id, inviterId)).limit(1);
+  await db.insert(notifications).values({ id: id(), userId: user.id, planId, kind: "cohost", actorName: inviter?.name ?? "", text: `${(inviter?.name ?? "Biri").split(" ")[0]} seni ${plan?.title ?? "bir plan"} için ortak düzenleyen olarak davet etti.`, role: "host" });
+  return { userId: user.id, email: user.email, planTitle: plan?.title ?? "", planCode: plan?.code ?? "", inviterName: inviter?.name ?? "" };
+}
+
+export async function pendingCohostInvite(planId: string, userId: string | null): Promise<boolean> {
+  if (!userId) return false;
+  const db = await getDb();
+  const [h] = await db.select({ userId: planHosts.userId }).from(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId), eq(planHosts.accepted, false))).limit(1);
+  return !!h;
+}
+
+export async function respondCohost(planId: string, userId: string, accept: boolean) {
+  const db = await getDb();
+  if (accept) await db.update(planHosts).set({ accepted: true }).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId)));
+  else await db.delete(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId), eq(planHosts.accepted, false)));
+  const [plan] = await db.select({ ownerId: plans.ownerId, title: plans.title }).from(plans).where(eq(plans.id, planId)).limit(1);
+  const [u] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  if (plan) await db.insert(notifications).values({ id: id(), userId: plan.ownerId, planId, kind: "cohost", actorName: u?.name ?? "", text: `${(u?.name ?? "Davetli").split(" ")[0]} ortak düzenleyen davetini ${accept ? "kabul etti" : "reddetti"}.`, role: "host" });
+}
+
+/** Only the owner removes co-hosts; the owner row itself stays. */
+export async function removeCohost(planId: string, ownerId: string, userId: string): Promise<boolean> {
+  const db = await getDb();
+  const [plan] = await db.select({ ownerId: plans.ownerId }).from(plans).where(eq(plans.id, planId)).limit(1);
+  if (!plan || plan.ownerId !== ownerId || userId === ownerId) return false;
+  await db.delete(planHosts).where(and(eq(planHosts.planId, planId), eq(planHosts.userId, userId)));
+  return true;
 }
 
 export async function bumpViews(planId: string) {
