@@ -397,3 +397,76 @@ export async function listGallery(userId: string, limit = 36): Promise<{ posters
   const seen = new Set(posters);
   return { posters, photos: [...new Set(own.map((p) => p.url).filter(stored))].filter((u) => !seen.has(u)) };
 }
+
+/**
+ * KVKK data export ("Verilerim → İndir"): everything stored about the user, as plain JSON. Other people appear only by
+ * name where the record is the user's own (e.g. a conversation partner); nobody else's e-mail is included.
+ */
+export async function exportUserData(userId: string) {
+  const db = await getDb();
+  const [u] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!u) return null;
+  const iso = (d: Date | null | undefined) => d?.toISOString() ?? null;
+  const planInfo = async (ids: string[]) => {
+    if (!ids.length) return new Map<string, { code: string; title: string }>();
+    const rows = await db.select({ id: plans.id, code: plans.code, title: plans.title }).from(plans).where(inArray(plans.id, ids));
+    return new Map(rows.map((r) => [r.id, { code: r.code, title: r.title }]));
+  };
+
+  const hostRows = await db.select().from(planHosts).where(eq(planHosts.userId, userId));
+  const hosted = hostRows.length ? await db.select().from(plans).where(inArray(plans.id, hostRows.map((h) => h.planId))) : [];
+  const guestRows = await db.select().from(guests).where(eq(guests.userId, userId));
+  const guestIds = guestRows.map((g) => g.id);
+  const votes = guestIds.length ? await db.select().from(pollVotes).where(inArray(pollVotes.guestId, guestIds)) : [];
+  const comments = await db.select().from(feedItems).where(and(inArray(feedItems.actorId, [userId, ...guestIds]), eq(feedItems.kind, "comment")));
+  const sent = await db.select().from(messages).where(eq(messages.senderId, userId));
+  const convs = await db.select().from(conversations).where(or(eq(conversations.hostId, userId), eq(conversations.guestId, userId)));
+  const pics = await db.select().from(photos).where(eq(photos.userId, userId));
+  const notes = await db.select().from(notifications).where(eq(notifications.userId, userId));
+  const following = await db.select({ name: users.name, at: follows.createdAt }).from(follows).innerJoin(users, eq(users.id, follows.followeeId)).where(eq(follows.followerId, userId));
+  const muted = await db.select().from(planMutes).where(eq(planMutes.userId, userId));
+  const later = await db.select().from(laterReminders).where(eq(laterReminders.userId, userId));
+  const info = await planInfo([...new Set([...guestRows.map((g) => g.planId), ...comments.map((c) => c.planId), ...convs.map((c) => c.planId), ...pics.map((p) => p.planId), ...muted.map((m) => m.planId), ...later.map((l) => l.planId)])]);
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getpartile.com";
+  const convById = new Map(convs.map((c) => [c.id, c]));
+
+  return {
+    exportedAt: new Date().toISOString(),
+    account: { email: u.email, name: u.name, bio: u.bio, birthday: u.birthday, notifications: u.notifications, createdAt: iso(u.createdAt) },
+    hostedPlans: hosted.map((p) => ({
+      code: p.code,
+      title: p.title,
+      role: hostRows.find((h) => h.planId === p.id)?.role ?? "cohost",
+      status: p.status,
+      visibility: p.visibility,
+      startsAt: iso(p.startsAt),
+      endsAt: iso(p.endsAt),
+      description: p.description,
+      location: p.location,
+      cost: p.cost,
+      questions: p.questions,
+      createdAt: iso(p.createdAt),
+    })),
+    rsvps: guestRows.map((g) => ({
+      plan: info.get(g.planId) ?? null,
+      name: g.name,
+      status: g.status,
+      plusOnes: g.plusOnes,
+      plusOneNames: g.plusOneNames,
+      note: g.note,
+      answers: g.answers,
+      paid: g.paid,
+      checkedIn: g.checkedIn,
+      followHost: g.followHost,
+      createdAt: iso(g.createdAt),
+    })),
+    pollVotes: votes.map((v) => ({ optionId: v.optionId, vote: v.vote })),
+    comments: comments.map((c) => ({ plan: info.get(c.planId) ?? null, text: c.text, at: iso(c.createdAt) })),
+    messagesSent: sent.map((m) => ({ plan: info.get(convById.get(m.conversationId)?.planId ?? "") ?? null, text: m.text, at: iso(m.createdAt) })),
+    photos: pics.map((p) => ({ plan: info.get(p.planId) ?? null, url: p.url.startsWith("http") ? p.url : `${site}${p.url}`, at: iso(p.createdAt) })),
+    notifications: notes.map((n) => ({ kind: n.kind, text: n.text, at: iso(n.createdAt), read: !!n.readAt })),
+    following: following.map((f) => ({ name: f.name, since: iso(f.at) })),
+    mutedPlans: muted.map((m) => info.get(m.planId) ?? null),
+    remindLater: later.map((l) => ({ plan: info.get(l.planId) ?? null, remindAt: iso(l.remindAt), sentAt: iso(l.sentAt) })),
+  };
+}

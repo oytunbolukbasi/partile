@@ -7,11 +7,11 @@ import { formatPill, initials as toInitials } from "@partile/core";
 import { Avatar } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
 import { TabBar } from "@/components/shell/TabBar";
-import { CameraIcon, LinkIcon, PlusIcon } from "@/components/shell/icons";
+import { CameraIcon, PlusIcon } from "@/components/shell/icons";
 import { Modal, btnGhost, btnPrimary, field, modalFooter } from "@/components/ui/Modal";
 import { SettingRow, Toggle } from "@/components/ui/Toggle";
 import { countByStatus, gradientFor, type Plan, type PlanRole } from "@partile/core";
-import { followUser, signOut, updateProfile } from "@/app/actions";
+import { deleteMyAccount, followUser, signOut, updateProfile } from "@/app/actions";
 import type { Viewer } from "@/lib/auth";
 import { routes } from "@/lib/routes";
 
@@ -28,24 +28,13 @@ export function ProfileView({ viewer, plans, people, following, followers }: { v
   const [showAll, setShowAll] = useState(false);
   const mutuals = showAll ? people : people.slice(0, 5);
   const me = { gradient: gradientFor(viewer.id) };
-  const [modal, setModal] = useState<"edit" | "account" | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [modal, setModal] = useState<"edit" | "account" | "delete" | null>(null);
   const name = session.name || "Adsız";
   const bio = session.bio ?? "";
   const ini = toInitials(name);
   const hosted = plans.filter((x) => x.role === "host");
   const upcoming = plans.filter((x) => x.plan.startsAt && new Date(x.plan.startsAt).getTime() > Date.now());
-  const handle = name.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşıöç]+/g, "-");
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(`https://getpartile.com/u/${handle}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {
-      /* ignore */
-    }
-  };
   const btn = "flex h-12 items-center gap-2 rounded-pill border border-white/30 bg-white/6 px-5 text-[15px] font-bold";
   const card = "flex items-center gap-3.5 rounded-xl border border-white/8 bg-white/5 px-4 py-4 md:px-5";
 
@@ -64,8 +53,6 @@ export function ProfileView({ viewer, plans, people, following, followers }: { v
         </div>
         <div className="flex flex-wrap justify-center gap-2.5 pt-1.5">
           <button type="button" onClick={() => setModal("edit")} className={btn}>Profili düzenle</button>
-          <button type="button" onClick={copy} className={btn}><LinkIcon size={16} /> {copied ? "Kopyalandı" : "Profil linkini kopyala"}</button>
-          <button type="button" className={btn} title="Organizasyon profili Faz 2">Profil değiştir</button>
         </div>
       </div>
 
@@ -116,6 +103,7 @@ export function ProfileView({ viewer, plans, people, following, followers }: { v
       </div>
       <TabBar initials={ini} />
 
+      <DeleteAccountModal open={modal === "delete"} onClose={() => setModal("account")} ownedPlans={hosted.filter((x) => x.plan.hosts.find((h) => h.owner)?.id === viewer.id).length} />
       <EditProfileModal open={modal === "edit"} onClose={() => setModal(null)} name={name} bio={bio} birthday={session.birthday ?? ""} onSave={(p) => { update(p); setModal(null); }} />
       <Modal open={modal === "account"} onClose={() => setModal(null)} title="Hesap ayarları" width={560}>
         <div className="flex flex-col">
@@ -129,7 +117,10 @@ export function ProfileView({ viewer, plans, people, following, followers }: { v
             <span className="text-sm font-semibold text-subtle">Yakında</span>
           </SettingRow>
           <SettingRow title="Verilerim" hint="KVKK kapsamında verilerini indir ya da hesabını sil">
-            <span className="text-sm font-semibold text-subtle">Yakında</span>
+            <span className="flex flex-wrap justify-end gap-2">
+              <a href="/api/verilerim" download className="flex h-9 items-center rounded-pill border border-white/25 px-3.5 text-[13px] font-bold">İndir</a>
+              <button type="button" onClick={() => setModal("delete")} className="flex h-9 items-center rounded-pill border border-white/25 px-3.5 text-[13px] font-bold text-coral">Hesabımı sil</button>
+            </span>
           </SettingRow>
         </div>
         <div className={modalFooter}>
@@ -191,5 +182,47 @@ function FollowingList({ following }: { following: Followed[] }) {
         ))}
       </div>
     </>
+  );
+}
+
+/** KVKK: permanent account deletion, confirmed by typing SİL. */
+function DeleteAccountModal({ open, onClose, ownedPlans }: { open: boolean; onClose: () => void; ownedPlans: number }) {
+  const router = useRouter();
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ready = text.trim().toLocaleUpperCase("tr-TR") === "SİL";
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    const r = await deleteMyAccount(text);
+    setBusy(false);
+    if (!r.ok) return setError(r.error);
+    router.push(routes.landing);
+    router.refresh();
+  };
+  return (
+    <Modal open={open} onClose={onClose} title="Hesabımı sil" width={560}>
+      <div className="flex flex-col gap-4 p-5 text-[15px] leading-relaxed">
+        <p className="text-muted">Bu işlem geri alınamaz. Silinecekler:</p>
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-muted">
+          <li>{ownedPlans > 0 ? <><strong className="text-text">Oluşturduğun {ownedPlans} plan</strong>, misafir listeleri, akışları ve albümleriyle. Yaklaşan planların misafirlerine iptal e-postası gider.</> : "Oluşturduğun planlar (şu an yok)."}</li>
+          <li>Başka planlardaki katılımların, yorumların, fotoğrafların ve mesajların.</li>
+          <li>Profilin, bildirimlerin, takip ve hatırlatma tercihlerin.</li>
+        </ul>
+        <p className="text-muted">Önce verilerini indirmek istersen <a href="/api/verilerim" download className="font-bold text-text underline">buradan indir</a>.</p>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-bold">Onaylamak için <span className="text-coral">SİL</span> yaz</span>
+          <input data-autofocus value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" className={field} />
+        </label>
+        {error && <span role="alert" className="text-sm font-bold text-coral">{error}</span>}
+      </div>
+      <div className={modalFooter}>
+        <button type="button" onClick={onClose} className={btnGhost}>Vazgeç</button>
+        <button type="button" disabled={!ready || busy} onClick={submit} className="flex h-12 items-center rounded-pill bg-coral px-6 text-[15px] font-extrabold text-bg disabled:opacity-40">
+          {busy ? "Siliniyor…" : "Hesabımı kalıcı olarak sil"}
+        </button>
+      </div>
+    </Modal>
   );
 }

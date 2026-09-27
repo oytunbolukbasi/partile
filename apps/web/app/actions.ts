@@ -34,6 +34,7 @@ import {
   updateUser,
   upsertRsvp,
   votePoll,
+  deleteAccount as deleteAccountRow,
   setMuted,
   setFollow,
   setLaterReminder,
@@ -75,6 +76,24 @@ export async function verifyCode(email: string, code: string) {
 export async function signOut() {
   await clearSession();
   revalidatePath("/", "layout");
+}
+
+/**
+ * KVKK "Verilerim → Hesabımı sil". Owned plans go with the account; guests of upcoming ones get a cancellation mail.
+ * The demo account is protected while sample content is live.
+ */
+export async function deleteMyAccount(confirm: string) {
+  const v = await getViewer();
+  if (!v) return { ok: false as const, error: "Önce giriş yap." };
+  if (confirm.trim().toLocaleUpperCase("tr-TR") !== "SİL") return { ok: false as const, error: "Onaylamak için SİL yaz." };
+  if (v.email === DEMO_EMAIL) return { ok: false as const, error: "Demo hesabı silinemez." };
+  const r = await deleteAccountRow(v.id);
+  if (!r) return { ok: false as const, error: "Hesap bulunamadı." };
+  for (const c of r.cancelled) await sendCancelMail(c.emails, c.plan, c.hostName || "Düzenleyen", "Düzenleyen hesabını kapattığı için bu plan iptal edildi.");
+  await Promise.all(r.files.map((f) => removeFile(f)));
+  await clearSession();
+  revalidatePath("/", "layout");
+  return { ok: true as const };
 }
 
 export async function completeOnboarding(input: { name: string; birthday?: string; notifications: boolean }) {

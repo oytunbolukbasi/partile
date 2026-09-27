@@ -28,8 +28,8 @@ export default function PrivacyPage() {
       <h2>E-postalar</h2>
       <p>Sana yalnız giriş kodu, davet, duyuru ve katıldığın planların hatırlatmalarını göndeririz. Bir planın bildirimlerini plan sayfasındaki zil ile sessize alabilir, hatırlatmaları profil → hesap ayarlarından kapatabilirsin.</p>
 
-      <h2>Verilerini silmek</h2>
-      <p>Hesabını ve verilerini silmemizi istediğinde 30 gün içinde yaparız. Ayrıntılar ve hakların için <Link href="/kvkk">KVKK Aydınlatma Metni</Link>’ne bak.</p>
+      <h2>Verilerini indirmek ve silmek</h2>
+      <p>Profil → Hesap ayarları → <strong>Verilerim</strong>’den sende tuttuğumuz her şeyi tek bir dosya olarak indirebilir ya da hesabını hemen silebilirsin. Silince oluşturduğun planlar, başka planlardaki katılımların, yorumların, fotoğrafların ve mesajların da silinir; yaklaşan planlarının misafirlerine iptal e-postası gider. Ayrıntılar ve hakların için <Link href="/kvkk">KVKK Aydınlatma Metni</Link>’ne bak.</p>
     </LegalPage>
   );
 }

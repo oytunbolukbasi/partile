@@ -46,11 +46,11 @@ export default function KvkkPage() {
       <p>Plan sayfasındaki bilgiler (adın, katılım yanıtın, yorumların, fotoğrafların) planın düzenleyenlerine ve katılım bildiren diğer misafirlere, planın ayarlarına göre görünür. Herkese açık planlar Keşfet’te listelenir.</p>
 
       <h2>6. Nasıl topluyoruz, ne kadar saklıyoruz</h2>
-      <p>Veriler, siteyi kullanırken formlara girdiğin bilgilerden ve otomatik yollarla (çerez, sunucu kaydı) elektronik ortamda toplanır. Hesabın açık olduğu sürece saklanır; hesabını silmeni istediğinde 30 gün içinde silinir ya da anonimleştirilir. Tek seferlik doğrulama kodları 10 dakika geçerlidir. Yasal saklama süresi olan kayıtlar bu süre boyunca tutulur.</p>
+      <p>Veriler, siteyi kullanırken formlara girdiğin bilgilerden ve otomatik yollarla (çerez, sunucu kaydı) elektronik ortamda toplanır. Hesabın açık olduğu sürece saklanır. Profil → Hesap ayarları → Verilerim’den hesabını sildiğinde veritabanından hemen silinir; yedeklerden en geç 30 gün içinde çıkar. Tek seferlik doğrulama kodları 10 dakika geçerlidir. Yasal saklama süresi olan kayıtlar bu süre boyunca tutulur.</p>
 
       <h2>7. Hakların</h2>
       <p>KVKK md. 11 uyarınca; verilerinin işlenip işlenmediğini öğrenme, bilgi talep etme, amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, aktarıldığı üçüncü kişileri bilme, eksik ya da yanlış işlenmişse düzeltilmesini, silinmesini veya yok edilmesini isteme, bu işlemlerin aktarılan kişilere bildirilmesini isteme, otomatik analiz sonucu aleyhine bir sonuca itiraz etme ve kanuna aykırı işleme sebebiyle zarara uğradıysan zararın giderilmesini talep etme hakların vardır.</p>
-      <p>Başvurunu kayıtlı e-posta adresinden <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a> adresine gönderebilirsin; en geç 30 gün içinde ücretsiz yanıtlarız.</p>
+      <p>Verilerinin bir kopyasını Profil → Hesap ayarları → Verilerim → İndir ile hemen alabilirsin. Diğer talepler için başvurunu kayıtlı e-posta adresinden <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a> adresine gönderebilirsin; en geç 30 gün içinde ücretsiz yanıtlarız.</p>
     </LegalPage>
   );
 }

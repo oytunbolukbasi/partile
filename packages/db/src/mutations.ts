@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { slugify, type PlanDraft, type Rsvp } from "@partile/core";
 import { getDb } from "./client";
 import { blasts, conversations, feedItems, follows, guests, laterReminders, planCodeAliases, messages, notifications, photos, planHosts, planMutes, plans, pollOptions, pollVotes, reminderLog, users, verificationCodes } from "./schema";
@@ -522,4 +522,64 @@ export async function markLaterReminderSent(planId: string, userId: string, text
   const db = await getDb();
   await db.update(laterReminders).set({ sentAt: new Date() }).where(and(eq(laterReminders.planId, planId), eq(laterReminders.userId, userId)));
   await db.insert(notifications).values({ id: id(), userId, planId, kind: "reminder", actorName: "partile", text, role: "guest" });
+}
+
+/* ---------- account deletion (KVKK) ---------- */
+
+export type AccountDeletion = {
+  /** Stored upload URLs to remove from disk (posters of owned plans, album photos). */
+  files: string[];
+  /** Upcoming published plans the user owned: their guests get a cancellation e-mail. */
+  cancelled: { plan: { title: string; code: string; startsAt?: string }; hostName: string; emails: string[] }[];
+};
+
+/**
+ * Deletes the user and everything that is theirs: owned plans (with guests, feed, album, messages), co-host seats,
+ * RSVPs and invites under their e-mail, comments, uploaded photos, conversations, notifications, follows, mutes,
+ * reminders and pending codes. Plans owned by others stay; the user's traces in them go.
+ */
+export async function deleteAccount(userId: string): Promise<AccountDeletion | null> {
+  const db = await getDb();
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) return null;
+  const now = new Date();
+
+  // Owned plans: note what to mail and which files to remove, then drop them (children cascade).
+  const owned = await db.select().from(plans).where(eq(plans.ownerId, userId));
+  const ownedIds = owned.map((p) => p.id);
+  const files: string[] = owned.map((p) => p.posterUrl).filter((u): u is string => !!u && u.startsWith("/api/dosya/"));
+  const cancelled: AccountDeletion["cancelled"] = [];
+  for (const p of owned) {
+    if (p.status !== "published" || (p.startsAt && p.startsAt.getTime() <= now.getTime())) continue;
+    const gs = await db.select({ email: guests.email }).from(guests).where(and(eq(guests.planId, p.id), ne(guests.status, "no")));
+    const emails = [...new Set(gs.map((g) => g.email).filter((e): e is string => !!e && e !== user.email))];
+    if (emails.length) cancelled.push({ plan: { title: p.title, code: p.code, startsAt: p.startsAt?.toISOString() }, hostName: user.name, emails });
+  }
+  if (ownedIds.length) {
+    const albums = await db.select({ url: photos.url }).from(photos).where(inArray(photos.planId, ownedIds));
+    files.push(...albums.map((a) => a.url));
+    await db.delete(plans).where(inArray(plans.id, ownedIds));
+  }
+
+  // Traces in other people's plans.
+  const mine = await db.select({ id: guests.id, planId: guests.planId, name: guests.name }).from(guests).where(or(eq(guests.userId, userId), eq(guests.email, user.email)));
+  const actorIds = [userId, ...mine.map((g) => g.id)];
+  // Notifications other people got about this user (RSVPs, messages, co-host replies) carry their name: drop them too.
+  const touched = [...new Set([...mine.map((g) => g.planId), ...(await db.select({ planId: planHosts.planId }).from(planHosts).where(eq(planHosts.userId, userId))).map((h) => h.planId)])];
+  const names = [...new Set([user.name, ...mine.map((g) => g.name)].map((n) => n.trim()).filter(Boolean))];
+  if (touched.length && names.length) await db.delete(notifications).where(and(inArray(notifications.planId, touched), inArray(notifications.actorName, names)));
+  await db.delete(feedItems).where(inArray(feedItems.actorId, actorIds));
+  if (mine.length) await db.delete(guests).where(inArray(guests.id, mine.map((g) => g.id)));
+  const ownPhotos = await db.select({ url: photos.url }).from(photos).where(eq(photos.userId, userId));
+  files.push(...ownPhotos.map((p) => p.url));
+  await db.delete(photos).where(eq(photos.userId, userId));
+  await db.delete(conversations).where(or(eq(conversations.hostId, userId), eq(conversations.guestId, userId)));
+  await db.delete(messages).where(eq(messages.senderId, userId));
+  await db.delete(blasts).where(eq(blasts.userId, userId));
+  await db.delete(planHosts).where(eq(planHosts.userId, userId));
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+  await db.delete(verificationCodes).where(eq(verificationCodes.email, user.email));
+  await db.delete(users).where(eq(users.id, userId)); // follows, mutes, later reminders cascade
+
+  return { files: [...new Set(files)], cancelled };
 }
