@@ -142,14 +142,14 @@ function PlanCard({ plan, role, viewerId, compact, menuOpen, onMenu, onClose }: 
         { label: "Düzenle", href: `${routes.create}?kod=${plan.code}`, Icon: PencilIcon },
         { label: "Paylaş", href: "#", Icon: ShareIcon },
         { label: "Katılımcılar", href: "#", Icon: UsersIcon },
-        { label: "Takvime ekle", href: "#", Icon: CalendarIcon },
+        { label: "Takvime ekle (.ics)", href: `/api/takvim/${plan.code}`, Icon: CalendarIcon },
         { label: "Kopyala (yeni plan)", href: routes.create, Icon: CopyIcon },
         { label: "Sessize al", href: "#", Icon: BellOffIcon },
       ]
     : [
         { label: "Katılımı değiştir", href, Icon: PencilIcon },
         { label: "Paylaş", href: "#", Icon: ShareIcon },
-        { label: "Takvime ekle", href: "#", Icon: CalendarIcon },
+        { label: "Takvime ekle (.ics)", href: `/api/takvim/${plan.code}`, Icon: CalendarIcon },
         { label: "Sessize al", href: "#", Icon: BellOffIcon },
       ];
 

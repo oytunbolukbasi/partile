@@ -9,6 +9,7 @@ import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
+import { CalendarMenu } from "@/components/plan/CalendarMenu";
 import { openConversation, respondCohost } from "@/app/actions";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
@@ -119,7 +120,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
             {joined ? (
               <>
                 <span className={chip}>TSİ</span>
-                <button type="button" className={chip}><CalendarIcon size={16} /> Takvime ekle</button>
+                <CalendarMenu plan={plan} full />
                 <button type="button" aria-label="Davet et" className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><SendIcon size={16} /></button>
                 <button type="button" aria-label="Sessize al" className="flex size-10 items-center justify-center rounded-pill border border-white/28 bg-white/8"><BellIcon size={16} /></button>
               </>
@@ -245,11 +246,15 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false, cohostInv
               <button type="button" className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-white text-[15px] font-extrabold text-bg"><SendIcon /> Arkadaşlarını davet et</button>
             </div>
           )}
-          <div className="glass flex w-full items-center gap-3 rounded-xl p-4">
-            <span className="flex size-11 items-center justify-center rounded-md bg-white/10"><CalendarIcon /></span>
-            <span className="flex grow flex-col"><span className="text-[15px] font-bold">Takvime ekle</span><span className="text-[13px] opacity-80">Google · Apple · .ics</span></span>
-            {!joined && <span className="text-[13px] opacity-70">Katılım sonrası</span>}
-          </div>
+          {joined ? (
+            <CalendarMenu plan={plan} full variant="card" className="w-full" />
+          ) : (
+            <div className="glass flex w-full items-center gap-3 rounded-xl p-4">
+              <span className="flex size-11 items-center justify-center rounded-md bg-white/10"><CalendarIcon /></span>
+              <span className="flex grow flex-col"><span className="text-[15px] font-bold">Takvime ekle</span><span className="text-[13px] opacity-80">Google · Apple · .ics</span></span>
+              <span className="text-[13px] opacity-70">Katılım sonrası</span>
+            </div>
+          )}
         </aside>
       </div>
 

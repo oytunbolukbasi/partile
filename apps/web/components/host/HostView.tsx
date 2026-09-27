@@ -14,6 +14,7 @@ import { PollModal } from "@/components/create/PollModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
 import { AlbumSection } from "@/components/plan/AlbumSection";
+import { CalendarMenu } from "@/components/plan/CalendarMenu";
 import { gradientFor } from "@partile/core";
 import { Poster } from "@/components/plan/Poster";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
@@ -189,6 +190,7 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
               </div>
             </div>
 
+            <CalendarMenu plan={plan} full variant="card" className="w-full" />
             <div className="flex w-full flex-col gap-2.5 rounded-xl border border-white/14 bg-white/8 p-4">
               <span className="text-[15px] font-bold">Otomatik hatırlatmalar</span>
               {plan.remindersEnabled && remindAt && remind2h ? (
