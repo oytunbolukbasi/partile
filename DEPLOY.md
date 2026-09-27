@@ -9,6 +9,8 @@ Tek servis (web) + Postgres + kalıcı volume + saatlik cron. Görsel dosyalar v
 3. Web servisi → **Volumes → Add Volume**, mount path **`/data`** (yüklemeler `/data/uploads`'a yazılır; `UPLOAD_DIR` imajda hazır).
 4. **Settings → Networking → Custom Domain**: `getpartile.com` ve `www.getpartile.com`. Railway'in verdiği CNAME'leri DNS'e ekle (apex için ALIAS/ANAME ya da Railway'in IP yönergesi).
 
+Sık görülen hata: **“The executable `pnpm` could not be found”** — Railway servis ayarında bir *Custom Start Command* (ör. `pnpm start`) kalmıştır. Settings → Deploy → Custom Start Command alanını boşalt; `railway.toml` zaten `node apps/web/server.js` ile başlatır. Servis “Unexposed” görünüyorsa Settings → Networking → **Generate Domain** (ya da custom domain) ile dışa aç.
+
 ## 2. Ortam değişkenleri (web servisi)
 
 | Değişken | Değer |

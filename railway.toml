@@ -4,6 +4,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+# The runtime image has no pnpm; always start the standalone server directly.
+startCommand = "node apps/web/server.js"
 healthcheckPath = "/api/saglik"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
