@@ -27,6 +27,7 @@ import { routes } from "@/lib/routes";
 import { DatePickerModal } from "./DatePickerModal";
 import { LocationModal } from "./LocationModal";
 import { PosterModal } from "./PosterModal";
+import { useSession } from "@/lib/session";
 import { SettingsModal, type SettingsTab } from "./SettingsModal";
 import { ThemePanel } from "./ThemePanel";
 
@@ -40,6 +41,10 @@ export function CreateEditor() {
   const [sheet, setSheet] = useState<"theme" | null>(null);
   const [modal, setModal] = useState<"date" | "location" | "poster" | "settings" | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
+  // Publishing lands on the sample plan's share step until the data layer exists; signed-out users verify first.
+  const { session } = useSession();
+  const shareTarget = `${routes.plan("ece30")}?paylas=1`;
+  const publishHref = session ? shareTarget : `${routes.login}?next=${encodeURIComponent(shareTarget)}`;
   const openSettings = (t: SettingsTab) => {
     setSettingsTab(t);
     setModal("settings");
@@ -277,7 +282,7 @@ export function CreateEditor() {
         <Link href={routes.home} className="flex h-14 items-center rounded-pill border border-white/30 bg-bg/55 px-5.5 text-base font-bold text-text">
           Taslağı kaydet
         </Link>
-        <Link href={routes.login} className="flex h-14 items-center gap-2.5 rounded-pill bg-white px-6.5 text-base font-extrabold text-bg shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+        <Link href={publishHref} className="flex h-14 items-center gap-2.5 rounded-pill bg-white px-6.5 text-base font-extrabold text-bg shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
           Yayınla ve paylaş <ArrowRightIcon size={18} />
         </Link>
       </div>
@@ -300,7 +305,7 @@ export function CreateEditor() {
             <EyeIcon /> Önizle
           </button>
         </div>
-        <Link href={routes.login} className="flex h-[54px] items-center justify-center gap-2 rounded-pill bg-white text-base font-extrabold text-bg">
+        <Link href={publishHref} className="flex h-[54px] items-center justify-center gap-2 rounded-pill bg-white text-base font-extrabold text-bg">
           Yayınla ve paylaş <ArrowRightIcon size={18} />
         </Link>
         {sheet === "theme" && (

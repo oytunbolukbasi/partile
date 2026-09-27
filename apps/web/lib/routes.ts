@@ -2,6 +2,7 @@
 export const routes = {
   landing: "/",
   login: "/giris",
+  onboarding: "/ilk-giris",
   home: "/planlar",
   create: "/olustur",
   profile: "/profil",

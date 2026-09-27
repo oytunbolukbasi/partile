@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { formatDayLong, formatDayShort, formatTime, formatTimeRange, formatTry, planUrl, rsvpLabel, type PlanDraft } from "@partile/core";
 import { themeById } from "@partile/ui-tokens";
@@ -10,6 +11,7 @@ import { GuestListModal } from "@/components/host/GuestListModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { Poster } from "@/components/plan/Poster";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
+import { ShareModal } from "@/components/share/ShareModal";
 import { Rail } from "@/components/shell/Rail";
 import { CrownIcon, EyeIcon, LockIcon, PencilIcon, ShareIcon } from "@/components/shell/icons";
 import { countByStatus, me, type Blast, type Guest, type Plan } from "@/lib/fixtures";
@@ -27,7 +29,8 @@ const timeAgo = (iso: string) => {
 export function HostView({ plan: initial }: { plan: Plan }) {
   const [plan, setPlan] = useState(initial);
   const [guests, setGuests] = useState<Guest[]>(initial.guests);
-  const [modal, setModal] = useState<"guests" | "blast" | "settings" | null>(null);
+  const params = useSearchParams();
+  const [modal, setModal] = useState<"guests" | "blast" | "settings" | "share" | null>(params.get("paylas") ? "share" : null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("rsvp");
   const [copied, setCopied] = useState(false);
   const t = themeById(plan.themeId);
@@ -68,7 +71,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
           <button type="button" onClick={() => setModal("blast")} className={tool}>Duyuru</button>
           <button type="button" onClick={() => openSettings("rsvp")} className={tool}>Ayarlar</button>
           <Link href={`${routes.plan(plan.code)}?goruntule=misafir`} className={tool} title="Misafir gözüyle gör"><EyeIcon size={16} /> Misafir gözüyle</Link>
-          <button type="button" onClick={copy} className="ml-auto flex h-11 shrink-0 items-center gap-2 rounded-pill bg-white px-4.5 text-sm font-extrabold text-bg"><ShareIcon size={16} /> {copied ? "Kopyalandı" : "Paylaş"}</button>
+          <button type="button" onClick={() => setModal("share")} className="ml-auto flex h-11 shrink-0 items-center gap-2 rounded-pill bg-white px-4.5 text-sm font-extrabold text-bg"><ShareIcon size={16} /> Paylaş</button>
         </div>
 
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-[72px]">
@@ -172,7 +175,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
               <div className="flex h-11 items-center gap-2 rounded-lg bg-bg/50 pl-3 pr-1.5"><span className="grow truncate text-sm font-semibold">{url.replace("https://", "")}</span><button type="button" onClick={copy} className="h-8 rounded-md bg-white px-3 text-xs font-extrabold text-bg">{copied ? "Kopyalandı" : "Kopyala"}</button></div>
               <div className="grid grid-cols-2 gap-2">
                 <a href={`https://wa.me/?text=${encodeURIComponent(`${plan.title} · ${url}`)}`} target="_blank" rel="noreferrer" className="flex h-10 items-center justify-center rounded-[10px] bg-[#25D366] text-[13px] font-extrabold text-[#0B141A]">WhatsApp</a>
-                <button type="button" className="flex h-10 items-center justify-center rounded-[10px] border border-white/30 text-[13px] font-bold" title="Yakında">Hikâye afişi</button>
+                <button type="button" onClick={() => setModal("share")} className="flex h-10 items-center justify-center rounded-[10px] border border-white/30 text-[13px] font-bold">Hikâye afişi</button>
               </div>
             </div>
 
@@ -197,6 +200,7 @@ export function HostView({ plan: initial }: { plan: Plan }) {
         </div>
       </div>
 
+      <ShareModal plan={plan} open={modal === "share"} onClose={() => setModal(null)} onSettings={(tab) => openSettings(tab)} />
       <GuestListModal plan={plan} guests={guests} open={modal === "guests"} onClose={() => setModal(null)} onChange={setGuests} onBlast={() => setModal("blast")} />
       <BlastModal plan={plan} guests={guests} open={modal === "blast"} onClose={() => setModal(null)} onSend={sendBlast} />
       <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={plan} onSave={(p: Partial<PlanDraft>) => { setPlan({ ...plan, ...p }); setModal(null); }} />
