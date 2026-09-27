@@ -21,6 +21,7 @@ apps/web
                       plan (PlanView, RsvpFlow, PollCard, Poster, ThemeSurface, Avatar) · host (HostView, GuestList, Blast, PollResults)
                       share (ShareModal, StoryPoster) · home · notifications · profile · auth (LoginForm, Onboarding) · ui (Modal, Toggle)
   lib/                routes · fixtures (Plan, me, roleFor, myPlans, notifications) · draft · guest (RSVP + anket oyu) · session · geocode (Photon) · occasions · fonts
+  lib/storage.ts       yükleme deposu (dev: ./.data/uploads → /api/dosya/…; prod: blob servisi bağlanacak) · app/api/yukle (afiş/fotoğraf yükleme)
   lib/auth.ts          imzalı çerez oturumu (getViewer/requireViewer) · lib/mail.ts Resend şablonları · app/actions.ts tüm server action'lar
   app/giris/dogrula    sihirli link (e-postadaki kod + link aynı kaydı tüketir)
 packages/db           Drizzle şeması (users, verification_codes, plans, plan_hosts, guests, poll_options, poll_votes, feed_items, blasts, notifications),
@@ -58,6 +59,7 @@ Tuvali güncelleme: şablonu `design/canvas/tpl/` altında düzenle → `python3
 | Platform | Önce **Next.js web (mobile-first)**, sonra Expo RN. Monorepo (Turborepo): `apps/web`, `apps/mobile`, `packages/ui-tokens`, `packages/core` (tipler, validasyon, API client). |
 | Auth | **E-posta + tek seferlik kod / sihirli link (Resend)**, şifre yok. Misafir katılım bildirirken ad + e-posta verir, e-postadaki 6 haneli kodu girer ya da linke tıklar; giriş duvarı yok. Karar (27 Eyl 2026): SMS/Twilio maliyeti MVP'de üstlenilmiyor; ürün tutarsa telefon + SMS OTP ikinci doğrulama yöntemi olarak eklenir. Resend hesabı hazır. |
 | Mesajlar | Karar (27 Eyl 2026): plan bazlı düzenleyen ↔ misafir yazışması (`conversations` + `messages`), grup sohbeti yok. Giriş noktaları: plan sayfası “Düzenleyene yaz”, katılımcı listesi “Mesaj” (hesabı olan misafir). Yeni mesaj bildirim üretir. |
+| Fotoğraf & afiş | Karar (27 Eyl 2026): JPG/PNG/GIF/WebP, en fazla 8 MB, boyutlandırma yok (prod’da blob + görüntü işleme eklenecek). Giriş yapmadan seçilen afiş taslakta `data:` URL olarak durur (≤1,5 MB), yayınlanırken dosyaya dönüşür. Albüm: düzenleyen her zaman, misafir “albüme yükleyebilir” açıksa ve Geliyorum/Belki ise yükler; kendi fotoğrafını ve düzenleyen hepsini silebilir. |
 | Dağıtım | **WhatsApp birincil** (OG kartı: afiş + tarih + "Geliyor musun?"), sonra link/QR/hikâye afişi. Duyuru ve hatırlatma kanalı (MVP): **uygulama içi bildirim + e-posta (Resend)**. WhatsApp Business API ve SMS ileride. |
 | Görünürlük | Varsayılan **Gizli** (linke sahip olanlar). Karar (27 Eyl 2026): **Herkese açık + Keşfet MVP'ye alındı** — `/kesfet` herkese açık planları semte göre listeler. Katılımcı listesi, akış, albüm ve tam adres her durumda yalnız katılım bildirenlere. |
 | Gizlilik / mevzuat | Düzenleyen misafirin e-postasını **göremez**. KVKK aydınlatma + açık rıza (e-posta), İYS/ETK (hatırlatma e-postası işlem mesajıdır; pazarlama e-postası ayrı izin). |

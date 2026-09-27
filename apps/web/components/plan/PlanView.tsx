@@ -8,6 +8,7 @@ import { Mark } from "@/components/brand/Mark";
 import { MarkTile, Wordmark } from "@/components/brand/Mark";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
+import { AlbumSection } from "@/components/plan/AlbumSection";
 import { openConversation } from "@/app/actions";
 import { gradientFor } from "@partile/core";
 import { PollCard } from "@/components/plan/PollCard";
@@ -178,13 +179,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
 
           {joined && (
             <>
-              <section className="flex flex-col gap-3.5">
-                <div className="flex items-center justify-between"><h2 className="display text-[26px] tracking-tight">Fotoğraf albümü</h2><button type="button" className={chip}>Linki kopyala</button></div>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button type="button" className="glass flex h-20 items-center justify-center rounded-lg border-dashed text-[15px] font-bold">Kamera</button>
-                  <button type="button" className="glass flex h-20 items-center justify-center rounded-lg border-dashed text-[15px] font-bold">Yükle</button>
-                </div>
-              </section>
+              <AlbumSection code={plan.code} photos={plan.photos} viewerId={viewer?.id ?? null} isHost={false} canUpload={!preview && plan.albumGuestsCanUpload && !!viewer} chipClass={chip} />
               <section className="flex flex-col gap-4">
                 <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length} güncelleme</span></div>
                 {!preview && <CommentBox code={plan.code} initials={viewer?.initials ?? "?"} gradient={gradientFor(viewer?.id ?? "me")} />}

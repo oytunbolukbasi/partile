@@ -29,6 +29,7 @@ export function PreviewOverlay({ draft, viewer, code, onClose }: { draft: PlanDr
     guests: [],
     feed: [],
     blasts: [],
+    photos: [],
     views: 0,
   };
 

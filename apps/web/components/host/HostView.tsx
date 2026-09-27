@@ -13,6 +13,7 @@ import { PollResults } from "@/components/host/PollResults";
 import { PollModal } from "@/components/create/PollModal";
 import { Avatar, AvatarStack } from "@/components/plan/Avatar";
 import { CommentBox } from "@/components/plan/CommentBox";
+import { AlbumSection } from "@/components/plan/AlbumSection";
 import { gradientFor } from "@partile/core";
 import { Poster } from "@/components/plan/Poster";
 import { ThemeSurface } from "@/components/plan/ThemeSurface";
@@ -145,6 +146,8 @@ export function HostView({ plan, viewerId }: { plan: Plan; viewerId: string }) {
               </div>
               <AvatarStack items={guests.filter((g) => g.status === "going").slice(0, 4)} ring="rgba(0,0,0,0.35)" more={Math.max(0, guests.length - 4)} />
             </section>
+
+            <AlbumSection code={plan.code} photos={plan.photos} viewerId={viewerId} isHost canUpload chipClass={chip} />
 
             <section className="flex flex-col gap-4">
               <div className="flex flex-col gap-0.5"><h2 className="display text-[26px] tracking-tight">Akış</h2><span className="text-base opacity-85">{plan.feed.length} güncelleme · düzenleyen olarak yorum silebilirsin</span></div>

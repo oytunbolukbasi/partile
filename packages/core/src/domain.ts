@@ -73,7 +73,11 @@ export const PlanDraft = z.object({
   title: z.string().trim().min(1, "Planın adı gerekli").max(80),
   titleFont: z.string().default("klasik"),
   themeId: z.string().default("kor"),
-  posterUrl: z.string().url().optional(),
+  /** Absolute URL, a `data:` URL (draft made while signed out) or a same-origin path like `/api/dosya/…`. */
+  posterUrl: z
+    .string()
+    .refine((v) => v.startsWith("/") || /^(https?:|data:image\/)/.test(v), "Geçersiz afiş adresi")
+    .optional(),
   /** Text rendered on the generated poster when there is no image (template pick). */
   posterText: z.string().max(24).optional(),
   description: z.string().max(2000).optional(),

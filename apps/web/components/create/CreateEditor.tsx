@@ -388,6 +388,7 @@ export function CreateEditor({ viewer, existing, autoPublish = false }: { viewer
       />
       <SettingsModal open={modal === "settings"} onClose={() => setModal(null)} initialTab={settingsTab} draft={draft} onSave={patch} />
       <PosterModal
+        canUpload={!!viewer}
         open={modal === "poster"}
         onClose={() => setModal(null)}
         onSave={(v) => {

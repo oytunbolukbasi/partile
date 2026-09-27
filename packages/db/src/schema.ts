@@ -221,3 +221,20 @@ export const messages = pgTable(
   },
   (t) => [index("messages_conversation_idx").on(t.conversationId)],
 );
+
+/** Album photos (host and guests who answered). Files live in blob storage; only the URL is stored. */
+export const photos = pgTable(
+  "photos",
+  {
+    id: text("id").primaryKey(),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    url: text("url").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("photos_plan_idx").on(t.planId)],
+);

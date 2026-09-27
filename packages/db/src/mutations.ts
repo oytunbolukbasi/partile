@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { PlanDraft, Rsvp } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, planHosts, plans, pollOptions, pollVotes, users, verificationCodes } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, users, verificationCodes } from "./schema";
 
 const id = () => randomUUID();
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -313,4 +313,33 @@ export async function sendMessage(conversationId: string, senderId: string, text
 export async function markConversationRead(conversationId: string, userId: string) {
   const db = await getDb();
   await db.update(messages).set({ readAt: new Date() }).where(and(eq(messages.conversationId, conversationId), sql`${messages.senderId} <> ${userId}`, isNull(messages.readAt)));
+}
+
+/* ---------- album ---------- */
+
+/** Hosts always may upload; guests only when they answered and the plan allows it. */
+export async function canUploadPhoto(planId: string, userId: string): Promise<boolean> {
+  const db = await getDb();
+  if (await isHost(planId, userId)) return true;
+  const [plan] = await db.select({ allow: plans.albumGuestsCanUpload }).from(plans).where(eq(plans.id, planId)).limit(1);
+  if (!plan?.allow) return false;
+  const [g] = await db.select({ status: guests.status }).from(guests).where(and(eq(guests.planId, planId), eq(guests.userId, userId))).limit(1);
+  return !!g && (g.status === "going" || g.status === "maybe");
+}
+
+export async function addPhoto(planId: string, userId: string, url: string) {
+  const db = await getDb();
+  const pid = id();
+  await db.insert(photos).values({ id: pid, planId, userId, url });
+  return pid;
+}
+
+/** Owner of the photo or a host of the plan may delete. Returns the URL so storage can drop the file. */
+export async function removePhoto(planId: string, photoId: string, userId: string): Promise<string | null> {
+  const db = await getDb();
+  const [p] = await db.select().from(photos).where(and(eq(photos.id, photoId), eq(photos.planId, planId))).limit(1);
+  if (!p) return null;
+  if (p.userId !== userId && !(await isHost(planId, userId))) return null;
+  await db.delete(photos).where(eq(photos.id, photoId));
+  return p.url;
 }

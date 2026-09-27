@@ -12,6 +12,7 @@ import {
   isHost,
   listGuestEmails,
   markNotificationsRead,
+  removePhoto,
   ensureConversation,
   sendMessage,
   markConversationRead,
@@ -28,6 +29,7 @@ import {
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
 import { mailEnabled, sendBlastMail, sendVerificationMail } from "@/lib/mail";
+import { materialize, remove as removeFile } from "@/lib/storage";
 import { routes } from "@/lib/routes";
 
 const EMAIL = /^\S+@\S+\.\S+$/;
@@ -82,7 +84,8 @@ export async function publishDraft(input: unknown) {
   if (!v) return { ok: false as const, error: "Önce giriş yap." };
   const parsed = PlanDraft.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Plan eksik." };
-  const { code } = await createPlan(v.id, parsed.data, true);
+  const posterUrl = await materialize(parsed.data.posterUrl);
+  const { code } = await createPlan(v.id, { ...parsed.data, posterUrl }, true);
   revalidatePath(routes.home);
   return { ok: true as const, code };
 }
@@ -97,7 +100,7 @@ async function hostOf(code: string) {
 export async function savePlan(code: string, patch: Partial<PlanDraft>) {
   const h = await hostOf(code);
   if (!h) return { ok: false as const };
-  await updatePlan(h.plan.id, patch);
+  await updatePlan(h.plan.id, "posterUrl" in patch ? { ...patch, posterUrl: await materialize(patch.posterUrl) } : patch);
   revalidatePath(routes.plan(code));
   revalidatePath(routes.home);
   return { ok: true as const };
@@ -231,5 +234,18 @@ export async function readConversation(conversationId: string) {
   const v = await getViewer();
   if (!v) return { ok: false as const };
   await markConversationRead(conversationId, v.id);
+  return { ok: true as const };
+}
+
+/* ---------- album ---------- */
+
+export async function deletePhoto(code: string, photoId: string) {
+  const v = await getViewer();
+  const plan = await getPlanByCode(code);
+  if (!v || !plan) return { ok: false as const };
+  const url = await removePhoto(plan.id, photoId, v.id);
+  if (!url) return { ok: false as const };
+  await removeFile(url);
+  revalidatePath(routes.plan(code));
   return { ok: true as const };
 }

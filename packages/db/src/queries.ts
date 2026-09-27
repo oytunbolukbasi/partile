@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import { gradientFor, initials, type Conversation, type Guest, type Message, type Notification, type Plan, type PlanRole, type RsvpStatus } from "@partile/core";
 import { getDb } from "./client";
-import { blasts, conversations, feedItems, guests, messages, notifications, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
+import { blasts, conversations, feedItems, guests, messages, notifications, photos, planHosts, plans, pollOptions, pollVotes, users } from "./schema";
 
 const isoOf = (d: Date | null | undefined) => (d ? d.toISOString() : undefined);
 
@@ -10,12 +10,13 @@ type PlanRow = typeof plans.$inferSelect;
 /** Assemble the read model for one plan. Guest e-mails are never included. */
 async function assemble(row: PlanRow): Promise<Plan> {
   const db = await getDb();
-  const [hostRows, guestRows, feedRows, blastRows, optionRows] = await Promise.all([
+  const [hostRows, guestRows, feedRows, blastRows, optionRows, photoRows] = await Promise.all([
     db.select({ userId: planHosts.userId, role: planHosts.role, accepted: planHosts.accepted, position: planHosts.position, name: users.name }).from(planHosts).innerJoin(users, eq(users.id, planHosts.userId)).where(eq(planHosts.planId, row.id)).orderBy(asc(planHosts.position)),
     db.select().from(guests).where(eq(guests.planId, row.id)).orderBy(desc(guests.createdAt)),
     db.select().from(feedItems).where(eq(feedItems.planId, row.id)).orderBy(desc(feedItems.createdAt)),
     db.select().from(blasts).where(eq(blasts.planId, row.id)).orderBy(asc(blasts.createdAt)),
     db.select().from(pollOptions).where(eq(pollOptions.planId, row.id)).orderBy(asc(pollOptions.position)),
+    db.select({ p: photos, name: users.name }).from(photos).innerJoin(users, eq(users.id, photos.userId)).where(eq(photos.planId, row.id)).orderBy(desc(photos.createdAt)),
   ]);
 
   let tally: Plan["pollVotes"];
@@ -65,6 +66,7 @@ async function assemble(row: PlanRow): Promise<Plan> {
     guests: guestRows.map(toGuest),
     feed: feedRows.map((f) => ({ id: f.id, guestId: f.actorId, kind: f.kind as "rsvp" | "comment" | "blast", text: f.text ?? undefined, at: f.createdAt.toISOString() })),
     blasts: blastRows.map((b) => ({ id: b.id, at: b.createdAt.toISOString(), to: b.toLabel, count: b.count, text: b.text })),
+    photos: photoRows.map(({ p, name }) => ({ id: p.id, url: p.url, userId: p.userId, name, at: p.createdAt.toISOString() })),
     views: row.views,
     pollVotes: tally,
     publishedAt: isoOf(row.publishedAt),

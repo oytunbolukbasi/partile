@@ -22,6 +22,7 @@ export type Guest = {
   at: string;
 };
 export type FeedItem = { id: string; guestId: string; kind: "rsvp" | "comment" | "blast"; text?: string; at: string };
+export type Photo = { id: string; url: string; userId: string; name: string; at: string };
 export type Blast = { id: string; at: string; to: string; count: number; text: string };
 export type PollVotes = Record<string, { yes: number; maybe: number; no: number }>;
 export type Notification = {
@@ -44,6 +45,7 @@ export type Plan = PlanDraft & {
   guests: Guest[];
   feed: FeedItem[];
   blasts: Blast[];
+  photos: Photo[];
   views: number;
   /** Tally per poll option id, when the plan has a date poll. */
   pollVotes?: PollVotes;

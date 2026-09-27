@@ -22,20 +22,38 @@ const TEMPLATES = [
   { id: "mangal", name: "Mangal", text: "mangal", theme: "derin-deniz", font: "eklektik" },
 ];
 
-const MAX_UPLOAD = 1.5 * 1024 * 1024;
+const MAX_DATA_URL = 1.5 * 1024 * 1024;
+const MAX_UPLOAD = 8 * 1024 * 1024;
 
-/** `PosterPicker` artboard: templates / upload / gallery / GIF. Upload is kept as a data URL in the draft (≤1.5 MB) until storage lands. */
-export function PosterModal({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (v: PosterValue) => void }) {
+/** `PosterPicker` artboard: templates / upload / gallery / GIF. Signed-in hosts upload straight to storage; signed-out drafts keep a small data URL until publish. */
+export function PosterModal({ open, onClose, onSave, canUpload = false }: { open: boolean; onClose: () => void; onSave: (v: PosterValue) => void; canUpload?: boolean }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Şablonlar");
   const [pick, setPick] = useState<string>("30");
   const [upload, setUpload] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const onFile = (f?: File | null) => {
+  const onFile = async (f?: File | null) => {
     if (!f) return;
-    if (!f.type.startsWith("image/")) return setError("Yalnızca görsel dosyası (JPG, PNG, GIF).");
-    if (f.size > MAX_UPLOAD) return setError("Şimdilik 1,5 MB'a kadar; daha büyük görseller depolama bağlanınca.");
+    if (!f.type.startsWith("image/")) return setError("Yalnızca görsel dosyası (JPG, PNG, GIF, WebP).");
+    if (f.size > MAX_UPLOAD) return setError("En fazla 8 MB.");
+    if (canUpload) {
+      setBusy(true);
+      setError(null);
+      try {
+        const fd = new FormData();
+        fd.append("file", f);
+        fd.append("kind", "poster");
+        const r = await fetch("/api/yukle", { method: "POST", body: fd });
+        if (!r.ok) return setError((await r.json().catch(() => ({}))).error ?? "Yüklenemedi.");
+        setUpload((await r.json()).url);
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    if (f.size > MAX_DATA_URL) return setError("Giriş yapmadan 1,5 MB'a kadar; daha büyüğü için önce giriş yap.");
     const r = new FileReader();
     r.onload = () => {
       setUpload(String(r.result));
@@ -118,8 +136,8 @@ export function PosterModal({ open, onClose, onSave }: { open: boolean; onClose:
                 <span className="text-sm text-subtle">ya da</span>
               </>
             )}
-            <button type="button" onClick={() => fileRef.current?.click()} className={btnPrimary}>
-              {upload ? "Başka dosya seç" : "Dosya seç"}
+            <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className={`${btnPrimary} disabled:opacity-50`}>
+              {busy ? "Yükleniyor…" : upload ? "Başka dosya seç" : "Dosya seç"}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
             <span className="text-[13px] text-subtle">{error ?? "Kare olmayanlar kırpılır · GIF'ler hareketli kalır"}</span>
