@@ -156,14 +156,19 @@ export async function submitRsvp(code: string, input: unknown) {
   const v = await getViewer();
   if (!v) return { ok: false as const, error: "Önce e-postanı doğrula." };
   const parsed = Rsvp.safeParse(input);
-  if (!parsed.success) return { ok: false as const, error: "Bir şeyler eksik görünüyor." };
+  if (!parsed.success) return { ok: false as const, error: `Eksik bilgi: ${parsed.error.issues[0]?.message ?? "formu kontrol et"}` };
   const plan = await getPlanByCode(code);
   if (!plan) return { ok: false as const, error: "Plan bulunamadı." };
-  if (!v.name) await updateUser(v.id, { name: parsed.data.name });
-  const r = await upsertRsvp(plan.id, v.id, v.email, parsed.data);
-  revalidatePath(routes.plan(code));
-  revalidatePath(routes.home);
-  return { ok: true as const, status: r?.status };
+  try {
+    if (!v.name) await updateUser(v.id, { name: parsed.data.name });
+    const r = await upsertRsvp(plan.id, v.id, v.email, parsed.data);
+    revalidatePath(routes.plan(code));
+    revalidatePath(routes.home);
+    return { ok: true as const, status: r?.status };
+  } catch (e) {
+    console.error("[rsvp] submit failed", e);
+    return { ok: false as const, error: "Kaydedilemedi, tekrar dene." };
+  }
 }
 
 export async function submitVotes(code: string, name: string, votes: Record<string, "yes" | "maybe" | "no">) {

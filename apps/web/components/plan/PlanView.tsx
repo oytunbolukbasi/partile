@@ -234,7 +234,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
                   <span className="text-xs font-extrabold tracking-wide opacity-75">KATILIMIN</span>
                   <span className="display text-xl tracking-normal">{rsvpLabel[rsvp!.status as RsvpStatus]}</span>
                   {rsvp!.plusOnes ? <span className="text-sm opacity-85">+1 misafir: {rsvp!.plusOneNames?.[0] || rsvp!.plusOnes}</span> : null}
-                  <button type="button" onClick={() => setFlow(rsvp!.status as "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>
+                  <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="w-fit text-sm font-bold" style={{ color: t.accent }}>Değiştir</button>
                 </div>
               </div>
               <button type="button" className="flex h-12 items-center justify-center gap-2.5 rounded-pill bg-white text-[15px] font-extrabold text-bg"><SendIcon /> Arkadaşlarını davet et</button>
@@ -250,7 +250,7 @@ export function PlanView({ plan, viewer, viewerGuest, preview = false }: { plan:
 
       {joined && (
         <div className="fixed inset-x-4 bottom-6 flex h-[60px] items-center gap-1.5 rounded-pill bg-bg p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] md:hidden">
-          <button type="button" onClick={() => setFlow(rsvp!.status as "going")} className="flex h-12 grow items-center justify-center gap-2 rounded-pill text-[15px] font-extrabold text-[#160804]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
+          <button type="button" onClick={() => setFlow(rsvp!.status === "maybe" || rsvp!.status === "no" ? rsvp!.status : "going")} className="flex h-12 grow items-center justify-center gap-2 rounded-pill text-[15px] font-extrabold text-[#160804]" style={{ background: "radial-gradient(circle at 35% 30%, #FFE3A8 0%, #FFB547 45%, #FF7A3D 100%)" }}>
             <CheckIcon size={18} /> {rsvpLabel[rsvp!.status as RsvpStatus]} <ChevronDownIcon size={16} />
           </button>
           <button type="button" className="flex h-12 items-center gap-2 rounded-pill bg-white/12 px-4 text-sm font-bold text-white"><SendIcon size={16} /> Davet et</button>

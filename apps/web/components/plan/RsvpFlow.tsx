@@ -39,8 +39,8 @@ export function RsvpFlow({ plan, viewer, open, initial = "going", existing, onCl
   const [seed, setSeed] = useState({ open, initial });
   if (seed.open !== open || seed.initial !== initial) {
     setSeed({ open, initial });
-    setStep(existing ? 3 : 1);
-    if (!existing) setStatus(initial);
+    setStep(1);
+    setStatus(initial);
     setDigits(Array(6).fill(""));
     setErr(null);
   }
@@ -112,8 +112,9 @@ export function RsvpFlow({ plan, viewer, open, initial = "going", existing, onCl
             </label>
             {err && <p className="text-sm font-bold text-[#C2410C]">{err}</p>}
             <button type="button" onClick={next1} disabled={pending} className="h-14 rounded-pill bg-bg text-base font-extrabold text-white disabled:opacity-60">
-              {viewer ? "Devam et" : "Kodu gönder"}
+              {viewer ? (askDetails ? "Devam et" : "Kaydet") : "Kodu gönder"}
             </button>
+            {existing && <p className="text-center text-xs text-[#5F584F]">Şu anki cevabın: <strong>{STATUS.find((s) => s.id === existing.status)?.label ?? "—"}</strong></p>}
           </>
         )}
 
