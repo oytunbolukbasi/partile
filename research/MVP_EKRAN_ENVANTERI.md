@@ -3,6 +3,8 @@
 > Tasarım tuvali: Claude Design "partile — Tasarım" (35 artboard). Bu doküman, kodlamaya başlamadan önce hangi ekranın çizili, hangisinin yalnızca spesifikasyonla geçileceğini ve hangi fazda olduğunu listeler.
 > Tarih: 26 Eylül 2026 · Ürün kararları ve terminoloji: `CLAUDE.md` · Ham Partiful referansları: `research/screens/`, `research/text/`
 
+**Kod durumu (27 Eyl 2026):** Faz 1 ekranlarının tamamı `apps/web` altında; veri `packages/db` (Drizzle), doğrulama ve duyuru e-postaları Resend. Ekran ↔ dosya eşlemesi için `CLAUDE.md` → “Kod”.
+
 ## Tasarım dili (özet)
 
 | Konu | Karar |

@@ -47,7 +47,7 @@ export function PollCard({ code, themeId, hostName, options, tally, viewer, exis
   const askCode = () =>
     start(async () => {
       if (!name.trim()) return setErr("Adını yaz.");
-      const r = await requestCode(email, "rsvp");
+      const r = await requestCode(email, "rsvp", `/e/${code}`);
       if (!r.ok) return setErr(r.error);
       setErr(null);
       setDevCode(r.devCode);

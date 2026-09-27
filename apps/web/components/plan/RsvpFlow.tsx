@@ -66,7 +66,7 @@ export function RsvpFlow({ plan, viewer, open, initial = "going", existing, onCl
     setErr(null);
     if (viewer && viewer.email === email.trim().toLowerCase()) return askDetails ? setStep(3) : finish();
     start(async () => {
-      const r = await requestCode(email, "rsvp");
+      const r = await requestCode(email, "rsvp", `/e/${plan.code}`);
       if (!r.ok) return setErr(r.error);
       setDevCode(r.devCode);
       setStep(2);

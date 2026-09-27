@@ -63,13 +63,13 @@ export function CodeBoxes({ value, onChange, onEnter, size = "md" }: { value: st
 }
 
 /** `Login` artboard: e-mail → six code boxes. Until Resend is wired the code is shown on screen. */
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm({ next, error }: { next?: string; error?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(error ?? null);
   const [devCode, setDevCode] = useState<string | undefined>();
   const [left, setLeft] = useState(RESEND_SECONDS);
 
@@ -81,7 +81,7 @@ export function LoginForm({ next }: { next?: string }) {
 
   const sendCode = () =>
     start(async () => {
-      const r = await requestCode(email, "login");
+      const r = await requestCode(email, "login", next);
       if (!r.ok) return setErr(r.error);
       setErr(null);
       setDevCode(r.devCode);

@@ -164,3 +164,11 @@ export async function getUserByEmail(email: string) {
   const [u] = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
   return u ?? null;
 }
+
+/** E-mail addresses for mailing guests. Server-side only; never passed to the client or to hosts. */
+export async function listGuestEmails(planId: string, guestIds: string[]): Promise<string[]> {
+  if (!guestIds.length) return [];
+  const db = await getDb();
+  const rows = await db.select({ email: guests.email }).from(guests).where(and(eq(guests.planId, planId), inArray(guests.id, guestIds)));
+  return [...new Set(rows.map((r) => r.email).filter((e): e is string => !!e))];
+}

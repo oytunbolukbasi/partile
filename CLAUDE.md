@@ -7,8 +7,9 @@ Bu dosya projenin ana iskeletidir. Yeni bir oturumda önce burayı, sonra `resea
 ## Durum (27 Eylül 2026)
 
 - Araştırma bitti, tasarım v1 bitti (35 artboard), MVP ekran envanteri yazıldı.
-- **Faz 1 ekranlarının tamamı koda döküldü (27 Eyl 2026), veri katmanı yok:** tüm sayfalar `apps/web/lib/fixtures.ts` (örnek planlar `ece30`, `sahil`, `mangal`) ve `localStorage` (taslak, misafir katılımı, anket oyu, oturum) üzerinden çalışır. Build, typecheck ve core testleri temiz. Kullanıcı en son toplu test edecek.
-- Sıradaki iş: **veri katmanı** (öneri: Postgres — dev'de PGlite, prod'da Neon — + Drizzle; fixture'lar seed olur), ardından **Resend** (giriş kodu, katılım kodu, duyuru ve hatırlatma e-postaları). Efekt paneli, harita karosu, fotoğraf yükleme ve “Misafir ekle” hâlâ yer tutucu.
+- **Faz 1 uçtan uca çalışıyor (27 Eyl 2026):** tüm ekranlar koda döküldü, **veri katmanı** (`packages/db`: Drizzle + Postgres — dev'de PGlite, prod'da Neon) ve **Resend** (giriş/katılım kodu + sihirli link, duyuru e-postası) bağlandı. Build, typecheck, core testleri ve db smoke testi temiz. Kullanıcı en son toplu test edecek.
+- Yerel geliştirme: `DATABASE_URL` boşken `./.data/partile` altında dosya tabanlı Postgres açılır, migrasyonlar koşar ve örnek planlar (`ece30`, `sahil`, `mangal`) seed edilir. **Demo düzenleyen:** `demo@getpartile.com` ile giriş. `RESEND_API_KEY` yokken doğrulama kodu ekranda gösterilir. Sıfırlamak için dev sunucuyu durdurup `rm -rf .data`.
+- Kalan yer tutucular: efekt paneli, fotoğraf/afiş yükleme, albüm, harita karosu, “Misafir ekle”, ortak düzenleyen daveti, takvim (.ics), hatırlatma zamanlayıcısı (cron), Keşfet (Faz 2). Prod için: Neon `DATABASE_URL` + `AUTH_SECRET` + Resend domain doğrulaması (`getpartile.com`) ve `pnpm --filter @partile/db exec drizzle-kit migrate`.
 
 ## Kod
 
@@ -20,6 +21,10 @@ apps/web
                       plan (PlanView, RsvpFlow, PollCard, Poster, ThemeSurface, Avatar) · host (HostView, GuestList, Blast, PollResults)
                       share (ShareModal, StoryPoster) · home · notifications · profile · auth (LoginForm, Onboarding) · ui (Modal, Toggle)
   lib/                routes · fixtures (Plan, me, roleFor, myPlans, notifications) · draft · guest (RSVP + anket oyu) · session · geocode (Photon) · occasions · fonts
+  lib/auth.ts          imzalı çerez oturumu (getViewer/requireViewer) · lib/mail.ts Resend şablonları · app/actions.ts tüm server action'lar
+  app/giris/dogrula    sihirli link (e-postadaki kod + link aynı kaydı tüketir)
+packages/db           Drizzle şeması (users, verification_codes, plans, plan_hosts, guests, poll_options, poll_votes, feed_items, blasts, notifications),
+                      client (PGlite ↔ Neon), queries (okuma modelleri; misafir e-postası düzenleyene asla dönmez), mutations, seed, drizzle/ migrasyonlar
 packages/ui-tokens    src/index.ts (renkler, 8 davetiye teması, başlık fontları) + src/tokens.css
 packages/core         src/domain.ts (zod: PlanDraft, PollOption, Rsvp, Question, CostSettings, RsvpStatus, VerificationCode) · src/format.ts (TR tarih/saat/₺, formatPill, planUrl, initials) + testler
 ```
@@ -28,9 +33,10 @@ packages/core         src/domain.ts (zod: PlanDraft, PollOption, Rsvp, Question,
 - Stil: Tailwind v4, token'lar `globals.css`'te `@theme inline` ile utility oluyor (`bg-panel`, `text-subtle`, `rounded-pill`, `glass`, `glass-menu`, `aura-top`, `display`). Renk/font değeri koda gömülmez, token'dan gelir.
 - Fontlar `next/font/google` ile (Schibsted Grotesk, Hanken Grotesk, Unbounded); davetiye başlık fontları plan sayfasında ihtiyaç anında yüklenir.
 - Rotalar Türkçe: `/`, `/giris`, `/ilk-giris`, `/planlar`, `/olustur`, `/profil`, `/bildirimler`, `/e/{kod}`, `/{occasion}-davetiyesi`. Rail'de Ayarlar yok; avatar → profil → Hesap ayarları.
-- Doğrulama kodu (giriş ve katılım) Resend bağlanana kadar stub: herhangi 6 hane geçer; oturum `partile:session:v1`.
-- Bağımlılıklar: `qrcode` (QR), `html-to-image` (hikâye afişi PNG). Harita/adres: Photon.
-- Env: `apps/web/.env.example` (NEXT_PUBLIC_SITE_URL, RESEND_API_KEY, RESEND_FROM, DATABASE_URL).
+- Doğrulama: 6 haneli kod 10 dk geçerli, tek kullanımlık; e-postada kod + link. Oturum `partile_session` httpOnly çerezi (`AUTH_SECRET` ile HMAC). Misafir katılımı = aynı doğrulama; sonra hesap oluşur.
+- PGlite Next içinde `serverExternalPackages` ile bile bozuluyor (wasm yükleme URL hatası); `packages/db/src/client.ts` paketi Node'un kendi ESM yükleyicisiyle (`new Function("p","return import(p)")`) açar. Şema değişince `pnpm --filter @partile/db generate`; `pnpm --filter @partile/db smoke` uçtan uca test.
+- Bağımlılıklar: `qrcode` (QR), `html-to-image` (hikâye afişi PNG), `resend`, `drizzle-orm` + `@electric-sql/pglite` + `@neondatabase/serverless`. Harita/adres: Photon.
+- Env: `apps/web/.env.example` (NEXT_PUBLIC_SITE_URL, RESEND_API_KEY, RESEND_FROM, DATABASE_URL, AUTH_SECRET).
 - Kod, commit mesajları, tanımlayıcılar İngilizce; UI metinleri Türkçe ve `core`'daki `rsvpLabel` gibi sözlüklerden gelir.
 
 ## Kaynaklar

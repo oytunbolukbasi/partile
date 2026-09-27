@@ -10,6 +10,7 @@ import {
   deleteFeedItem,
   getPlanByCode,
   isHost,
+  listGuestEmails,
   markNotificationsRead,
   pickPollDay,
   removeGuest,
@@ -23,19 +24,22 @@ import {
   votePoll,
 } from "@partile/db";
 import { clearSession, getViewer, setSession } from "@/lib/auth";
+import { mailEnabled, sendBlastMail, sendVerificationMail } from "@/lib/mail";
 import { routes } from "@/lib/routes";
 
 const EMAIL = /^\S+@\S+\.\S+$/;
 
 /* ---------- auth ---------- */
 
-/** Creates a one-time code. Until Resend is wired the code comes back for the UI to show. */
-export async function requestCode(email: string, purpose: "login" | "rsvp" = "login") {
+/** Creates a one-time code and e-mails it (Resend). Without an API key the code comes back for the UI to show. */
+export async function requestCode(email: string, purpose: "login" | "rsvp" = "login", next?: string) {
   const e = email.trim().toLowerCase();
   if (!EMAIL.test(e)) return { ok: false as const, error: "Geçerli bir e-posta gir." };
   const code = await createVerificationCode(e, purpose);
-  const sent = !!process.env.RESEND_API_KEY; // TODO(resend): send the e-mail here
-  return { ok: true as const, devCode: sent ? undefined : code };
+  if (!mailEnabled()) return { ok: true as const, devCode: code };
+  const r = await sendVerificationMail(e, code, purpose, next);
+  if (!r.sent) return { ok: false as const, error: "E-posta gönderilemedi. Biraz sonra tekrar dene." };
+  return { ok: true as const, devCode: undefined };
 }
 
 export async function verifyCode(email: string, code: string) {
@@ -126,7 +130,10 @@ export async function blast(code: string, toLabel: string, guestIds: string[], t
   const h = await hostOf(code);
   if (!h) return { ok: false as const };
   if (h.plan.blasts.length >= 10 || !text.trim()) return { ok: false as const };
-  await sendBlast(h.plan.id, h.v.id, toLabel, guestIds, text.trim().slice(0, 400));
+  const body = text.trim().slice(0, 400);
+  await sendBlast(h.plan.id, h.v.id, toLabel, guestIds, body);
+  const emails = await listGuestEmails(h.plan.id, guestIds);
+  await sendBlastMail(emails, { title: h.plan.title, code: h.plan.code, startsAt: h.plan.startsAt, district: h.plan.location?.district }, h.v.name || "Düzenleyen", body);
   revalidatePath(routes.plan(code));
   return { ok: true as const };
 }
